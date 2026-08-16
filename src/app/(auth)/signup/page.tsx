@@ -1,0 +1,256 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { isValidIsraeliPhone, normalizeInstagram } from "@/lib/format";
+import { demoMode } from "@/lib/config";
+import { ISRAELI_CITIES } from "@/lib/israeli-cities";
+import { Button, Field, Input, Notice, Select } from "@/components/ui";
+
+export default function SignupPage() {
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [needsEmailConfirm, setNeedsEmailConfirm] = useState(false);
+
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+
+    const form = new FormData(e.currentTarget);
+    const fullName = String(form.get("full_name") ?? "").trim();
+    const email = String(form.get("email") ?? "").trim();
+    const password = String(form.get("password") ?? "");
+    const phone = String(form.get("phone") ?? "").trim();
+    const birthDate = String(form.get("birth_date") ?? "").trim();
+    const city = String(form.get("city") ?? "").trim();
+    const instagram = normalizeInstagram(String(form.get("instagram") ?? ""));
+    const waiverAccepted = form.get("waiver_accepted") === "on";
+
+    if (fullName.length < 2) return setError("צריך שם מלא.");
+    if (password.length < 8) return setError("הסיסמה צריכה להיות באורך 8 תווים לפחות.");
+    if (!isValidIsraeliPhone(phone))
+      return setError("מספר הטלפון לא נראה תקין.");
+    if (!birthDate) return setError("צריך תאריך לידה.");
+    if (!city) return setError("צריך לבחור עיר מגורים.");
+    if (!waiverAccepted)
+      return setError("צריך לאשר את כתב הוויתור כדי להצטרף.");
+
+    // בהדגמה אין Supabase לקרוא אליו — הטופס רק מדמה הרשמה אמיתית
+    if (demoMode) {
+      router.push("/events");
+      router.refresh();
+      return;
+    }
+
+    setPending(true);
+    const supabase = createClient();
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        // נקרא ע"י handle_new_user() ליצירת הפרופיל
+        data: {
+          full_name: fullName,
+          phone,
+          birth_date: birthDate,
+          city,
+          instagram,
+        },
+      },
+    });
+    setPending(false);
+
+    if (signUpError) {
+      setError(
+        signUpError.message.includes("already registered")
+          ? "האימייל הזה כבר רשום. אפשר להתחבר."
+          : signUpError.message,
+      );
+      return;
+    }
+
+    // אם אימות אימייל פעיל ב-Supabase, אין session עד שמאשרים
+    if (!data.session) {
+      setNeedsEmailConfirm(true);
+      return;
+    }
+
+    router.push("/events");
+    router.refresh();
+  }
+
+  if (needsEmailConfirm) {
+    return (
+      <div className="space-y-4">
+        <Notice tone="good">
+          שלחנו לכם מייל אישור. אחרי שתאשרו — אפשר להתחבר.
+        </Notice>
+        <Link
+          href="/login"
+          className="block text-center text-sm text-(--color-sea)"
+        >
+          למסך ההתחברות
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="space-y-1 text-center">
+        <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold">
+          הצטרפות לקהילה
+        </h1>
+        <p className="text-sm text-(--color-ink-soft)">
+          פעם אחת, ואתם בפנים.
+        </p>
+      </div>
+
+      <form onSubmit={onSubmit} className="space-y-4">
+        <Field label="שם מלא">
+          <Input
+            name="full_name"
+            autoComplete="name"
+            required
+            placeholder="שיר לוי"
+          />
+        </Field>
+
+        <Field label="אימייל" hint="משמש להתחברות ולשחזור סיסמה">
+          <Input
+            name="email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            dir="ltr"
+            required
+            className="text-left"
+          />
+        </Field>
+
+        <Field label="סיסמה" hint="לפחות 8 תווים">
+          <Input
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            dir="ltr"
+            required
+            minLength={8}
+            className="text-left"
+          />
+        </Field>
+
+        <Field label="טלפון">
+          <Input
+            name="phone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            dir="ltr"
+            required
+            placeholder="050-1234567"
+            className="text-left"
+          />
+        </Field>
+
+        <Field label="תאריך לידה">
+          <Input
+            name="birth_date"
+            type="date"
+            autoComplete="bday"
+            dir="ltr"
+            required
+            max={new Date().toISOString().slice(0, 10)}
+            className="text-left"
+          />
+        </Field>
+
+        <Field label="עיר מגורים">
+          <Select name="city" autoComplete="address-level2" required defaultValue="">
+            <option value="" disabled>
+              בחרו עיר
+            </option>
+            {ISRAELI_CITIES.map((city) => (
+              <option key={city} value={city}>
+                {city}
+              </option>
+            ))}
+          </Select>
+        </Field>
+
+        <Field label="אינסטגרם" hint="שם משתמש או קישור — שניהם טובים">
+          <Input
+            name="instagram"
+            autoComplete="off"
+            dir="ltr"
+            placeholder="@shirlevi"
+            className="text-left"
+          />
+        </Field>
+
+        <p className="text-xs leading-relaxed text-(--color-ink-faint)">
+          בהרשמה אתם מסכימים שהשם, התמונה והאינסטגרם שלכם יוצגו לחברי
+          קהילה אחרים <strong className="text-(--color-ink-soft)">שנכחו
+          באותו מפגש כמוכם</strong> — ולא לאף אחד אחר.
+        </p>
+
+        <div className="space-y-3">
+          <div className="max-h-40 space-y-2 overflow-y-auto rounded-xl border border-(--color-line) bg-(--color-haze) p-4 text-xs leading-relaxed text-(--color-ink-soft)">
+            <p className="font-bold text-(--color-ink)">
+              כתב ויתור – השתתפות על אחריות אישית בלבד
+            </p>
+            <p>
+              בהצטרפות לכל פעילות של Swell Club (לרבות שחייה משותפת, מפגשים
+              ואירועים), אני מאשר/ת כי השתתפותי היא מרצוני החופשי ועל
+              אחריותי האישית בלבד.
+            </p>
+            <p>
+              ידוע לי כי שחייה במים פתוחים כרוכה בסיכונים, לרבות תנאי ים
+              משתנים, זרמים, גלים וסיכונים נוספים הנובעים מהשהייה בים.
+            </p>
+            <p>
+              אני מצהיר/ה כי אני אחראי/ת לוודא שמצבי הבריאותי, הכושר הגופני
+              והיכולת האישית שלי מתאימים להשתתפות בפעילות, וכי אני
+              מתחייב/ת לפעול בהתאם להנחיות צוות Swell Club במהלך המפגשים.
+            </p>
+            <p>
+              אני מבין/ה כי צוות Swell Club אינו אחראי לכל פגיעה, נזק,
+              אובדן או הוצאה שעלולים להיגרם לפני, במהלך או לאחר הפעילות,
+              בכפוף לכל דין.
+            </p>
+          </div>
+
+          <label className="flex items-start gap-2.5 text-sm text-(--color-ink)">
+            <input
+              type="checkbox"
+              name="waiver_accepted"
+              required
+              className="mt-0.5 size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
+            />
+            <span>
+              קראתי ואני מאשר/ת את כתב הוויתור שלמעלה. בלי אישור אי אפשר
+              להצטרף לקהילה.
+            </span>
+          </label>
+        </div>
+
+        {error && <Notice tone="error">{error}</Notice>}
+
+        <Button type="submit" disabled={pending} className="w-full">
+          {pending ? "רגע…" : "הצטרפות"}
+        </Button>
+      </form>
+
+      <p className="text-center text-sm text-(--color-ink-soft)">
+        כבר חלק מהקהילה?{" "}
+        <Link href="/login" className="font-semibold text-(--color-sea)">
+          התחברות
+        </Link>
+      </p>
+    </div>
+  );
+}

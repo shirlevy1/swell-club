@@ -1,0 +1,154 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import {
+  getViewer,
+  getSelfieHistory,
+  getEventPhotoCollages,
+  getRecentMonthStats,
+} from "@/lib/data";
+import { demoMode } from "@/lib/config";
+import { attendanceStreak } from "@/lib/streak";
+import { StreakCard } from "@/components/streak-card";
+import { NotificationToggle } from "@/components/notification-toggle";
+import { SelfieHistory } from "@/components/selfie-history";
+import { Button } from "@/components/ui";
+
+function EditIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  );
+}
+
+/**
+ * "נכחתם ב-Y מתוך X מפגשים שהיו בחודש האחרון" — X ו-Y תמיד ספרות, גם
+ * כש-Y הוא 0 או 1: זו כאן יחס/סטטיסטיקה ולא ספירה של שם עצם, ולכן לא
+ * דורשת את "מפגש אחד" הכתוב במלא כמו במקומות אחרים באפליקציה.
+ * "שהיה"/"שהיו" משתנה לפי יחיד/רבים של X, לא רק "שהיו" קבוע.
+ *
+ * "בחודש האחרון" הוא חלון נגלל של 30 יום אחורה מעכשיו (למשל
+ * 17.7–16.8), לא חודש קלנדרי — ראו getRecentMonthStats ב-lib/data.ts.
+ */
+function monthAttendanceLine(attended: number, total: number) {
+  if (total === 0) return "אין מפגשים שהיו בחודש האחרון";
+  return (
+    <>
+      נכחתם ב־<span className="ltr-nums">{attended}</span> מתוך{" "}
+      {total === 1 ? (
+        "מפגש אחד שהיה"
+      ) : (
+        <>
+          <span className="ltr-nums">{total}</span> מפגשים שהיו
+        </>
+      )}{" "}
+      בחודש האחרון
+    </>
+  );
+}
+
+export default async function ProfilePage() {
+  const viewer = await getViewer();
+  if (!viewer) redirect("/login");
+
+  const shots = await getSelfieHistory(viewer.userId);
+  const count = shots.length;
+  const albumsByEvent = await getEventPhotoCollages(shots.map((s) => s.eventId));
+  // הנוכחויות כבר כאן — אין צורך בשאילתה נוספת בשביל הרצף
+  const streak = attendanceStreak(shots.map((s) => s.startsAt));
+  const monthStats = viewer.club
+    ? await getRecentMonthStats(viewer.club.id, viewer.userId)
+    : null;
+  const fullName = viewer.profile?.full_name ?? "הפרופיל שלי";
+  // הסלפי האחרון שלכם — shots כבר ממוינים מהאחרון לראשון
+  const latestSelfie = shots[0]?.selfieUrl ?? null;
+
+  return (
+    <div className="space-y-7">
+      <header className="flex items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-4">
+          <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)">
+            {latestSelfie ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={latestSelfie}
+                alt={fullName}
+                className="size-full object-cover"
+              />
+            ) : (
+              <span
+                aria-hidden
+                className="font-[family-name:var(--font-display)] text-2xl font-bold text-(--color-sea)"
+              >
+                {fullName.trim()[0]}
+              </span>
+            )}
+          </div>
+          <div className="min-w-0">
+            <h1 className="truncate font-[family-name:var(--font-display)] text-2xl font-bold">
+              {fullName}
+            </h1>
+            <p className="text-sm text-(--color-ink-soft)">
+              {monthStats
+                ? monthAttendanceLine(monthStats.attended, monthStats.total)
+                : count === 0
+                  ? "עוד לא סימנתם הגעה למפגש"
+                  : count === 1
+                    ? "נכחתם במפגש אחד"
+                    : `נכחתם ב־${count} מפגשים`}
+            </p>
+          </div>
+        </div>
+
+        {viewer.profile && (
+          <Link
+            href="/profile/edit"
+            aria-label="עריכת פרופיל"
+            className="flex size-11 shrink-0 items-center justify-center rounded-full border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
+          >
+            <EditIcon className="size-5" />
+          </Link>
+        )}
+      </header>
+
+      {count > 0 && <StreakCard streak={streak} />}
+
+      <NotificationToggle />
+
+      {count > 0 && (
+        <section className="space-y-3">
+          <div className="space-y-0.5">
+            <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
+              הסלפים שלי
+            </h2>
+            <p className="text-xs text-(--color-ink-faint)">
+              תמונה מכל מפגש שנכחתם בו. רק מי שהיה שם רואה אותה.
+            </p>
+          </div>
+          <SelfieHistory shots={shots} albumsByEvent={albumsByEvent} />
+        </section>
+      )}
+
+      <p className="text-center text-xs leading-relaxed text-(--color-ink-faint)">
+        הפרטים שלכם נראים רק לחברי קהילה שנכחו באותו מפגש כמוכם.
+      </p>
+
+      {!demoMode && (
+        <form action="/auth/signout" method="post">
+          <Button type="submit" variant="ghost" className="w-full">
+            התנתקות
+          </Button>
+        </form>
+      )}
+    </div>
+  );
+}
