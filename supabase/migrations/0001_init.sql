@@ -470,7 +470,7 @@ begin
       select 1 from public.club_members where club_id = v_club
     );
     insert into public.club_members (club_id, profile_id, role)
-    values (v_club, new.id, case when v_is_first then 'organizer' else 'member' end)
+    values (v_club, new.id, case when v_is_first then 'organizer' else 'member' end::public.member_role)
     on conflict do nothing;
   end if;
 

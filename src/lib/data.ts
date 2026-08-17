@@ -4,6 +4,7 @@ import type {
   Attendance,
   Club,
   MemberRole,
+  MemberStatus,
   Profile,
   SwellEvent,
 } from "./types";
@@ -16,6 +17,7 @@ export type Viewer = {
   profile: Profile | null;
   club: Club | null;
   role: MemberRole | null;
+  status: MemberStatus | null;
 };
 
 /** הזהות של מי שמסתכל. כל עמוד ב-(app) מתחיל מכאן. */
@@ -28,6 +30,8 @@ export async function getViewer(): Promise<Viewer | null> {
       // ניתן להחלפה במסך הפרופיל — כך ההדגמה מראה גם את צד המנהלת
       // וגם את צד החבר הרגיל, ולא רק אחד מהם.
       role: demo.demoMyRole(),
+      // בהדגמה אין מסך "ממתין לאישור" — הכל תמיד מאושר.
+      status: "approved",
     };
   }
 
@@ -41,7 +45,7 @@ export async function getViewer(): Promise<Viewer | null> {
     supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
     supabase
       .from("club_members")
-      .select("role, clubs(*)")
+      .select("role, status, clubs(*)")
       .eq("profile_id", user.id)
       .maybeSingle(),
   ]);
@@ -51,7 +55,38 @@ export async function getViewer(): Promise<Viewer | null> {
     profile: (profile ?? null) as Profile | null,
     club: (membership?.clubs ?? null) as Club | null,
     role: (membership?.role ?? null) as MemberRole | null,
+    status: (membership?.status ?? null) as MemberStatus | null,
   };
+}
+
+export type PendingMember = {
+  profileId: string;
+  fullName: string;
+  requestedAt: string;
+};
+
+/** ממתינים לאישור בקהילה. רק המנהלת רואה משהו — RPC חוסם אחרת. */
+export async function getPendingMembers(
+  clubId: string,
+): Promise<PendingMember[]> {
+  if (demoMode) return [];
+
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("list_pending_members", {
+    p_club_id: clubId,
+  });
+
+  const rows = (data ?? []) as {
+    profile_id: string;
+    full_name: string;
+    requested_at: string;
+  }[];
+
+  return rows.map((row) => ({
+    profileId: row.profile_id,
+    fullName: row.full_name,
+    requestedAt: row.requested_at,
+  }));
 }
 
 // מפגש שהתחיל לפני פחות משעתיים עדיין נחשב "קרוב"
@@ -708,7 +743,10 @@ export async function getAdminData(clubId: string) {
     supabase
       .from("club_members")
       .select("profile_id, profiles(*)")
-      .eq("club_id", clubId),
+      .eq("club_id", clubId)
+      // ממתינים לאישור לא "חברים" עדיין — יש להם סעיף נפרד
+      // (getPendingMembers) עם כפתורי אישור/דחייה, לא רשימה עם 0 נוכחויות.
+      .eq("status", "approved"),
   ]);
 
   const rows = (eventRows ?? []) as unknown as (SwellEvent & {

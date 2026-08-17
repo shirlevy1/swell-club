@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getViewer, getAdminData } from "@/lib/data";
+import { getViewer, getAdminData, getPendingMembers } from "@/lib/data";
 import { formatDateTime, formatPhone, normalizeInstagram } from "@/lib/format";
 import { checkInWindow } from "@/lib/checkin";
 import { Card, EmptyState, LinkButton, PageHeader } from "@/components/ui";
 import { ExportButton } from "@/components/export-button";
+import { PendingMemberRow } from "@/components/pending-member-row";
 
 function InstagramGlyph() {
   return (
@@ -28,6 +29,7 @@ export default async function AdminPage() {
   if (!viewer?.club || viewer.role !== "organizer") redirect("/events");
 
   const { events, members } = await getAdminData(viewer.club.id);
+  const pendingMembers = await getPendingMembers(viewer.club.id);
 
   // המכנה של אחוז ההגעה הוא מפגשים שכבר **אפשר היה** לסמן בהם נוכחות,
   // כלומר שחלון הצ'ק־אין שלהם נפתח — ולא רק מפגשים שהסתיימו. אחרת מי
@@ -62,6 +64,25 @@ export default async function AdminPage() {
           </LinkButton>
         }
       />
+
+      {pendingMembers.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
+            {pendingMembers.length === 1
+              ? "בקשת הצטרפות אחת ממתינה"
+              : `${pendingMembers.length} בקשות הצטרפות ממתינות`}
+          </h2>
+          <Card className="divide-y divide-(--color-line)/50 p-0">
+            {pendingMembers.map((m) => (
+              <PendingMemberRow
+                key={m.profileId}
+                profileId={m.profileId}
+                fullName={m.fullName}
+              />
+            ))}
+          </Card>
+        </section>
+      )}
 
       <section className="space-y-3">
         <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">

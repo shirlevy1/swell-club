@@ -1,4 +1,5 @@
 export type MemberRole = "member" | "organizer";
+export type MemberStatus = "pending" | "approved";
 
 export type Profile = {
   id: string;
@@ -23,6 +24,7 @@ export type ClubMember = {
   club_id: string;
   profile_id: string;
   role: MemberRole;
+  status: MemberStatus;
   joined_at: string;
 };
 
