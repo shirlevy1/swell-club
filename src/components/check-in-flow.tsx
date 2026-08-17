@@ -231,9 +231,20 @@ export function CheckInFlow({
     // עליו נשענות מדיניות ההעלאה והקריאה ב-storage.
     const path = `${event.id}/${user.id}.jpg`;
 
-    const { error: uploadError } = await supabase.storage
+    // ניסיון ראשון בלי upsert: Postgres מתכנן upsert כ-INSERT ... ON
+    // CONFLICT DO UPDATE גם כשאין באמת התנגשות, ומחייב הרשאת UPDATE
+    // בנוסף להרשאת INSERT — נתיב שלם ומיותר ברוב המכריע של המקרים
+    // (העלאה ראשונה). upsert נשמר רק כגיבוי לניסיון חוזר אמיתי, כשהעלאה
+    // קודמת הצליחה אבל ה-check_in שאחריה נכשל (למשל TOO_FAR).
+    let { error: uploadError } = await supabase.storage
       .from("selfies")
-      .upload(path, blob, { contentType: "image/jpeg", upsert: true });
+      .upload(path, blob, { contentType: "image/jpeg" });
+
+    if (uploadError && uploadError.message?.includes("already exists")) {
+      ({ error: uploadError } = await supabase.storage
+        .from("selfies")
+        .upload(path, blob, { contentType: "image/jpeg", upsert: true }));
+    }
 
     if (uploadError) {
       return fail("העלאת התמונה נכשלה. הקליטה בחוף לפעמים חלשה — נסו שוב.");
