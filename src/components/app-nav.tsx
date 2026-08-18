@@ -39,65 +39,15 @@ function NavIcon({ d }: { d: string }) {
   );
 }
 
-// אותה שפה חזותית כמו שאר האייקונים בסרגל: קווי מתאר בלבד, פינות
-// עגולות, בלי מילוי — רק בקנה מידה זעיר של תג התראה.
-function PersonBadgeIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden
-    >
-      <path d="M12 12.2a2.6 2.6 0 1 0 0-5.2 2.6 2.6 0 0 0 0 5.2Z" />
-      <path d="M6.5 18.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5" />
-    </svg>
-  );
-}
-
-function PhotoBadgeIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden
-    >
-      <path d="M4.5 5.5h15a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1Z" />
-      <path d="M7 15.5l3-3.5 3 3 4-4.5" />
-    </svg>
-  );
-}
-
-function BadgePill({
-  count,
-  position,
-  icon,
-  label,
-}: {
-  count: number;
-  position: "start" | "end";
-  icon: React.ReactNode;
-  label: string;
-}) {
+/** עיגול מספר בודד — שני מהם נערמים אנכית משמאל לאייקון "ניהול":
+ * העליון להצטרפות, התחתון לתמונות. צבע האתר, לא צבע התראה אדום. */
+function CountCircle({ count, label }: { count: number; label: string }) {
   if (count <= 0) return null;
   return (
     <span
       aria-label={label}
-      className={cx(
-        "absolute -top-1.5 flex h-4 items-center gap-[3px] rounded-full bg-(--color-fail) px-1 text-[0.6rem] font-bold leading-none text-white",
-        position === "end" ? "-end-2" : "-start-2",
-      )}
+      className="flex size-4 items-center justify-center rounded-full bg-(--color-sea) text-[0.62rem] font-bold leading-none text-white"
     >
-      {icon}
       <span className="ltr-nums">{count > 9 ? "9+" : count}</span>
     </span>
   );
@@ -204,23 +154,21 @@ export function AppNav({
                     : "text-(--color-ink-faint) hover:text-(--color-ink-soft)",
                 )}
               >
-                <span className="relative">
+                <span className="flex items-center gap-1">
+                  {/* בסדר הזה, ב-RTL: האייקון נשאר מימין,
+                      העיגולים נערמים משמאל לו — כמו שביקשה. */}
                   <NavIcon d={item.icon} />
-                  {isAdmin && (
-                    <>
-                      <BadgePill
+                  {isAdmin && (pendingCounts.members > 0 || pendingCounts.photos > 0) && (
+                    <span className="flex flex-col gap-0.5">
+                      <CountCircle
                         count={pendingCounts.members}
-                        position="end"
-                        icon={<PersonBadgeIcon className="size-2.5" />}
                         label={`${pendingCounts.members} בקשות הצטרפות ממתינות`}
                       />
-                      <BadgePill
+                      <CountCircle
                         count={pendingCounts.photos}
-                        position="start"
-                        icon={<PhotoBadgeIcon className="size-2.5" />}
                         label={`${pendingCounts.photos} תמונות ממתינות לאישור`}
                       />
-                    </>
+                    </span>
                   )}
                 </span>
                 {item.label}
