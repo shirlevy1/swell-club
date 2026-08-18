@@ -19,8 +19,13 @@ async function getDetector(): Promise<FaceDetector> {
       const { FaceDetector: FaceDetectorClass, FilesetResolver } = await import(
         "@mediapipe/tasks-vision"
       );
+      // הגרסה כאן חייבת להיות זהה לגרסה המותקנת ב-package.json —
+      // אי-התאמה בין ה-JS (מהחבילה שלנו) ל-WASM (מה-CDN הזה) גורמת
+      // לאתחול להיכשל בשקט, ובלי לזרוק שגיאה ברורה. כשזה קורה,
+      // photoHasFace() נכשלת אל תוך ה-catch ומחזירה true תמיד —
+      // כלומר הבדיקה כולה הופכת לא-פעילה בלי שרואים את זה בממשק.
       const vision = await FilesetResolver.forVisionTasks(
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm",
+        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm",
       );
       return FaceDetectorClass.createFromOptions(vision, {
         baseOptions: {
