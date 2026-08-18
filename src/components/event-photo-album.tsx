@@ -147,6 +147,12 @@ export function EventPhotoAlbum({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [downloaded, setDownloaded] = useState<string | null>(null);
+
+  function flashDownloaded(message: string) {
+    setDownloaded(message);
+    setTimeout(() => setDownloaded((m) => (m === message ? null : m)), 3000);
+  }
 
   const approved = photos.filter((p) => p.status === "approved");
   // כשאין הרשאת ניהול, RLS כבר לא מחזירה בכלל תמונות ממתינות של אחרים —
@@ -294,6 +300,9 @@ export function EventPhotoAlbum({
       setError("ההורדה נכשלה. נסו שוב.");
       return;
     }
+    flashDownloaded(
+      chosen.length === 1 ? "התמונה הורדה בהצלחה." : `${chosen.length} תמונות הורדו בהצלחה.`,
+    );
     setSelecting(false);
     setSelected(new Set());
   }
@@ -302,7 +311,8 @@ export function EventPhotoAlbum({
     setDownloading(true);
     const ok = await downloadPhotos([{ url: photo.url, filename: "תמונה-מהמפגש.jpg" }]);
     setDownloading(false);
-    if (!ok) setError("ההורדה נכשלה. נסו שוב.");
+    if (!ok) return setError("ההורדה נכשלה. נסו שוב.");
+    flashDownloaded("התמונה הורדה בהצלחה.");
   }
 
   if (!approved.length && !pending.length && !canUpload) return null;
@@ -351,6 +361,7 @@ export function EventPhotoAlbum({
       )}
 
       {error && <Notice tone="error">{error}</Notice>}
+      {downloaded && <Notice tone="good">{downloaded}</Notice>}
 
       {canManage && pending.length > 0 && (
         <div className="space-y-2 rounded-xl border border-(--color-line) bg-(--color-haze) p-3">
@@ -556,6 +567,12 @@ export function EventPhotoAlbum({
               </button>
             )}
           </div>
+
+          {downloaded && (
+            <p className="pb-4 text-center text-sm font-semibold text-white">
+              {downloaded}
+            </p>
+          )}
         </div>
       )}
     </div>
