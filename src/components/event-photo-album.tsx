@@ -348,6 +348,9 @@ export function EventPhotoAlbum({
                     loading="lazy"
                   />
                 </div>
+                <p className="truncate text-[0.65rem] text-(--color-ink-faint)">
+                  {photo.uploaderName}
+                </p>
                 <div className="flex gap-1">
                   <button
                     type="button"

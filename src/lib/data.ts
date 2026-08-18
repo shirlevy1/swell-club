@@ -755,6 +755,9 @@ export type EventPhoto = {
    * "ממתין לאישור" גם לפני שהמנהלת אישרה, בלי לחשוף תמונות ממתינות
    * של אחרים. */
   isMine: boolean;
+  /** מי העלה — כדי שמנהלת שרואה כמה תמונות ממתינות ביחד תדע מי
+   * ביקש/ה מה, בלי לפתוח כל תמונה בנפרד. */
+  uploaderName: string;
   /** נתיב האחסון — נדרש למחיקה (storage.remove), בלי סבב-הלוך-ושוב
    * נוסף רק כדי לגלות אותו. לא רלוונטי בהדגמה. */
   storagePath: string | null;
@@ -775,6 +778,9 @@ export async function getEventPhotos(eventId: string): Promise<EventPhoto[]> {
       url: p.url,
       status: p.status,
       isMine: p.uploadedBy === demo.demoMeId,
+      uploaderName:
+        demo.demoProfiles().find((profile) => profile.id === p.uploadedBy)
+          ?.full_name ?? "חבר קהילה",
       storagePath: null,
     }));
   }
@@ -786,7 +792,7 @@ export async function getEventPhotos(eventId: string): Promise<EventPhoto[]> {
 
   const { data: rows } = await supabase
     .from("event_photos")
-    .select("id, storage_path, status, uploaded_by")
+    .select("id, storage_path, status, uploaded_by, profiles(full_name)")
     .eq("event_id", eventId)
     .order("created_at", { ascending: true });
 
@@ -806,12 +812,14 @@ export async function getEventPhotos(eventId: string): Promise<EventPhoto[]> {
   return rows.flatMap((r) => {
     const url = urlByPath.get(r.storage_path);
     if (!url) return [];
+    const profile = r.profiles as unknown as { full_name: string } | null;
     return [
       {
         id: r.id,
         url,
         status: r.status as "pending" | "approved",
         isMine: r.uploaded_by === user?.id,
+        uploaderName: profile?.full_name ?? "חבר קהילה",
         storagePath: r.storage_path as string,
       },
     ];
