@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
@@ -153,6 +153,38 @@ export function EventPhotoAlbum({
   // מה שנשאר תחת pending הוא תמיד רק שלי.
   const pending = photos.filter((p) => p.status === "pending");
 
+  // למנהלת יש אזור אישור נפרד עם כפתורי אישור/דחייה, ולכן הרשת הראשית
+  // שלה מציגה רק מאושרות — כדי לא להציג את אותן תמונות פעמיים. לחבר/ה
+  // רגיל/ה הרשת הראשית *היא* התשובה: RLS כבר מחזירה בדיוק את מה שמותר
+  // לו/ה לראות (מאושרות של כולם + הממתינות של עצמו/ה), כך שהתמונה
+  // הממתינה שלו/ה מופיעה מיד, בשקיפות חלקית, באותו מקום שבו תהיה
+  // כשתאושר — ולא נעלמת ומופיעה מחדש במקום אחר.
+  const gridPhotos = canManage ? approved : photos;
+
+  // עדכון חי: כשהמנהלת מאשרת/מוחקת/מישהו מעלה, כל מי שכבר פתוח/ה בעמוד
+  // המפגש מקבל/ת את זה מיד — בלי לצאת ולהיכנס מחדש. ה-RLS על event_photos
+  // חל גם כאן, אז כל אחד/ת מקבל/ת התראה רק על מה שמותר לו/ה לראות ממילא.
+  useEffect(() => {
+    if (demoMode) return;
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`event_photos:${eventId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "event_photos",
+          filter: `event_id=eq.${eventId}`,
+        },
+        () => router.refresh(),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [eventId, router]);
+
   async function onFilesSelected(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     e.target.value = "";
@@ -244,7 +276,7 @@ export function EventPhotoAlbum({
 
   async function downloadSelected() {
     setDownloading(true);
-    const chosen = approved.filter((p) => selected.has(p.id));
+    const chosen = gridPhotos.filter((p) => selected.has(p.id));
     const ok = await downloadPhotos(
       chosen.map((p, i) => ({ url: p.url, filename: `תמונה-מהמפגש-${i + 1}.jpg` })),
     );
@@ -266,14 +298,14 @@ export function EventPhotoAlbum({
 
   if (!approved.length && !pending.length && !canUpload) return null;
 
-  const viewerPhoto = viewerIndex !== null ? approved[viewerIndex] : null;
+  const viewerPhoto = viewerIndex !== null ? gridPhotos[viewerIndex] : null;
 
   return (
     <div className="space-y-4">
       <div className="flex items-baseline justify-between gap-3">
         <p className="text-sm font-semibold">אלבום המפגש</p>
         <div className="flex items-center gap-3">
-          {approved.length > 0 && (
+          {gridPhotos.length > 0 && (
             <button
               type="button"
               onClick={() => {
@@ -352,18 +384,11 @@ export function EventPhotoAlbum({
         </div>
       )}
 
-      {!canManage && pending.length > 0 && (
-        <Notice tone="good">
-          {pending.length === 1
-            ? "תמונה אחת שהעליתם ממתינה לאישור המנהלת."
-            : `${pending.length} תמונות שהעליתם ממתינות לאישור המנהלת.`}
-        </Notice>
-      )}
-
-      {approved.length > 0 ? (
+      {gridPhotos.length > 0 ? (
         <div className="grid grid-cols-3 gap-2">
-          {approved.map((photo, i) => {
+          {gridPhotos.map((photo, i) => {
             const isSelected = selected.has(photo.id);
+            const isPending = photo.status === "pending";
             return (
               <button
                 key={photo.id}
@@ -382,10 +407,19 @@ export function EventPhotoAlbum({
                   alt=""
                   className={
                     "size-full object-cover transition " +
+                    (isPending ? "opacity-45 " : "") +
                     (selecting && isSelected ? "opacity-60" : "")
                   }
                   loading="lazy"
                 />
+
+                {/* עד שהמנהלת מאשרת, התמונה שקופה חלקית — ברגע שהיא
+                    מאושרת, אותה תמונה באותו מקום עוברת לצבע מלא. */}
+                {isPending && (
+                  <span className="pointer-events-none absolute inset-x-1 bottom-1 rounded-full bg-black/60 py-0.5 text-center text-[0.65rem] font-bold text-white">
+                    ממתין לאישור
+                  </span>
+                )}
 
                 {selecting && (
                   <div
@@ -455,6 +489,11 @@ export function EventPhotoAlbum({
             >
               <CloseIcon className="size-5" />
             </button>
+            {viewerPhoto.status === "pending" && (
+              <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white">
+                ממתין לאישור
+              </span>
+            )}
             <div className="flex items-center gap-2">
               {canManage && (
                 <button
@@ -497,7 +536,7 @@ export function EventPhotoAlbum({
               className="max-h-full max-w-full object-contain"
             />
 
-            {viewerIndex! < approved.length - 1 && (
+            {viewerIndex! < gridPhotos.length - 1 && (
               <button
                 type="button"
                 onClick={() => setViewerIndex((i) => (i ?? 0) + 1)}
