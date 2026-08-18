@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
 import { approveEventPhotoAction, deleteEventPhotoAction } from "@/lib/demo/actions";
 import { Notice } from "./ui";
+import { PhotoLightbox } from "./photo-lightbox";
 import type { PendingEventPhoto } from "@/lib/data";
 
 /** כל התמונות שאדם אחד העלה למפגש אחד — אישור/דחייה בלחיצה אחת על
@@ -22,12 +23,11 @@ export function PendingPhotoGroup({
   const router = useRouter();
   const [busy, setBusy] = useState<"approve" | "reject" | string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
-  async function approveAll() {
-    setError(null);
-    setBusy("approve");
+  async function approvePhotos(toApprove: PendingEventPhoto[]) {
     if (demoMode) {
-      await Promise.all(photos.map((p) => approveEventPhotoAction(eventId, p.id)));
+      await Promise.all(toApprove.map((p) => approveEventPhotoAction(eventId, p.id)));
     } else {
       const supabase = createClient();
       const { error: updateError } = await supabase
@@ -35,14 +35,29 @@ export function PendingPhotoGroup({
         .update({ status: "approved" })
         .in(
           "id",
-          photos.map((p) => p.id),
+          toApprove.map((p) => p.id),
         );
-      if (updateError) {
-        setBusy(null);
-        return setError("לא הצלחנו לאשר. נסו שוב.");
-      }
+      if (updateError) return false;
     }
+    return true;
+  }
+
+  async function approveAll() {
+    setError(null);
+    setBusy("approve");
+    const ok = await approvePhotos(photos);
     setBusy(null);
+    if (!ok) return setError("לא הצלחנו לאשר. נסו שוב.");
+    router.refresh();
+  }
+
+  async function approveOne(photo: PendingEventPhoto) {
+    setError(null);
+    setBusy(photo.id);
+    const ok = await approvePhotos([photo]);
+    setBusy(null);
+    if (!ok) return setError("לא הצלחנו לאשר. נסו שוב.");
+    setViewerIndex(null);
     router.refresh();
   }
 
@@ -82,6 +97,7 @@ export function PendingPhotoGroup({
     const ok = await rejectPhotos([photo]);
     setBusy(null);
     if (!ok) return setError("לא הצלחנו לדחות. נסו שוב.");
+    setViewerIndex(null);
     router.refresh();
   }
 
@@ -117,13 +133,20 @@ export function PendingPhotoGroup({
       </div>
 
       <div className="grid grid-cols-4 gap-1.5">
-        {photos.map((photo) => (
+        {photos.map((photo, i) => (
           <div
             key={photo.id}
             className="relative aspect-square overflow-hidden rounded-lg bg-(--color-haze)"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={photo.url} alt="" className="size-full object-cover" loading="lazy" />
+            <button
+              type="button"
+              onClick={() => setViewerIndex(i)}
+              aria-label="הצגת תמונה בגדול"
+              className="block size-full"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={photo.url} alt="" className="size-full object-cover" loading="lazy" />
+            </button>
             <button
               type="button"
               onClick={() => rejectOne(photo)}
@@ -138,6 +161,36 @@ export function PendingPhotoGroup({
       </div>
 
       {error && <Notice tone="error">{error}</Notice>}
+
+      {viewerIndex !== null && photos[viewerIndex] && (
+        <PhotoLightbox
+          photos={photos}
+          index={viewerIndex}
+          onIndexChange={setViewerIndex}
+          onClose={() => setViewerIndex(null)}
+          label="ממתין לאישור"
+          actions={
+            <>
+              <button
+                type="button"
+                onClick={() => rejectOne(photos[viewerIndex])}
+                disabled={busy === photos[viewerIndex].id || busyAll}
+                className="rounded-full bg-white/10 px-4 py-2 text-xs font-bold text-white disabled:opacity-40"
+              >
+                דחייה
+              </button>
+              <button
+                type="button"
+                onClick={() => approveOne(photos[viewerIndex])}
+                disabled={busy === photos[viewerIndex].id || busyAll}
+                className="rounded-full bg-white/10 px-4 py-2 text-xs font-bold text-white disabled:opacity-40"
+              >
+                אישור
+              </button>
+            </>
+          }
+        />
+      )}
     </div>
   );
 }

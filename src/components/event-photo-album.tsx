@@ -11,6 +11,7 @@ import {
 } from "@/lib/demo/actions";
 import { compressImageFile, blobToDataUrl, ALBUM_PHOTO_OPTIONS } from "@/lib/image";
 import { Button, Notice } from "@/components/ui";
+import { PhotoLightbox } from "@/components/photo-lightbox";
 import type { EventPhoto } from "@/lib/data";
 
 function CheckIcon({ className }: { className?: string }) {
@@ -26,39 +27,6 @@ function CheckIcon({ className }: { className?: string }) {
       aria-hidden
     >
       <path d="M5 12.5 10 17.5 19 6.5" />
-    </svg>
-  );
-}
-
-function CloseIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      className={className}
-      aria-hidden
-    >
-      <path d="M6 6 18 18M18 6 6 18" />
-    </svg>
-  );
-}
-
-function ChevronIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden
-    >
-      <path d="M15 5 8 12l7 7" />
     </svg>
   );
 }
@@ -495,26 +463,21 @@ export function EventPhotoAlbum({
       )}
 
       {viewerPhoto && (
-        <div
-          className="fixed inset-0 z-50 flex flex-col bg-black/95"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="flex items-center justify-between gap-3 p-4">
-            <button
-              type="button"
-              onClick={() => setViewerIndex(null)}
-              aria-label="סגירה"
-              className="flex size-10 items-center justify-center rounded-full bg-white/10 text-white"
-            >
-              <CloseIcon className="size-5" />
-            </button>
-            {viewerPhoto.status === "pending" && (
-              <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white">
-                ממתין לאישור
-              </span>
-            )}
-            <div className="flex items-center gap-2">
+        <PhotoLightbox
+          photos={gridPhotos}
+          index={viewerIndex!}
+          onIndexChange={(i) => setViewerIndex(i)}
+          onClose={() => setViewerIndex(null)}
+          label={viewerPhoto.status === "pending" ? "ממתין לאישור" : undefined}
+          footer={
+            downloaded && (
+              <p className="pb-4 text-center text-sm font-semibold text-white">
+                {downloaded}
+              </p>
+            )
+          }
+          actions={
+            <>
               {canManage && (
                 <button
                   type="button"
@@ -534,46 +497,9 @@ export function EventPhotoAlbum({
                 <DownloadIcon className="size-4" />
                 הורדה
               </button>
-            </div>
-          </div>
-
-          <div className="relative flex flex-1 items-center justify-center px-2">
-            {viewerIndex! > 0 && (
-              <button
-                type="button"
-                onClick={() => setViewerIndex((i) => (i ?? 0) - 1)}
-                aria-label="התמונה הקודמת"
-                className="absolute start-1 flex size-10 items-center justify-center rounded-full bg-white/10 text-white"
-              >
-                <ChevronIcon className="size-5" />
-              </button>
-            )}
-
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={viewerPhoto.url}
-              alt=""
-              className="max-h-full max-w-full object-contain"
-            />
-
-            {viewerIndex! < gridPhotos.length - 1 && (
-              <button
-                type="button"
-                onClick={() => setViewerIndex((i) => (i ?? 0) + 1)}
-                aria-label="התמונה הבאה"
-                className="absolute end-1 flex size-10 items-center justify-center rounded-full bg-white/10 text-white"
-              >
-                <ChevronIcon className="size-5 rotate-180" />
-              </button>
-            )}
-          </div>
-
-          {downloaded && (
-            <p className="pb-4 text-center text-sm font-semibold text-white">
-              {downloaded}
-            </p>
-          )}
-        </div>
+            </>
+          }
+        />
       )}
     </div>
   );
