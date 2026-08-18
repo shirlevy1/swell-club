@@ -49,43 +49,60 @@ function DownloadIcon({ className }: { className?: string }) {
 }
 
 /**
- * שמירה בפועל למכשיר. קישור `download` רגיל לכתובת ממתחם אחר
- * (הקבצים שלנו יושבים ב-supabase.co, לא ב-swell-club.vercel.app)
- * עובד רק ברוב הדפדפנים, אבל ב-Safari של אייפון הוא רק פותח את
- * התמונה בלי לשמור אותה בגלריה. תפריט השיתוף המובנה של המערכת
- * (Web Share) כן שומר — ולכן מנסים אותו קודם, ורק אם הוא לא זמין
- * (בעיקר דסקטופ) נופלים חזרה להורדה ישירה דרך blob.
+ * רק ל-iOS: כל דפדפן שם מבוסס Safari/WebKit, וקישור `download` רגיל
+ * לכתובת ממתחם אחר (הקבצים שלנו ב-supabase.co, לא ב-swell-club.vercel.app)
+ * רק פותח את התמונה בלי לשמור אותה בגלריה. תפריט השיתוף המובנה
+ * (Web Share) כן שומר בפועל שם.
+ *
+ * לא הופעל בכל דפדפן שתומך ב-Web Share: באנדרואיד (נבדק בפועל ב-Samsung
+ * Internet) הקריאה ל-navigator.share עם קבצים מחזירה הצלחה בלי לשמור
+ * שום דבר בפועל — באג בפלטפורמה, לא משהו שאפשר לזהות מראש מהקוד.
+ * באנדרואיד ובדסקטופ אין את המגבלה של iOS מלכתחילה, אז ההורדה הישירה
+ * הרגילה כבר עובדת נכון.
  */
+function isIOS(): boolean {
+  return typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
+}
+
+async function downloadViaBlobLinks(
+  items: { url: string; filename: string }[],
+): Promise<void> {
+  for (const [i, item] of items.entries()) {
+    const res = await fetch(item.url);
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = item.filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(blobUrl);
+    if (i < items.length - 1) await new Promise((r) => setTimeout(r, 250));
+  }
+}
+
 async function downloadPhotos(
   items: { url: string; filename: string }[],
 ): Promise<boolean> {
   try {
-    const files = await Promise.all(
-      items.map(async (item) => {
-        const res = await fetch(item.url);
-        const blob = await res.blob();
-        return new File([blob], item.filename, {
-          type: blob.type || "image/jpeg",
-        });
-      }),
-    );
-
-    if (navigator.canShare?.({ files })) {
-      await navigator.share({ files });
-      return true;
+    if (isIOS()) {
+      const files = await Promise.all(
+        items.map(async (item) => {
+          const res = await fetch(item.url);
+          const blob = await res.blob();
+          return new File([blob], item.filename, {
+            type: blob.type || "image/jpeg",
+          });
+        }),
+      );
+      if (navigator.canShare?.({ files })) {
+        await navigator.share({ files });
+        return true;
+      }
     }
 
-    for (const [i, file] of files.entries()) {
-      const blobUrl = URL.createObjectURL(file);
-      const a = document.createElement("a");
-      a.href = blobUrl;
-      a.download = items[i].filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(blobUrl);
-      if (i < files.length - 1) await new Promise((r) => setTimeout(r, 250));
-    }
+    await downloadViaBlobLinks(items);
     return true;
   } catch (err) {
     // AbortError = המשתמש/ת ביטל/ה את תפריט השיתוף בעצמו/ה — לא שגיאה
