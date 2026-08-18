@@ -637,44 +637,82 @@ export async function getEventDetail(
   };
 }
 
-export type EventPhoto = { id: string; url: string };
+export type EventPhoto = {
+  id: string;
+  url: string;
+  status: "pending" | "approved";
+  /** התמונה הזו הועלתה על ידי מי שצופה עכשיו — כדי להראות לה/לו
+   * "ממתין לאישור" גם לפני שהמנהלת אישרה, בלי לחשוף תמונות ממתינות
+   * של אחרים. */
+  isMine: boolean;
+  /** נתיב האחסון — נדרש למחיקה (storage.remove), בלי סבב-הלוך-ושוב
+   * נוסף רק כדי לגלות אותו. לא רלוונטי בהדגמה. */
+  storagePath: string | null;
+};
 
 /**
- * אלבום המפגש. אין טבלת metadata נפרדת — ה-storage עצמו הוא מקור
- * האמת (בדיוק כמו הסלפים), וה-RLS על הדלי `event-photos` הוא כל
- * האכיפה: מי שלא נכח ואינו מנהלת פשוט מקבל רשימה ריקה, לא שגיאה.
+ * אלבום המפגש. מקור האמת הוא טבלת `event_photos` (סטטוס אישור +
+ * מי העלה) — ה-storage מחזיק רק את הבייטים. ה-RLS על שתיהן יחד הוא
+ * כל האכיפה: מי שלא רשאי/ת פשוט מקבל/ת רשימה ריקה, לא שגיאה.
  *
  * `download: true` הופך את הקישור לכזה שמוריד למכשיר במקום להיפתח
  * בטאב חדש — זו הדרישה המפורשת, לא ברירת מחדל של הדפדפן.
  */
 export async function getEventPhotos(eventId: string): Promise<EventPhoto[]> {
   if (demoMode) {
-    return demo
-      .demoEventPhotos(eventId)
-      .map((p) => ({ id: p.id, url: p.url }));
+    return demo.demoEventPhotos(eventId).map((p) => ({
+      id: p.id,
+      url: p.url,
+      status: p.status,
+      isMine: p.uploadedBy === demo.demoMeId,
+      storagePath: null,
+    }));
   }
 
   const supabase = await createClient();
-  const { data: files } = await supabase.storage
-    .from("event-photos")
-    .list(eventId, { sortBy: { column: "created_at", order: "asc" } });
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!files?.length) return [];
+  const { data: rows } = await supabase
+    .from("event_photos")
+    .select("id, storage_path, status, uploaded_by")
+    .eq("event_id", eventId)
+    .order("created_at", { ascending: true });
 
-  const paths = files.map((f) => `${eventId}/${f.name}`);
+  if (!rows?.length) return [];
+
+  const paths = rows.map((r) => r.storage_path);
   const { data: signed } = await supabase.storage
     .from("event-photos")
     .createSignedUrls(paths, SELFIE_TTL, { download: true });
 
-  return (signed ?? []).flatMap((s) =>
-    !s.error && s.signedUrl ? [{ id: s.path ?? s.signedUrl, url: s.signedUrl }] : [],
+  const urlByPath = new Map(
+    (signed ?? []).flatMap((s) =>
+      !s.error && s.signedUrl && s.path ? [[s.path, s.signedUrl] as const] : [],
+    ),
   );
+
+  return rows.flatMap((r) => {
+    const url = urlByPath.get(r.storage_path);
+    if (!url) return [];
+    return [
+      {
+        id: r.id,
+        url,
+        status: r.status as "pending" | "approved",
+        isMine: r.uploaded_by === user?.id,
+        storagePath: r.storage_path as string,
+      },
+    ];
+  });
 }
 
 /**
- * עד 4 תמונות אלבום לכל מפגש, לקולאז' בכרטיסי `SelfieHistory`. לא
- * מוסיפה בדיקת הרשאה משלה — `getEventPhotos` כבר אוכפת את זה דרך
- * ה-RLS על ה-storage (או המקבילה בהדגמה).
+ * עד 4 תמונות אלבום *מאושרות* לכל מפגש, לקולאז' בכרטיסי
+ * `SelfieHistory` — תמונה שממתינה לאישור לא מוצגת שם כ"זיכרון מהמפגש"
+ * לפני שהמנהלת אישרה אותה. לא מוסיפה בדיקת הרשאה משלה —
+ * `getEventPhotos` כבר אוכפת את זה דרך ה-RLS.
  */
 export async function getEventPhotoCollages(
   eventIds: string[],
@@ -682,7 +720,13 @@ export async function getEventPhotoCollages(
   const unique = [...new Set(eventIds)];
   const lists = await Promise.all(unique.map((id) => getEventPhotos(id)));
   return new Map(
-    unique.map((id, i) => [id, lists[i].slice(0, 4).map((p) => p.url)]),
+    unique.map((id, i) => [
+      id,
+      lists[i]
+        .filter((p) => p.status === "approved")
+        .slice(0, 4)
+        .map((p) => p.url),
+    ]),
   );
 }
 

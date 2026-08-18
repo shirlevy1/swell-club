@@ -5,6 +5,7 @@ import { demoMode } from "../config";
 import type { MemberRole, Profile, SwellEvent } from "../types";
 import {
   demoAddEventPhoto,
+  demoApproveEventPhoto,
   demoCheckIn,
   demoCreateEvent,
   demoDeleteEventPhoto,
@@ -55,6 +56,12 @@ export async function addEventPhotoAction(eventId: string, dataUrl: string) {
 export async function deleteEventPhotoAction(eventId: string, photoId: string) {
   guard();
   demoDeleteEventPhoto(photoId);
+  revalidatePath(`/events/${eventId}`);
+}
+
+export async function approveEventPhotoAction(eventId: string, photoId: string) {
+  guard();
+  demoApproveEventPhoto(photoId);
   revalidatePath(`/events/${eventId}`);
 }
 

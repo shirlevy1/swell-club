@@ -133,6 +133,7 @@ export default async function EventPage({
           eventId={id}
           photos={photos}
           canManage={isOrganizer && eventHasStarted}
+          canUpload={canSeeAlbum && eventHasStarted}
         />
       )}
     </div>

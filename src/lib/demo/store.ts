@@ -200,6 +200,8 @@ export type DemoEventPhoto = {
   eventId: string;
   url: string;
   addedAt: string;
+  status: "pending" | "approved";
+  uploadedBy: string;
 };
 
 type DemoDb = {
@@ -267,6 +269,8 @@ function seed(): DemoDb {
       eventId: "demo-e-past1",
       url: `/demo/avatar-${n}.png`,
       addedAt: new Date().toISOString(),
+      status: "approved" as const,
+      uploadedBy: others[0]?.id ?? ME_ID,
     })),
     myRole: "organizer",
   };
@@ -329,9 +333,24 @@ export function demoAttendances() {
   return db().attendances;
 }
 
+/**
+ * אותו כלל הרשאה כמו ב-RLS האמיתי (event_photos_select): מי שהעלה
+ * תמונה רואה אותה גם לפני אישור, נוכח/ת רואה רק מאושרות, מנהלת רואה
+ * הכל.
+ */
 export function demoEventPhotos(eventId: string) {
+  const iAmOrganizer = demoMyRole() === "organizer";
+  const iAttended = db().attendances.some(
+    (a) => a.eventId === eventId && a.profileId === ME_ID,
+  );
   return db()
     .eventPhotos.filter((p) => p.eventId === eventId)
+    .filter(
+      (p) =>
+        iAmOrganizer ||
+        p.uploadedBy === ME_ID ||
+        (p.status === "approved" && iAttended),
+    )
     .sort((a, b) => a.addedAt.localeCompare(b.addedAt));
 }
 
@@ -376,7 +395,15 @@ export function demoAddEventPhoto(eventId: string, dataUrl: string) {
     eventId,
     url: dataUrl,
     addedAt: new Date().toISOString(),
+    // מנהלת מאשרת לעצמה מיד — כמו ב-add_event_photo() האמיתית
+    status: demoMyRole() === "organizer" ? "approved" : "pending",
+    uploadedBy: ME_ID,
   });
+}
+
+export function demoApproveEventPhoto(photoId: string) {
+  const photo = db().eventPhotos.find((p) => p.id === photoId);
+  if (photo) photo.status = "approved";
 }
 
 export function demoDeleteEventPhoto(photoId: string) {
