@@ -159,10 +159,17 @@ export function EventPhotoAlbum({
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState<string | null>(null);
+  // false בטעינה הראשונה (SSR לא מכיר את ה-user agent), נקבע נכון
+  // מיד אחרי — משפיע רק על טיפים, לא על פונקציונליות אמיתית.
+  const [isAndroid, setIsAndroid] = useState(false);
+
+  useEffect(() => {
+    setIsAndroid(/Android/i.test(navigator.userAgent));
+  }, []);
 
   function flashDownloaded(message: string) {
     setDownloaded(message);
-    setTimeout(() => setDownloaded((m) => (m === message ? null : m)), 3000);
+    setTimeout(() => setDownloaded((m) => (m === message ? null : m)), 4500);
   }
 
   const approved = photos.filter((p) => p.status === "approved");
@@ -312,7 +319,13 @@ export function EventPhotoAlbum({
       return;
     }
     flashDownloaded(
-      chosen.length === 1 ? "התמונה הורדה בהצלחה." : `${chosen.length} תמונות הורדו בהצלחה.`,
+      chosen.length === 1
+        ? isAndroid
+          ? "התמונה הורדה בהצלחה לתיקיית ההורדות."
+          : "התמונה הורדה בהצלחה."
+        : isAndroid
+          ? `${chosen.length} תמונות הורדו כקובץ ZIP אחד לתיקיית ההורדות. פתחו את "הקבצים שלי" כדי לחלץ אותן.`
+          : `${chosen.length} תמונות הורדו בהצלחה.`,
     );
     setSelecting(false);
     setSelected(new Set());
@@ -323,7 +336,9 @@ export function EventPhotoAlbum({
     const ok = await downloadPhotos([{ url: photo.url, filename: "תמונה-מהמפגש.jpg" }]);
     setDownloading(false);
     if (!ok) return setError("ההורדה נכשלה. נסו שוב.");
-    flashDownloaded("התמונה הורדה בהצלחה.");
+    flashDownloaded(
+      isAndroid ? "התמונה הורדה בהצלחה לתיקיית ההורדות." : "התמונה הורדה בהצלחה.",
+    );
   }
 
   if (!approved.length && !pending.length && !canUpload) return null;
@@ -359,6 +374,12 @@ export function EventPhotoAlbum({
           )}
         </div>
       </div>
+
+      {isAndroid && gridPhotos.length > 0 && !selecting && (
+        <p className="text-xs text-(--color-ink-faint)">
+          טיפ: לחיצה ארוכה על תמונה שומרת אותה ישירות לגלריה.
+        </p>
+      )}
 
       {canUpload && (
         <input
