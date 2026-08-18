@@ -185,6 +185,15 @@ export function EventPhotoAlbum({
     };
   }, [eventId, router]);
 
+  // רשת ביטחון: חיבור חי (WebSocket) לא תמיד נשאר פתוח באמינות בנייד
+  // (למשל כשהדפדפן עובר לרקע). רענון תקופתי מבטיח שהאלבום מתעדכן לבד
+  // תוך זמן קצר גם אם החיבור החי נופל, בלי תלות בו לגמרי.
+  useEffect(() => {
+    if (demoMode) return;
+    const id = setInterval(() => router.refresh(), 15_000);
+    return () => clearInterval(id);
+  }, [router]);
+
   async function onFilesSelected(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     e.target.value = "";
