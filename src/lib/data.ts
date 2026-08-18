@@ -89,6 +89,98 @@ export async function getPendingMembers(
   }));
 }
 
+export type PendingEventPhoto = {
+  id: string;
+  url: string;
+  eventId: string;
+  eventTitle: string;
+  storagePath: string | null;
+};
+
+/**
+ * כל התמונות שממתינות לאישור בכל המפגשים של הקהילה, לא רק מפגש
+ * אחד — כדי שעמוד הניהול יראה תור אחד מרוכז במקום שהמנהלת תצטרך
+ * להיכנס לכל מפגש בנפרד ולבדוק אם משהו ממתין שם.
+ */
+export async function getPendingEventPhotos(
+  clubId: string,
+): Promise<PendingEventPhoto[]> {
+  if (demoMode) {
+    return demo
+      .demoAllPendingPhotos()
+      .map((p) => ({
+        id: p.id,
+        url: p.url,
+        eventId: p.eventId,
+        eventTitle:
+          demo.demoEvents().find((e) => e.id === p.eventId)?.title ?? "",
+        storagePath: null,
+      }));
+  }
+
+  const supabase = await createClient();
+  const { data: rows } = await supabase
+    .from("event_photos")
+    .select("id, storage_path, event_id, events!inner(title, club_id)")
+    .eq("status", "pending")
+    .eq("events.club_id", clubId)
+    .order("created_at", { ascending: true });
+
+  if (!rows?.length) return [];
+
+  const paths = rows.map((r) => r.storage_path);
+  const { data: signed } = await supabase.storage
+    .from("event-photos")
+    .createSignedUrls(paths, SELFIE_TTL);
+
+  const urlByPath = new Map(
+    (signed ?? []).flatMap((s) =>
+      !s.error && s.signedUrl && s.path ? [[s.path, s.signedUrl] as const] : [],
+    ),
+  );
+
+  return rows.flatMap((r) => {
+    const url = urlByPath.get(r.storage_path);
+    if (!url) return [];
+    return [
+      {
+        id: r.id,
+        url,
+        eventId: r.event_id,
+        eventTitle: (r.events as unknown as { title: string }).title,
+        storagePath: r.storage_path as string,
+      },
+    ];
+  });
+}
+
+/**
+ * ספירה בלבד (לא הרשימה עצמה) — לתג ההתראה בסרגל הניווט, שנטען בכל
+ * ניווט בין עמודים. לא שווה לייצר כתובות חתומות לכל התמונות רק כדי
+ * לספור אותן.
+ */
+export async function getOrganizerPendingCount(clubId: string): Promise<number> {
+  if (demoMode) {
+    return demo.demoAllPendingPhotos().length;
+  }
+
+  const supabase = await createClient();
+  const [{ count: memberCount }, { count: photoCount }] = await Promise.all([
+    supabase
+      .from("club_members")
+      .select("*", { count: "exact", head: true })
+      .eq("club_id", clubId)
+      .eq("status", "pending"),
+    supabase
+      .from("event_photos")
+      .select("*, events!inner(club_id)", { count: "exact", head: true })
+      .eq("status", "pending")
+      .eq("events.club_id", clubId),
+  ]);
+
+  return (memberCount ?? 0) + (photoCount ?? 0);
+}
+
 // מפגש שהתחיל לפני פחות משעתיים עדיין נחשב "קרוב"
 const RECENT_MS = 2 * 3600_000;
 

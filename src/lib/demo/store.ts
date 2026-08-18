@@ -354,6 +354,13 @@ export function demoEventPhotos(eventId: string) {
     .sort((a, b) => a.addedAt.localeCompare(b.addedAt));
 }
 
+/** כל הממתינות בכל המפגשים — לתור המרוכז בעמוד הניהול. */
+export function demoAllPendingPhotos() {
+  return db()
+    .eventPhotos.filter((p) => p.status === "pending")
+    .sort((a, b) => a.addedAt.localeCompare(b.addedAt));
+}
+
 export function demoMyRole(): MemberRole {
   return db().myRole;
 }

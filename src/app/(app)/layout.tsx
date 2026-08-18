@@ -54,7 +54,10 @@ export default async function AppLayout({
       </main>
 
       {viewer.status !== "pending" && (
-        <AppNav isOrganizer={viewer.role === "organizer"} />
+        <AppNav
+          isOrganizer={viewer.role === "organizer"}
+          clubId={viewer.club?.id ?? null}
+        />
       )}
     </div>
   );

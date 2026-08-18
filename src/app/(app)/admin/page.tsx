@@ -1,11 +1,18 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getViewer, getAdminData, getPendingMembers } from "@/lib/data";
+import {
+  getViewer,
+  getAdminData,
+  getPendingMembers,
+  getPendingEventPhotos,
+} from "@/lib/data";
 import { formatDateTime, formatPhone, normalizeInstagram } from "@/lib/format";
 import { checkInWindow } from "@/lib/checkin";
 import { Card, EmptyState, LinkButton, PageHeader } from "@/components/ui";
 import { ExportButton } from "@/components/export-button";
 import { PendingMemberRow } from "@/components/pending-member-row";
+import { PendingPhotoCard } from "@/components/pending-photo-card";
+import { AdminLiveRefresh } from "@/components/admin-live-refresh";
 
 function InstagramGlyph() {
   return (
@@ -30,6 +37,7 @@ export default async function AdminPage() {
 
   const { events, members } = await getAdminData(viewer.club.id);
   const pendingMembers = await getPendingMembers(viewer.club.id);
+  const pendingPhotos = await getPendingEventPhotos(viewer.club.id);
 
   // המכנה של אחוז ההגעה הוא מפגשים שכבר **אפשר היה** לסמן בהם נוכחות,
   // כלומר שחלון הצ'ק־אין שלהם נפתח — ולא רק מפגשים שהסתיימו. אחרת מי
@@ -52,6 +60,8 @@ export default async function AdminPage() {
 
   return (
     <div className="space-y-8">
+      <AdminLiveRefresh clubId={viewer.club.id} />
+
       <PageHeader
         title="ניהול"
         subtitle={[
@@ -81,6 +91,28 @@ export default async function AdminPage() {
               />
             ))}
           </Card>
+        </section>
+      )}
+
+      {pendingPhotos.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
+            {pendingPhotos.length === 1
+              ? "תמונה אחת ממתינה לאישור"
+              : `${pendingPhotos.length} תמונות ממתינות לאישור`}
+          </h2>
+          <div className="grid grid-cols-3 gap-2">
+            {pendingPhotos.map((photo) => (
+              <PendingPhotoCard
+                key={photo.id}
+                photoId={photo.id}
+                eventId={photo.eventId}
+                eventTitle={photo.eventTitle}
+                url={photo.url}
+                storagePath={photo.storagePath}
+              />
+            ))}
+          </div>
         </section>
       )}
 

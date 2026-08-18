@@ -1,7 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { demoMode } from "@/lib/config";
+import * as demo from "@/lib/demo/store";
 import { cx } from "./ui";
 
 const ICONS = {
@@ -35,14 +39,80 @@ function NavIcon({ d }: { d: string }) {
   );
 }
 
-export function AppNav({ isOrganizer }: { isOrganizer: boolean }) {
+async function fetchPendingCount(clubId: string): Promise<number> {
+  const supabase = createClient();
+  const [{ count: memberCount }, { count: photoCount }] = await Promise.all([
+    supabase
+      .from("club_members")
+      .select("*", { count: "exact", head: true })
+      .eq("club_id", clubId)
+      .eq("status", "pending"),
+    supabase
+      .from("event_photos")
+      .select("*, events!inner(club_id)", { count: "exact", head: true })
+      .eq("status", "pending")
+      .eq("events.club_id", clubId),
+  ]);
+  return (memberCount ?? 0) + (photoCount ?? 0);
+}
+
+export function AppNav({
+  isOrganizer,
+  clubId,
+}: {
+  isOrganizer: boolean;
+  clubId: string | null;
+}) {
   const pathname = usePathname();
+  // בהדגמה זה נתון מקומי סינכרוני — אין צורך ב-fetch או ב-realtime.
+  const [pendingCount, setPendingCount] = useState(() =>
+    demoMode ? demo.demoAllPendingPhotos().length : 0,
+  );
+
+  // תג ההתראה על "ניהול": בקשות הצטרפות + תמונות ממתינות, בכל מקום
+  // באפליקציה שבו המנהלת נמצאת — לא רק כשהיא כבר בתוך עמוד הניהול.
+  // realtime לתגובה מיידית, ורענון תקופתי כרשת ביטחון (כמו באלבום
+  // התמונות — חיבור חי לא תמיד נשאר פתוח באמינות בנייד).
+  useEffect(() => {
+    if (demoMode || !isOrganizer || !clubId) return;
+
+    let cancelled = false;
+    async function refresh() {
+      const count = await fetchPendingCount(clubId!);
+      if (!cancelled) setPendingCount(count);
+    }
+
+    refresh();
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`admin-pending-badge:${clubId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "club_members" },
+        refresh,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "event_photos" },
+        refresh,
+      )
+      .subscribe();
+
+    const interval = setInterval(refresh, 15_000);
+
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
+  }, [isOrganizer, clubId]);
 
   const items = [
-    { href: "/events", label: "מפגשים", icon: ICONS.events },
-    { href: "/profile", label: "פרופיל", icon: ICONS.profile },
+    { href: "/events", label: "מפגשים", icon: ICONS.events, badge: 0 },
+    { href: "/profile", label: "פרופיל", icon: ICONS.profile, badge: 0 },
     ...(isOrganizer
-      ? [{ href: "/admin", label: "ניהול", icon: ICONS.admin }]
+      ? [{ href: "/admin", label: "ניהול", icon: ICONS.admin, badge: pendingCount }]
       : []),
   ];
 
@@ -64,7 +134,17 @@ export function AppNav({ isOrganizer }: { isOrganizer: boolean }) {
                     : "text-(--color-ink-faint) hover:text-(--color-ink-soft)",
                 )}
               >
-                <NavIcon d={item.icon} />
+                <span className="relative">
+                  <NavIcon d={item.icon} />
+                  {item.badge > 0 && (
+                    <span
+                      aria-label={`${item.badge} ממתינים לאישור`}
+                      className="absolute -end-1.5 -top-1 flex min-w-4 items-center justify-center rounded-full bg-(--color-fail) px-1 text-[0.6rem] font-bold leading-none text-white"
+                    >
+                      {item.badge > 9 ? "9+" : item.badge}
+                    </span>
+                  )}
+                </span>
                 {item.label}
               </Link>
             </li>
