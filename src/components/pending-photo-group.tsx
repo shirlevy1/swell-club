@@ -154,6 +154,15 @@ export function PendingPhotoGroup({
             </button>
             <button
               type="button"
+              onClick={() => approveOne(photo)}
+              disabled={busy === photo.id || busyAll}
+              aria-label="אישור תמונה זו"
+              className="absolute start-1 top-1 flex size-5 items-center justify-center rounded-full bg-(--color-sea) text-[0.65rem] font-bold text-white disabled:opacity-40"
+            >
+              ✓
+            </button>
+            <button
+              type="button"
               onClick={() => rejectOne(photo)}
               disabled={busy === photo.id || busyAll}
               aria-label="הסרת תמונה זו"
