@@ -30,6 +30,101 @@ function CheckIcon({ className }: { className?: string }) {
   );
 }
 
+function CloseIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      className={className}
+      aria-hidden
+    >
+      <path d="M6 6 18 18M18 6 6 18" />
+    </svg>
+  );
+}
+
+function ChevronIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      <path d="M15 5 8 12l7 7" />
+    </svg>
+  );
+}
+
+function DownloadIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.1"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      <path d="M12 4v11m0 0 4-4m-4 4-4-4M5 19h14" />
+    </svg>
+  );
+}
+
+/**
+ * שמירה בפועל למכשיר. קישור `download` רגיל לכתובת ממתחם אחר
+ * (הקבצים שלנו יושבים ב-supabase.co, לא ב-swell-club.vercel.app)
+ * עובד רק ברוב הדפדפנים, אבל ב-Safari של אייפון הוא רק פותח את
+ * התמונה בלי לשמור אותה בגלריה. תפריט השיתוף המובנה של המערכת
+ * (Web Share) כן שומר — ולכן מנסים אותו קודם, ורק אם הוא לא זמין
+ * (בעיקר דסקטופ) נופלים חזרה להורדה ישירה דרך blob.
+ */
+async function downloadPhotos(
+  items: { url: string; filename: string }[],
+): Promise<boolean> {
+  try {
+    const files = await Promise.all(
+      items.map(async (item) => {
+        const res = await fetch(item.url);
+        const blob = await res.blob();
+        return new File([blob], item.filename, {
+          type: blob.type || "image/jpeg",
+        });
+      }),
+    );
+
+    if (navigator.canShare?.({ files })) {
+      await navigator.share({ files });
+      return true;
+    }
+
+    for (const [i, file] of files.entries()) {
+      const blobUrl = URL.createObjectURL(file);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = items[i].filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(blobUrl);
+      if (i < files.length - 1) await new Promise((r) => setTimeout(r, 250));
+    }
+    return true;
+  } catch (err) {
+    // AbortError = המשתמש/ת ביטל/ה את תפריט השיתוף בעצמו/ה — לא שגיאה
+    return (err as { name?: string } | null)?.name === "AbortError";
+  }
+}
+
 export function EventPhotoAlbum({
   eventId,
   photos,
@@ -50,6 +145,8 @@ export function EventPhotoAlbum({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  const [downloading, setDownloading] = useState(false);
 
   const approved = photos.filter((p) => p.status === "approved");
   // כשאין הרשאת ניהול, RLS כבר לא מחזירה בכלל תמונות ממתינות של אחרים —
@@ -131,6 +228,7 @@ export function EventPhotoAlbum({
       next.delete(photo.id);
       return next;
     });
+    setViewerIndex(null);
     setBusyId(null);
     router.refresh();
   }
@@ -144,24 +242,31 @@ export function EventPhotoAlbum({
     });
   }
 
-  /** הורדה ברצף עם השהיה קצרה בין קובץ לקובץ — דפדפנים חוסמים כמה
-   * הורדות בבת אחת אם הן נורות ממש באותו רגע. */
   async function downloadSelected() {
+    setDownloading(true);
     const chosen = approved.filter((p) => selected.has(p.id));
-    for (const photo of chosen) {
-      const a = document.createElement("a");
-      a.href = photo.url;
-      a.download = "תמונה-מהמפגש.jpg";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      await new Promise((r) => setTimeout(r, 250));
+    const ok = await downloadPhotos(
+      chosen.map((p, i) => ({ url: p.url, filename: `תמונה-מהמפגש-${i + 1}.jpg` })),
+    );
+    setDownloading(false);
+    if (!ok) {
+      setError("ההורדה נכשלה. נסו שוב.");
+      return;
     }
     setSelecting(false);
     setSelected(new Set());
   }
 
+  async function downloadOne(photo: EventPhoto) {
+    setDownloading(true);
+    const ok = await downloadPhotos([{ url: photo.url, filename: "תמונה-מהמפגש.jpg" }]);
+    setDownloading(false);
+    if (!ok) setError("ההורדה נכשלה. נסו שוב.");
+  }
+
   if (!approved.length && !pending.length && !canUpload) return null;
+
+  const viewerPhoto = viewerIndex !== null ? approved[viewerIndex] : null;
 
   return (
     <div className="space-y-4">
@@ -257,50 +362,30 @@ export function EventPhotoAlbum({
 
       {approved.length > 0 ? (
         <div className="grid grid-cols-3 gap-2">
-          {approved.map((photo) => {
+          {approved.map((photo, i) => {
             const isSelected = selected.has(photo.id);
             return (
-              <div
+              <button
                 key={photo.id}
+                type="button"
+                onClick={() => (selecting ? toggleSelected(photo.id) : setViewerIndex(i))}
+                aria-pressed={selecting ? isSelected : undefined}
+                aria-label={selecting ? "בחירת תמונה" : "הצגת תמונה"}
                 className="relative aspect-square overflow-hidden rounded-lg bg-(--color-haze)"
               >
-                {selecting ? (
-                  <button
-                    type="button"
-                    onClick={() => toggleSelected(photo.id)}
-                    className="block size-full"
-                    aria-pressed={isSelected}
-                    aria-label="בחירת תמונה"
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={photo.url}
-                      alt=""
-                      className={
-                        "size-full object-cover transition " +
-                        (isSelected ? "opacity-60" : "")
-                      }
-                      loading="lazy"
-                    />
-                  </button>
-                ) : (
-                  <a
-                    href={photo.url}
-                    download="תמונה-מהמפגש.jpg"
-                    className="block size-full"
-                  >
-                    {/* מקורות מעורבים (קישור חתום / data URL / נכס מקומי
-                        בהדגמה) — next/image דורש רשימת דומיינים מוגדרת מראש
-                        ולא מתאים כאן, בדיוק כמו בסלפים ב-attendee-grid. */}
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={photo.url}
-                      alt=""
-                      className="size-full object-cover"
-                      loading="lazy"
-                    />
-                  </a>
-                )}
+                {/* מקורות מעורבים (קישור חתום / data URL / נכס מקומי
+                    בהדגמה) — next/image דורש רשימת דומיינים מוגדרת מראש
+                    ולא מתאים כאן, בדיוק כמו בסלפים ב-attendee-grid. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={photo.url}
+                  alt=""
+                  className={
+                    "size-full object-cover transition " +
+                    (selecting && isSelected ? "opacity-60" : "")
+                  }
+                  loading="lazy"
+                />
 
                 {selecting && (
                   <div
@@ -314,17 +399,26 @@ export function EventPhotoAlbum({
                 )}
 
                 {!selecting && canManage && (
-                  <button
-                    type="button"
-                    onClick={() => onDelete(photo)}
-                    disabled={busyId === photo.id}
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(photo);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.stopPropagation();
+                        onDelete(photo);
+                      }
+                    }}
                     aria-label="מחיקת תמונה"
-                    className="absolute end-1 top-1 flex size-7 items-center justify-center rounded-full bg-black/55 text-xs text-white disabled:opacity-40"
+                    className="absolute end-1 top-1 flex size-7 items-center justify-center rounded-full bg-black/55 text-xs text-white"
                   >
                     ✕
-                  </button>
+                  </span>
                 )}
-              </div>
+              </button>
             );
           })}
         </div>
@@ -337,9 +431,84 @@ export function EventPhotoAlbum({
       )}
 
       {selecting && selected.size > 0 && (
-        <Button onClick={downloadSelected} className="w-full">
-          {selected.size === 1 ? "הורדת תמונה" : `הורדת ${selected.size} תמונות`}
+        <Button onClick={downloadSelected} disabled={downloading} className="w-full">
+          {downloading
+            ? "מורידים…"
+            : selected.size === 1
+              ? "הורדת תמונה"
+              : `הורדת ${selected.size} תמונות`}
         </Button>
+      )}
+
+      {viewerPhoto && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col bg-black/95"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="flex items-center justify-between gap-3 p-4">
+            <button
+              type="button"
+              onClick={() => setViewerIndex(null)}
+              aria-label="סגירה"
+              className="flex size-10 items-center justify-center rounded-full bg-white/10 text-white"
+            >
+              <CloseIcon className="size-5" />
+            </button>
+            <div className="flex items-center gap-2">
+              {canManage && (
+                <button
+                  type="button"
+                  onClick={() => onDelete(viewerPhoto)}
+                  disabled={busyId === viewerPhoto.id}
+                  className="rounded-full bg-white/10 px-4 py-2 text-xs font-bold text-white disabled:opacity-40"
+                >
+                  מחיקה
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => downloadOne(viewerPhoto)}
+                disabled={downloading}
+                className="flex items-center gap-1.5 rounded-full bg-white/10 px-4 py-2 text-xs font-bold text-white disabled:opacity-40"
+              >
+                <DownloadIcon className="size-4" />
+                הורדה
+              </button>
+            </div>
+          </div>
+
+          <div className="relative flex flex-1 items-center justify-center px-2">
+            {viewerIndex! > 0 && (
+              <button
+                type="button"
+                onClick={() => setViewerIndex((i) => (i ?? 0) - 1)}
+                aria-label="התמונה הקודמת"
+                className="absolute start-1 flex size-10 items-center justify-center rounded-full bg-white/10 text-white"
+              >
+                <ChevronIcon className="size-5" />
+              </button>
+            )}
+
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={viewerPhoto.url}
+              alt=""
+              className="max-h-full max-w-full object-contain"
+            />
+
+            {viewerIndex! < approved.length - 1 && (
+              <button
+                type="button"
+                onClick={() => setViewerIndex((i) => (i ?? 0) + 1)}
+                aria-label="התמונה הבאה"
+                className="absolute end-1 flex size-10 items-center justify-center rounded-full bg-white/10 text-white"
+              >
+                <ChevronIcon className="size-5 rotate-180" />
+              </button>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

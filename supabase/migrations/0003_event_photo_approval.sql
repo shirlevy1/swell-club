@@ -84,7 +84,7 @@ begin
     p_event_id,
     p_storage_path,
     auth.uid(),
-    case when v_is_organizer then 'approved' else 'pending' end
+    case when v_is_organizer then 'approved' else 'pending' end::public.photo_status
   )
   returning * into v_row;
 
