@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
@@ -13,10 +14,12 @@ import type { PendingEventPhoto } from "@/lib/data";
  * כל הערימה, ועדיין אפשר להוציא תמונה בודדת ממנה אם צריך. */
 export function PendingPhotoGroup({
   eventId,
+  uploaderId,
   uploaderName,
   photos,
 }: {
   eventId: string;
+  uploaderId: string;
   uploaderName: string;
   photos: PendingEventPhoto[];
 }) {
@@ -107,7 +110,9 @@ export function PendingPhotoGroup({
     <div className="space-y-2 rounded-xl border border-(--color-line) bg-(--color-surface) p-3">
       <div className="flex items-center justify-between gap-2">
         <p className="truncate text-sm font-semibold">
-          {uploaderName}
+          <Link href={`/admin/members/${uploaderId}`} className="text-(--color-sea) hover:underline">
+            {uploaderName}
+          </Link>
           <span className="ms-1.5 font-normal text-(--color-ink-faint)">
             ({photos.length === 1 ? "תמונה אחת" : `${photos.length} תמונות`})
           </span>

@@ -158,7 +158,12 @@ export default async function AdminPage() {
             {pendingPhotosByEvent.map((event) => (
               <div key={event.eventId} className="space-y-2">
                 <div className="flex items-baseline justify-between gap-2">
-                  <p className="truncate text-sm font-bold">{event.eventTitle}</p>
+                  <Link
+                    href={`/events/${event.eventId}`}
+                    className="truncate text-sm font-bold text-(--color-sea) hover:underline"
+                  >
+                    {event.eventTitle}
+                  </Link>
                   <p className="ltr-nums shrink-0 text-xs text-(--color-ink-faint)">
                     {formatDateTime(event.eventStartsAt)}
                   </p>
@@ -168,6 +173,7 @@ export default async function AdminPage() {
                     <PendingPhotoGroup
                       key={group.uploaderId}
                       eventId={event.eventId}
+                      uploaderId={group.uploaderId}
                       uploaderName={group.uploaderName}
                       photos={group.photos}
                     />
