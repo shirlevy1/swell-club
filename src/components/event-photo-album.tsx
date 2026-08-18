@@ -49,14 +49,18 @@ function DownloadIcon({ className }: { className?: string }) {
 }
 
 /**
- * Samsung Internet ספציפית (לא אנדרואיד/כרום באופן כללי — נבדק בפועל:
- * כרום על אותו מכשיר אנדרואיד עובד תקין) מחזירה הצלחה מ-navigator.share
- * עם קבצים בלי לשמור שום דבר בפועל — באג בדפדפן הזה, לא משהו שאפשר
- * לזהות מראש מהתגובה של הקריאה עצמה. לכן חוסמים אותו ספציפית ולא כל
- * מה שאינו iOS.
+ * רק ל-iOS: שם תפריט השיתוף המובנה כולל "שמירת תמונות" שנוחתת ישר
+ * בגלריה, וזו הדרך היחידה לשמור בכלל (קישור download רגיל לכתובת
+ * ממתחם אחר רק פותח את התמונה, לא שומר אותה).
+ *
+ * באנדרואיד תפריט השיתוף **לא** כולל פעולת "שמירה לגלריה" גנרית —
+ * זו לא בעיית תאימות שאפשר לעקוף, זו התנהגות שונה בין הפלטפורמות
+ * (נבדק בפועל: גם ב-Chrome, לא רק Samsung Internet — התפריט נפתח
+ * ותקין, פשוט אין בו אפשרות כזו). הורדה ישירה, שנוחתת בתיקיית
+ * ההורדות, היא בפועל הדרך הכי ברורה שם.
  */
-function isSamsungInternet(): boolean {
-  return typeof navigator !== "undefined" && /SamsungBrowser/i.test(navigator.userAgent);
+function isIOS(): boolean {
+  return typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
 }
 
 /**
@@ -108,7 +112,7 @@ async function downloadPhotos(
   items: { url: string; filename: string }[],
 ): Promise<boolean> {
   try {
-    if (!isSamsungInternet()) {
+    if (isIOS()) {
       const files = await Promise.all(
         items.map(async (item) => {
           const res = await fetch(item.url);
