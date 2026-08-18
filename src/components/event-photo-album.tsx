@@ -49,19 +49,14 @@ function DownloadIcon({ className }: { className?: string }) {
 }
 
 /**
- * רק ל-iOS: כל דפדפן שם מבוסס Safari/WebKit, וקישור `download` רגיל
- * לכתובת ממתחם אחר (הקבצים שלנו ב-supabase.co, לא ב-swell-club.vercel.app)
- * רק פותח את התמונה בלי לשמור אותה בגלריה. תפריט השיתוף המובנה
- * (Web Share) כן שומר בפועל שם.
- *
- * לא הופעל בכל דפדפן שתומך ב-Web Share: באנדרואיד (נבדק בפועל ב-Samsung
- * Internet) הקריאה ל-navigator.share עם קבצים מחזירה הצלחה בלי לשמור
- * שום דבר בפועל — באג בפלטפורמה, לא משהו שאפשר לזהות מראש מהקוד.
- * באנדרואיד ובדסקטופ אין את המגבלה של iOS מלכתחילה, אז ההורדה הישירה
- * הרגילה כבר עובדת נכון.
+ * Samsung Internet ספציפית (לא אנדרואיד/כרום באופן כללי — נבדק בפועל:
+ * כרום על אותו מכשיר אנדרואיד עובד תקין) מחזירה הצלחה מ-navigator.share
+ * עם קבצים בלי לשמור שום דבר בפועל — באג בדפדפן הזה, לא משהו שאפשר
+ * לזהות מראש מהתגובה של הקריאה עצמה. לכן חוסמים אותו ספציפית ולא כל
+ * מה שאינו iOS.
  */
-function isIOS(): boolean {
-  return typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
+function isSamsungInternet(): boolean {
+  return typeof navigator !== "undefined" && /SamsungBrowser/i.test(navigator.userAgent);
 }
 
 /**
@@ -113,7 +108,7 @@ async function downloadPhotos(
   items: { url: string; filename: string }[],
 ): Promise<boolean> {
   try {
-    if (isIOS()) {
+    if (!isSamsungInternet()) {
       const files = await Promise.all(
         items.map(async (item) => {
           const res = await fetch(item.url);
