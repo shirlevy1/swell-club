@@ -13,6 +13,7 @@ import {
 import { checkInErrorMessage } from "@/lib/checkin";
 import { demoMode } from "@/lib/config";
 import { checkInAction } from "@/lib/demo/actions";
+import { photoHasFace } from "@/lib/face-detection";
 import type { SwellEvent } from "@/lib/types";
 import { Button, Card, Notice } from "./ui";
 
@@ -61,6 +62,7 @@ export function CheckInFlow({
   const [coords, setCoords] = useState<
     (Coords & { accuracy: number }) | null
   >(null);
+  const [checkingFace, setCheckingFace] = useState(false);
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -197,6 +199,19 @@ export function CheckInFlow({
     canvas.height = Math.round(video.videoHeight * scale);
     canvas.getContext("2d")?.drawImage(video, 0, 0, canvas.width, canvas.height);
 
+    // בדיקת פנים לפני שממשיכים לכל דבר אחר, ולפני עצירת המצלמה —
+    // ככה אפשר לנסות שוב מיד באותה תצוגה חיה, בלי לפתוח הכל מחדש.
+    // לא חוסמת סוג ציוד (משקפי שמש, כובע) — רק תמונה שאין בה פנים
+    // בכלל (תקרה, שמיים).
+    setError(null);
+    setCheckingFace(true);
+    const hasFace = await photoHasFace(canvas);
+    setCheckingFace(false);
+    if (!hasFace) {
+      setError("לא זיהינו פנים בתמונה. ודאו שהפנים שלכם נראות בבירור ונסו שוב.");
+      return;
+    }
+
     if (demoMode) {
       stopCamera();
       setStep("uploading");
@@ -291,9 +306,12 @@ export function CheckInFlow({
         <p className="text-center text-sm text-(--color-ink-soft)">
           זו התמונה שחברי הקהילה יראו לצד השם שלכם.
         </p>
+
+        {error && <Notice tone="error">{error}</Notice>}
+
         <div className="flex gap-3">
-          <Button onClick={capture} className="flex-1">
-            צילום
+          <Button onClick={capture} disabled={checkingFace} className="flex-1">
+            {checkingFace ? "בודקים…" : "צילום"}
           </Button>
           <Button onClick={cancel} variant="secondary">
             ביטול
