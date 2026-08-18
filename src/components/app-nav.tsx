@@ -39,7 +39,73 @@ function NavIcon({ d }: { d: string }) {
   );
 }
 
-async function fetchPendingCount(clubId: string): Promise<number> {
+// אותה שפה חזותית כמו שאר האייקונים בסרגל: קווי מתאר בלבד, פינות
+// עגולות, בלי מילוי — רק בקנה מידה זעיר של תג התראה.
+function PersonBadgeIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      <path d="M12 12.2a2.6 2.6 0 1 0 0-5.2 2.6 2.6 0 0 0 0 5.2Z" />
+      <path d="M6.5 18.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5" />
+    </svg>
+  );
+}
+
+function PhotoBadgeIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      <path d="M4.5 5.5h15a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1Z" />
+      <path d="M7 15.5l3-3.5 3 3 4-4.5" />
+    </svg>
+  );
+}
+
+function BadgePill({
+  count,
+  position,
+  icon,
+  label,
+}: {
+  count: number;
+  position: "start" | "end";
+  icon: React.ReactNode;
+  label: string;
+}) {
+  if (count <= 0) return null;
+  return (
+    <span
+      aria-label={label}
+      className={cx(
+        "absolute -top-1.5 flex h-4 items-center gap-[3px] rounded-full bg-(--color-fail) px-1 text-[0.6rem] font-bold leading-none text-white",
+        position === "end" ? "-end-2" : "-start-2",
+      )}
+    >
+      {icon}
+      <span className="ltr-nums">{count > 9 ? "9+" : count}</span>
+    </span>
+  );
+}
+
+async function fetchPendingCounts(
+  clubId: string,
+): Promise<{ members: number; photos: number }> {
   const supabase = createClient();
   const [{ count: memberCount }, { count: photoCount }] = await Promise.all([
     supabase
@@ -53,7 +119,7 @@ async function fetchPendingCount(clubId: string): Promise<number> {
       .eq("status", "pending")
       .eq("events.club_id", clubId),
   ]);
-  return (memberCount ?? 0) + (photoCount ?? 0);
+  return { members: memberCount ?? 0, photos: photoCount ?? 0 };
 }
 
 export function AppNav({
@@ -64,22 +130,25 @@ export function AppNav({
   clubId: string | null;
 }) {
   const pathname = usePathname();
-  // בהדגמה זה נתון מקומי סינכרוני — אין צורך ב-fetch או ב-realtime.
-  const [pendingCount, setPendingCount] = useState(() =>
-    demoMode ? demo.demoAllPendingPhotos().length : 0,
-  );
+  // בהדגמה יש רק תמונות ממתינות (אין הרשמה אמיתית להדגים) — נתון
+  // מקומי סינכרוני, אין צורך ב-fetch או ב-realtime.
+  const [pendingCounts, setPendingCounts] = useState(() => ({
+    members: 0,
+    photos: demoMode ? demo.demoAllPendingPhotos().length : 0,
+  }));
 
-  // תג ההתראה על "ניהול": בקשות הצטרפות + תמונות ממתינות, בכל מקום
-  // באפליקציה שבו המנהלת נמצאת — לא רק כשהיא כבר בתוך עמוד הניהול.
-  // realtime לתגובה מיידית, ורענון תקופתי כרשת ביטחון (כמו באלבום
-  // התמונות — חיבור חי לא תמיד נשאר פתוח באמינות בנייד).
+  // תג ההתראה על "ניהול": בקשות הצטרפות ותמונות ממתינות מוצגות
+  // בנפרד — לא סתם מספר אחד מאוחד — כי אלה שתי פעולות שונות לגמרי.
+  // נראה בכל מקום באפליקציה שבו המנהלת נמצאת, לא רק בתוך עמוד הניהול
+  // עצמו. realtime לתגובה מיידית, ורענון תקופתי כרשת ביטחון (חיבור
+  // חי לא תמיד נשאר פתוח באמינות בנייד).
   useEffect(() => {
     if (demoMode || !isOrganizer || !clubId) return;
 
     let cancelled = false;
     async function refresh() {
-      const count = await fetchPendingCount(clubId!);
-      if (!cancelled) setPendingCount(count);
+      const counts = await fetchPendingCounts(clubId!);
+      if (!cancelled) setPendingCounts(counts);
     }
 
     refresh();
@@ -109,10 +178,10 @@ export function AppNav({
   }, [isOrganizer, clubId]);
 
   const items = [
-    { href: "/events", label: "מפגשים", icon: ICONS.events, badge: 0 },
-    { href: "/profile", label: "פרופיל", icon: ICONS.profile, badge: 0 },
+    { href: "/events", label: "מפגשים", icon: ICONS.events },
+    { href: "/profile", label: "פרופיל", icon: ICONS.profile },
     ...(isOrganizer
-      ? [{ href: "/admin", label: "ניהול", icon: ICONS.admin, badge: pendingCount }]
+      ? [{ href: "/admin", label: "ניהול", icon: ICONS.admin }]
       : []),
   ];
 
@@ -122,6 +191,7 @@ export function AppNav({
         {items.map((item) => {
           const active =
             pathname === item.href || pathname.startsWith(item.href + "/");
+          const isAdmin = item.href === "/admin";
           return (
             <li key={item.href} className="flex-1">
               <Link
@@ -136,13 +206,21 @@ export function AppNav({
               >
                 <span className="relative">
                   <NavIcon d={item.icon} />
-                  {item.badge > 0 && (
-                    <span
-                      aria-label={`${item.badge} ממתינים לאישור`}
-                      className="absolute -end-1.5 -top-1 flex min-w-4 items-center justify-center rounded-full bg-(--color-fail) px-1 text-[0.6rem] font-bold leading-none text-white"
-                    >
-                      {item.badge > 9 ? "9+" : item.badge}
-                    </span>
+                  {isAdmin && (
+                    <>
+                      <BadgePill
+                        count={pendingCounts.members}
+                        position="end"
+                        icon={<PersonBadgeIcon className="size-2.5" />}
+                        label={`${pendingCounts.members} בקשות הצטרפות ממתינות`}
+                      />
+                      <BadgePill
+                        count={pendingCounts.photos}
+                        position="start"
+                        icon={<PhotoBadgeIcon className="size-2.5" />}
+                        label={`${pendingCounts.photos} תמונות ממתינות לאישור`}
+                      />
+                    </>
                   )}
                 </span>
                 {item.label}
