@@ -64,10 +64,18 @@ function isIOS(): boolean {
   return typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
 }
 
+/**
+ * כמה קבצי הורדה שנורים ברצף מהעמוד עצמו (בלי אינטראקציה נפרדת של
+ * המשתמש/ת לכל אחד) נחסמים על ידי דפדפני כרום/אנדרואיד כ"הורדות
+ * מרובות אוטומטיות" — רק הראשונה עוברת, השאר נבלעות בשקט. הפתרון:
+ * תמונה בודדת יורדת ישירות, אבל כמה תמונות ביחד ארוזות קודם לקובץ
+ * ZIP אחד, כדי שזו תמיד הורדה אחת בלבד.
+ */
 async function downloadViaBlobLinks(
   items: { url: string; filename: string }[],
 ): Promise<void> {
-  for (const [i, item] of items.entries()) {
+  if (items.length === 1) {
+    const [item] = items;
     const res = await fetch(item.url);
     const blob = await res.blob();
     const blobUrl = URL.createObjectURL(blob);
@@ -78,8 +86,27 @@ async function downloadViaBlobLinks(
     a.click();
     a.remove();
     URL.revokeObjectURL(blobUrl);
-    if (i < items.length - 1) await new Promise((r) => setTimeout(r, 250));
+    return;
   }
+
+  const { default: JSZip } = await import("jszip");
+  const zip = new JSZip();
+  await Promise.all(
+    items.map(async (item) => {
+      const res = await fetch(item.url);
+      const blob = await res.blob();
+      zip.file(item.filename, blob);
+    }),
+  );
+  const zipBlob = await zip.generateAsync({ type: "blob" });
+  const blobUrl = URL.createObjectURL(zipBlob);
+  const a = document.createElement("a");
+  a.href = blobUrl;
+  a.download = "תמונות-מהמפגש.zip";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(blobUrl);
 }
 
 async function downloadPhotos(
