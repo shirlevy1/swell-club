@@ -34,16 +34,27 @@ async function getDetector(): Promise<FaceDetector> {
   return detectorPromise;
 }
 
+// פינה של פנים בתמונה שהיא בעיקר תקרה עדיין "מזוהה" כפנים — נדרש
+// גם שהפנים יתפסו חלק משמעותי מהפריים, לא רק להופיע איפשהו בו.
+// סלפי אמיתי, גם ביד מושטת, בדרך כלל עובר את זה בנוחות; פינה קטנה
+// שנתפסת בטעות בקצה התמונה — לא.
+const MIN_FACE_AREA_RATIO = 0.05;
+
 /**
- * true = יש לפחות פנים אחת בתמונה. גם true אם הבדיקה עצמה נכשלה
- * (מודל לא נטען, דפדפן לא נתמך, בעיית רשת בהורדת המודל) — תקלה
- * בתשתית הזיהוי לא אמורה לחסום מישהו מלסמן הגעה אמיתית.
+ * true = יש בתמונה פנים שתופסות חלק משמעותי מהפריים. גם true אם
+ * הבדיקה עצמה נכשלה (מודל לא נטען, דפדפן לא נתמך, בעיית רשת בהורדת
+ * המודל) — תקלה בתשתית הזיהוי לא אמורה לחסום מישהו מלסמן הגעה אמיתית.
  */
 export async function photoHasFace(canvas: HTMLCanvasElement): Promise<boolean> {
   try {
     const detector = await getDetector();
     const result = detector.detect(canvas);
-    return result.detections.length > 0;
+    const frameArea = canvas.width * canvas.height;
+    return result.detections.some((d) => {
+      const box = d.boundingBox;
+      if (!box) return false;
+      return (box.width * box.height) / frameArea >= MIN_FACE_AREA_RATIO;
+    });
   } catch {
     return true;
   }
