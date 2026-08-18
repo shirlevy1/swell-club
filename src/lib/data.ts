@@ -94,34 +94,47 @@ export type PendingEventPhoto = {
   url: string;
   eventId: string;
   eventTitle: string;
+  eventStartsAt: string;
+  uploaderId: string;
+  uploaderName: string;
   storagePath: string | null;
 };
 
 /**
  * כל התמונות שממתינות לאישור בכל המפגשים של הקהילה, לא רק מפגש
  * אחד — כדי שעמוד הניהול יראה תור אחד מרוכז במקום שהמנהלת תצטרך
- * להיכנס לכל מפגש בנפרד ולבדוק אם משהו ממתין שם.
+ * להיכנס לכל מפגש בנפרד ולבדוק אם משהו ממתין שם. כוללת גם מי העלה
+ * ומתי המפגש עצמו התקיים, כדי שאפשר יהיה לקבץ לפי מפגש ואז לפי
+ * מעלה/ת — ביום מפגש אמיתי צפויות הרבה בקשות בבת אחת.
  */
 export async function getPendingEventPhotos(
   clubId: string,
 ): Promise<PendingEventPhoto[]> {
   if (demoMode) {
-    return demo
-      .demoAllPendingPhotos()
-      .map((p) => ({
+    return demo.demoAllPendingPhotos().map((p) => {
+      const event = demo.demoEvents().find((e) => e.id === p.eventId);
+      const uploader = demo
+        .demoProfiles()
+        .find((profile) => profile.id === p.uploadedBy);
+      return {
         id: p.id,
         url: p.url,
         eventId: p.eventId,
-        eventTitle:
-          demo.demoEvents().find((e) => e.id === p.eventId)?.title ?? "",
+        eventTitle: event?.title ?? "",
+        eventStartsAt: event?.starts_at ?? "",
+        uploaderId: p.uploadedBy,
+        uploaderName: uploader?.full_name ?? "חבר קהילה",
         storagePath: null,
-      }));
+      };
+    });
   }
 
   const supabase = await createClient();
   const { data: rows } = await supabase
     .from("event_photos")
-    .select("id, storage_path, event_id, events!inner(title, club_id)")
+    .select(
+      "id, storage_path, event_id, uploaded_by, events!inner(title, starts_at, club_id), profiles(full_name)",
+    )
     .eq("status", "pending")
     .eq("events.club_id", clubId)
     .order("created_at", { ascending: true });
@@ -142,12 +155,17 @@ export async function getPendingEventPhotos(
   return rows.flatMap((r) => {
     const url = urlByPath.get(r.storage_path);
     if (!url) return [];
+    const event = r.events as unknown as { title: string; starts_at: string };
+    const profile = r.profiles as unknown as { full_name: string } | null;
     return [
       {
         id: r.id,
         url,
         eventId: r.event_id,
-        eventTitle: (r.events as unknown as { title: string }).title,
+        eventTitle: event.title,
+        eventStartsAt: event.starts_at,
+        uploaderId: r.uploaded_by as string,
+        uploaderName: profile?.full_name ?? "חבר קהילה",
         storagePath: r.storage_path as string,
       },
     ];

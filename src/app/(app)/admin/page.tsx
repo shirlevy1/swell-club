@@ -5,14 +5,66 @@ import {
   getAdminData,
   getPendingMembers,
   getPendingEventPhotos,
+  type PendingEventPhoto,
 } from "@/lib/data";
 import { formatDateTime, formatPhone, normalizeInstagram } from "@/lib/format";
 import { checkInWindow } from "@/lib/checkin";
 import { Card, EmptyState, LinkButton, PageHeader } from "@/components/ui";
 import { ExportButton } from "@/components/export-button";
 import { PendingMemberRow } from "@/components/pending-member-row";
-import { PendingPhotoCard } from "@/components/pending-photo-card";
+import { PendingPhotoGroup } from "@/components/pending-photo-group";
 import { AdminLiveRefresh } from "@/components/admin-live-refresh";
+
+/** מקבצת לפי מפגש, ובתוך כל מפגש לפי מי שהעלה — כדי שערימת התמונות
+ * של אדם אחד ממפגש אחד תאושר בלחיצה אחת, במקום תמונה-תמונה. */
+function groupPendingPhotos(photos: PendingEventPhoto[]) {
+  const eventOrder: string[] = [];
+  const events = new Map<
+    string,
+    {
+      eventId: string;
+      eventTitle: string;
+      eventStartsAt: string;
+      uploaderOrder: string[];
+      uploaders: Map<string, { uploaderName: string; photos: PendingEventPhoto[] }>;
+    }
+  >();
+
+  for (const photo of photos) {
+    let event = events.get(photo.eventId);
+    if (!event) {
+      event = {
+        eventId: photo.eventId,
+        eventTitle: photo.eventTitle,
+        eventStartsAt: photo.eventStartsAt,
+        uploaderOrder: [],
+        uploaders: new Map(),
+      };
+      events.set(photo.eventId, event);
+      eventOrder.push(photo.eventId);
+    }
+    let uploader = event.uploaders.get(photo.uploaderId);
+    if (!uploader) {
+      uploader = { uploaderName: photo.uploaderName, photos: [] };
+      event.uploaders.set(photo.uploaderId, uploader);
+      event.uploaderOrder.push(photo.uploaderId);
+    }
+    uploader.photos.push(photo);
+  }
+
+  return eventOrder.map((eventId) => {
+    const event = events.get(eventId)!;
+    return {
+      eventId: event.eventId,
+      eventTitle: event.eventTitle,
+      eventStartsAt: event.eventStartsAt,
+      uploaderGroups: event.uploaderOrder.map((uploaderId) => ({
+        uploaderId,
+        ...event.uploaders.get(uploaderId)!,
+      })),
+    };
+  });
+}
 
 function InstagramGlyph() {
   return (
@@ -38,6 +90,7 @@ export default async function AdminPage() {
   const { events, members } = await getAdminData(viewer.club.id);
   const pendingMembers = await getPendingMembers(viewer.club.id);
   const pendingPhotos = await getPendingEventPhotos(viewer.club.id);
+  const pendingPhotosByEvent = groupPendingPhotos(pendingPhotos);
 
   // המכנה של אחוז ההגעה הוא מפגשים שכבר **אפשר היה** לסמן בהם נוכחות,
   // כלומר שחלון הצ'ק־אין שלהם נפתח — ולא רק מפגשים שהסתיימו. אחרת מי
@@ -95,22 +148,32 @@ export default async function AdminPage() {
       )}
 
       {pendingPhotos.length > 0 && (
-        <section className="space-y-3">
+        <section className="space-y-4">
           <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
             {pendingPhotos.length === 1
               ? "תמונה אחת ממתינה לאישור"
               : `${pendingPhotos.length} תמונות ממתינות לאישור`}
           </h2>
-          <div className="grid grid-cols-3 gap-2">
-            {pendingPhotos.map((photo) => (
-              <PendingPhotoCard
-                key={photo.id}
-                photoId={photo.id}
-                eventId={photo.eventId}
-                eventTitle={photo.eventTitle}
-                url={photo.url}
-                storagePath={photo.storagePath}
-              />
+          <div className="space-y-4">
+            {pendingPhotosByEvent.map((event) => (
+              <div key={event.eventId} className="space-y-2">
+                <div className="flex items-baseline justify-between gap-2">
+                  <p className="truncate text-sm font-bold">{event.eventTitle}</p>
+                  <p className="ltr-nums shrink-0 text-xs text-(--color-ink-faint)">
+                    {formatDateTime(event.eventStartsAt)}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  {event.uploaderGroups.map((group) => (
+                    <PendingPhotoGroup
+                      key={group.uploaderId}
+                      eventId={event.eventId}
+                      uploaderName={group.uploaderName}
+                      photos={group.photos}
+                    />
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </section>
