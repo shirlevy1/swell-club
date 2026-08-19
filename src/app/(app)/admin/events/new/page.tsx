@@ -258,7 +258,7 @@ export default function NewEventPage() {
 
             {showSuggestions &&
               (searching || suggestions.length > 0 || searchError) && (
-                <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-(--color-line) bg-(--color-surface) shadow-lg">
+                <ul className="absolute z-[1200] mt-1 w-full overflow-hidden rounded-xl border border-(--color-line) bg-(--color-surface) shadow-lg">
                   {searching && (
                     <li className="px-4 py-2.5 text-sm text-(--color-ink-faint)">
                       מחפשים…
