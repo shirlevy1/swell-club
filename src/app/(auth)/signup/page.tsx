@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { isValidIsraeliPhone, normalizeInstagram } from "@/lib/format";
 import { demoMode } from "@/lib/config";
 import { CityAutocomplete } from "@/components/city-autocomplete";
+import { BirthDateInput } from "@/components/birth-date-input";
 import { Button, Field, Input, Notice } from "@/components/ui";
 
 export default function SignupPage() {
@@ -153,17 +154,7 @@ export default function SignupPage() {
         </Field>
 
         <Field label="תאריך לידה">
-          <Input
-            name="birth_date"
-            type="date"
-            autoComplete="bday"
-            dir="ltr"
-            required
-            max={new Date().toISOString().slice(0, 10)}
-            // ה-RTL של העמוד "מעקם" את הבקרה המובנית של הדפדפן לתאריך
-            // אם לא נועלים לה כיוון תוכן משלה, בנפרד מה-dir של השדה עצמו.
-            className="text-left [direction:ltr]"
-          />
+          <BirthDateInput name="birth_date" />
         </Field>
 
         <Field label="עיר מגורים">

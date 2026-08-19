@@ -7,6 +7,7 @@ import { demoMode } from "@/lib/config";
 import { updateProfileAction } from "@/lib/demo/actions";
 import { isValidIsraeliPhone, normalizeInstagram } from "@/lib/format";
 import { CityAutocomplete } from "@/components/city-autocomplete";
+import { BirthDateInput } from "@/components/birth-date-input";
 import type { Profile } from "@/lib/types";
 import { Button, Card, Field, Input, Notice } from "./ui";
 
@@ -92,18 +93,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
         </Field>
 
         <Field label="תאריך לידה">
-          <Input
-            name="birth_date"
-            type="date"
-            autoComplete="bday"
-            dir="ltr"
-            defaultValue={profile.birth_date ?? ""}
-            required
-            max={new Date().toISOString().slice(0, 10)}
-            // ה-RTL של העמוד "מעקם" את הבקרה המובנית של הדפדפן לתאריך
-            // אם לא נועלים לה כיוון תוכן משלה, בנפרד מה-dir של השדה עצמו.
-            className="text-left [direction:ltr]"
-          />
+          <BirthDateInput name="birth_date" defaultValue={profile.birth_date ?? ""} />
         </Field>
 
         <Field label="עיר מגורים">
