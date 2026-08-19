@@ -8,6 +8,7 @@ import { isValidIsraeliPhone, normalizeInstagram } from "@/lib/format";
 import { demoMode } from "@/lib/config";
 import { CityAutocomplete } from "@/components/city-autocomplete";
 import { BirthDateInput } from "@/components/birth-date-input";
+import { GenderInput } from "@/components/gender-input";
 import { Button, Field, Input, Notice } from "@/components/ui";
 
 export default function SignupPage() {
@@ -23,6 +24,7 @@ export default function SignupPage() {
 
     const form = new FormData(e.currentTarget);
     const fullName = String(form.get("full_name") ?? "").trim();
+    const gender = String(form.get("gender") ?? "").trim();
     const email = String(form.get("email") ?? "").trim();
     const password = String(form.get("password") ?? "");
     const phone = String(form.get("phone") ?? "").trim();
@@ -32,9 +34,10 @@ export default function SignupPage() {
     const waiverAccepted = form.get("waiver_accepted") === "on";
 
     if (fullName.length < 2) return setError("צריך שם מלא.");
+    if (!gender) return setError("צריך לבחור מגדר.");
     if (password.length < 8) return setError("הסיסמה צריכה להיות באורך 8 תווים לפחות.");
     if (!isValidIsraeliPhone(phone))
-      return setError("מספר הטלפון לא נראה תקין.");
+      return setError("מספר הפלאפון לא נראה תקין.");
     if (!birthDate) return setError("צריך תאריך לידה.");
     if (!city) return setError("צריך לבחור עיר מגורים.");
     if (!waiverAccepted)
@@ -56,6 +59,7 @@ export default function SignupPage() {
         // נקרא ע"י handle_new_user() ליצירת הפרופיל
         data: {
           full_name: fullName,
+          gender,
           phone,
           birth_date: birthDate,
           city,
@@ -116,6 +120,10 @@ export default function SignupPage() {
           <Input name="full_name" autoComplete="name" required />
         </Field>
 
+        <Field label="מגדר">
+          <GenderInput name="gender" />
+        </Field>
+
         <Field label="אימייל" hint="משמש להתחברות ולשחזור סיסמה">
           <Input
             name="email"
@@ -140,7 +148,7 @@ export default function SignupPage() {
           />
         </Field>
 
-        <Field label="טלפון">
+        <Field label="פלאפון">
           <Input
             name="phone"
             type="tel"

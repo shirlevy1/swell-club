@@ -8,7 +8,8 @@ import { updateProfileAction } from "@/lib/demo/actions";
 import { isValidIsraeliPhone, normalizeInstagram } from "@/lib/format";
 import { CityAutocomplete } from "@/components/city-autocomplete";
 import { BirthDateInput } from "@/components/birth-date-input";
-import type { Profile } from "@/lib/types";
+import { GenderInput } from "@/components/gender-input";
+import type { Gender, Profile } from "@/lib/types";
 import { Button, Card, Field, Input, Notice } from "./ui";
 
 export function ProfileForm({ profile }: { profile: Profile }) {
@@ -22,14 +23,16 @@ export function ProfileForm({ profile }: { profile: Profile }) {
 
     const form = new FormData(e.currentTarget);
     const fullName = String(form.get("full_name") ?? "").trim();
+    const gender = String(form.get("gender") ?? "").trim();
     const phone = String(form.get("phone") ?? "").trim();
     const birthDate = String(form.get("birth_date") ?? "").trim();
     const city = String(form.get("city") ?? "").trim();
     const waiverAccepted = form.get("waiver_accepted") === "on";
 
     if (fullName.length < 2) return setError("צריך שם מלא.");
+    if (!gender) return setError("צריך לבחור מגדר.");
     if (!isValidIsraeliPhone(phone))
-      return setError("מספר הטלפון לא נראה תקין.");
+      return setError("מספר הפלאפון לא נראה תקין.");
     if (!birthDate) return setError("צריך תאריך לידה.");
     if (!city) return setError("צריך לבחור עיר מגורים.");
     if (!waiverAccepted)
@@ -39,6 +42,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     // לא מתי נערך הפרופיל. התיבה היא רק שער לשמירה, לא כתיבה מחדש.
     const patch = {
       full_name: fullName,
+      gender: gender as Gender,
       phone,
       birth_date: birthDate,
       city,
@@ -79,7 +83,11 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           />
         </Field>
 
-        <Field label="טלפון" hint="משמש לכפתור הוואטסאפ בכרטיס שלכם">
+        <Field label="מגדר">
+          <GenderInput name="gender" defaultValue={profile.gender ?? ""} />
+        </Field>
+
+        <Field label="פלאפון" hint="משמש לכפתור הוואטסאפ בכרטיס שלכם">
           <Input
             name="phone"
             type="tel"

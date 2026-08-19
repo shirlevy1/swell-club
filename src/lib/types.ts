@@ -1,5 +1,6 @@
 export type MemberRole = "member" | "organizer";
 export type MemberStatus = "pending" | "approved";
+export type Gender = "female" | "male" | "other";
 
 export type Profile = {
   id: string;
@@ -8,6 +9,7 @@ export type Profile = {
   instagram: string | null;
   birth_date: string | null;
   city: string | null;
+  gender: Gender | null;
   waiver_accepted_at: string | null;
   avatar_path: string | null;
   created_at: string;
