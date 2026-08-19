@@ -406,7 +406,7 @@ export default function NewEventPage() {
                 dir="ltr"
                 min={0}
                 max={180}
-                defaultValue={30}
+                defaultValue={180}
                 className="text-left"
               />
             </Field>
