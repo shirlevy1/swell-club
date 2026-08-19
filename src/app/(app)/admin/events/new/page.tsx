@@ -83,6 +83,8 @@ export default function NewEventPage() {
   const [searching, setSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  // איזו הצעה מודגשת כרגע כשמנווטים עם חצי המקלדת. -1 = כלום מודגש.
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
   // בחירת הצעה גם היא משנה את locationName — בלי הדגל הזה הבחירה
   // הייתה מפעילה חיפוש חדש על השם שהיא עצמה קבעה.
   const skipNextSearch = useRef(false);
@@ -97,6 +99,7 @@ export default function NewEventPage() {
       return;
     }
     const query = locationName.trim();
+    setHighlightedIndex(-1);
     if (query.length < 3) {
       setSuggestions([]);
       setSearchError(null);
@@ -128,6 +131,7 @@ export default function NewEventPage() {
     setMapsUrl(`https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`);
     setSuggestions([]);
     setShowSuggestions(false);
+    setHighlightedIndex(-1);
     setFocusSignal((n) => n + 1);
   }
 
@@ -334,6 +338,27 @@ export default function NewEventPage() {
                   // הישן — הוא כבר לא בהכרח מתאר את מה שכתוב עכשיו
                   setMapsUrl(null);
                 }}
+                onKeyDown={(e) => {
+                  if (!showSuggestions || suggestions.length === 0) return;
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setHighlightedIndex((i) =>
+                      i < suggestions.length - 1 ? i + 1 : 0,
+                    );
+                  } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    setHighlightedIndex((i) =>
+                      i > 0 ? i - 1 : suggestions.length - 1,
+                    );
+                  } else if (e.key === "Enter") {
+                    if (highlightedIndex >= 0) {
+                      e.preventDefault();
+                      chooseSuggestion(suggestions[highlightedIndex]);
+                    }
+                  } else if (e.key === "Escape") {
+                    setShowSuggestions(false);
+                  }
+                }}
               />
             </Field>
 
@@ -363,7 +388,13 @@ export default function NewEventPage() {
                         <button
                           type="button"
                           onClick={() => chooseSuggestion(s)}
-                          className="block w-full px-4 py-2.5 text-start text-sm hover:bg-(--color-haze)"
+                          onMouseEnter={() => setHighlightedIndex(i)}
+                          className={
+                            "block w-full px-4 py-2.5 text-start text-sm " +
+                            (i === highlightedIndex
+                              ? "bg-(--color-haze)"
+                              : "hover:bg-(--color-haze)")
+                          }
                         >
                           {s.label}
                         </button>
