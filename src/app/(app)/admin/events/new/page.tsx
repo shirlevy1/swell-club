@@ -51,6 +51,7 @@ export default function NewEventPage() {
   const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
   const [searching, setSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   // בחירת הצעה גם היא משנה את locationName — בלי הדגל הזה הבחירה
   // הייתה מפעילה חיפוש חדש על השם שהיא עצמה קבעה.
   const skipNextSearch = useRef(false);
@@ -63,13 +64,20 @@ export default function NewEventPage() {
     const query = locationName.trim();
     if (query.length < 3) {
       setSuggestions([]);
+      setSearchError(null);
       setSearching(false);
       return;
     }
     setSearching(true);
+    setSearchError(null);
     const id = setTimeout(async () => {
-      const results = await searchLocationAction(query);
-      setSuggestions(results);
+      const result = await searchLocationAction(query);
+      if (result.ok) {
+        setSuggestions(result.suggestions);
+      } else {
+        setSuggestions([]);
+        setSearchError(result.error);
+      }
       setSearching(false);
       setShowSuggestions(true);
     }, 400);
@@ -248,27 +256,40 @@ export default function NewEventPage() {
               />
             </Field>
 
-            {showSuggestions && (searching || suggestions.length > 0) && (
-              <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-(--color-line) bg-(--color-surface) shadow-lg">
-                {searching && (
-                  <li className="px-4 py-2.5 text-sm text-(--color-ink-faint)">
-                    מחפשים…
-                  </li>
-                )}
-                {!searching &&
-                  suggestions.map((s, i) => (
-                    <li key={`${s.lat},${s.lng},${i}`}>
-                      <button
-                        type="button"
-                        onClick={() => chooseSuggestion(s)}
-                        className="block w-full px-4 py-2.5 text-start text-sm hover:bg-(--color-haze)"
-                      >
-                        {s.label}
-                      </button>
+            {showSuggestions &&
+              (searching || suggestions.length > 0 || searchError) && (
+                <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-(--color-line) bg-(--color-surface) shadow-lg">
+                  {searching && (
+                    <li className="px-4 py-2.5 text-sm text-(--color-ink-faint)">
+                      מחפשים…
                     </li>
-                  ))}
-              </ul>
-            )}
+                  )}
+                  {!searching && searchError && (
+                    <li className="px-4 py-2.5 text-sm text-(--color-fail)">
+                      {searchError} אפשר להשתמש בכלים הידניים למטה.
+                    </li>
+                  )}
+                  {!searching &&
+                    !searchError &&
+                    suggestions.length === 0 && (
+                      <li className="px-4 py-2.5 text-sm text-(--color-ink-faint)">
+                        לא נמצאה התאמה. אפשר להשתמש בכלים הידניים למטה.
+                      </li>
+                    )}
+                  {!searching &&
+                    suggestions.map((s, i) => (
+                      <li key={`${s.lat},${s.lng},${i}`}>
+                        <button
+                          type="button"
+                          onClick={() => chooseSuggestion(s)}
+                          className="block w-full px-4 py-2.5 text-start text-sm hover:bg-(--color-haze)"
+                        >
+                          {s.label}
+                        </button>
+                      </li>
+                    ))}
+                </ul>
+              )}
           </div>
 
           <MapPicker

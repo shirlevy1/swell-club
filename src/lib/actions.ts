@@ -53,20 +53,30 @@ export async function resolveMapsLinkAction(
 
 export type LocationSuggestion = { label: string; lat: number; lng: number };
 
+export type LocationSearchResult =
+  | { ok: true; suggestions: LocationSuggestion[] }
+  | { ok: false; error: string };
+
 /**
  * השלמת כתובות תוך כדי הקלדה, דרך Nominatim (OpenStreetMap) —
  * אותו מקור מפות שכבר מזין את Leaflet באתר, בלי מפתח API ובלי עלות.
  * מדיניות השימוש שלהם דורשת User-Agent מזהה אמיתי ובקשות מהשרת,
  * לא ישירות מהדפדפן.
+ *
+ * מחזירה מצב שגיאה נפרד מ"אין תוצאות" בכוונה: שירותי geocoding
+ * חינמיים לפעמים חוסמים או מגבילים כתובות IP משותפות של פלטפורמות
+ * ענן (Vercel וכו') בגלל שימוש כבד של אפליקציות אחרות על אותה כתובת —
+ * בלי ההבחנה הזו, חסימה כזו הייתה נראית זהה ל"לא נמצא כלום", ואי
+ * אפשר היה לדעת מה קורה בפועל.
  */
 export async function searchLocationAction(
   query: string,
-): Promise<LocationSuggestion[]> {
+): Promise<LocationSearchResult> {
   const viewer = await getViewer();
-  if (!viewer) return [];
+  if (!viewer) return { ok: false, error: "צריך להתחבר." };
 
   const q = query.trim();
-  if (q.length < 3) return [];
+  if (q.length < 3) return { ok: true, suggestions: [] };
 
   const url = new URL("https://nominatim.openstreetmap.org/search");
   url.searchParams.set("q", q);
@@ -79,10 +89,15 @@ export async function searchLocationAction(
     const response = await fetch(url, {
       signal: AbortSignal.timeout(5000),
       headers: {
-        "User-Agent": "SwellClub/1.0 (community swim app; Supabase-hosted)",
+        "User-Agent": "SwellClub/1.0 (contact: shirshir2001@gmail.com)",
       },
     });
-    if (!response.ok) return [];
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: `שירות החיפוש הגיב עם שגיאה (${response.status}).`,
+      };
+    }
 
     const results = (await response.json()) as {
       display_name: string;
@@ -90,12 +105,21 @@ export async function searchLocationAction(
       lon: string;
     }[];
 
-    return results.map((r) => ({
-      label: r.display_name,
-      lat: Number(r.lat),
-      lng: Number(r.lon),
-    }));
-  } catch {
-    return [];
+    return {
+      ok: true,
+      suggestions: results.map((r) => ({
+        label: r.display_name,
+        lat: Number(r.lat),
+        lng: Number(r.lon),
+      })),
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      error:
+        (err as { name?: string } | null)?.name === "TimeoutError"
+          ? "שירות החיפוש לא הגיב בזמן."
+          : "לא הצלחנו להתחבר לשירות החיפוש.",
+    };
   }
 }
