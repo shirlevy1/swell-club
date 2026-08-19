@@ -128,7 +128,11 @@ export default function NewEventPage() {
     skipNextSearch.current = true;
     setLocationName(s.shortLabel);
     setCoords({ lat: s.lat, lng: s.lng });
-    setMapsUrl(`https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`);
+    // חיפוש טקסטואלי, לא נ.צ גולמי — כתובת פותחת דף מקום אמיתי
+    // (עם תמונה, Street View וכו'), נ.צ פותח סתם סיכה עם קואורדינטות
+    setMapsUrl(
+      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.shortLabel)}`,
+    );
     setSuggestions([]);
     setShowSuggestions(false);
     setHighlightedIndex(-1);
