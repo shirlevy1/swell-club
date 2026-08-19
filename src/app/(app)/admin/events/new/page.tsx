@@ -239,7 +239,7 @@ export default function NewEventPage() {
             במפה וגם את קישור הניווט, לא רק את השם.
           </p>
 
-          <div className="relative">
+          <div className="relative z-20">
             <Field label="שם המקום" hint="איך אנשים מכירים את המקום">
               <Input
                 name="location_name"
@@ -292,17 +292,19 @@ export default function NewEventPage() {
               )}
           </div>
 
-          <MapPicker
-            lat={coords?.lat ?? null}
-            lng={coords?.lng ?? null}
-            radiusM={radius}
-            onChange={(c) => {
-              setCoords(c);
-              // סימון ידני מבטל את הקישור שנשמר — הוא כבר לא מתאר את
-              // הנקודה שנבחרה בפועל
-              setMapsUrl(null);
-            }}
-          />
+          <div className="relative z-0">
+            <MapPicker
+              lat={coords?.lat ?? null}
+              lng={coords?.lng ?? null}
+              radiusM={radius}
+              onChange={(c) => {
+                setCoords(c);
+                // סימון ידני מבטל את הקישור שנשמר — הוא כבר לא מתאר את
+                // הנקודה שנבחרה בפועל
+                setMapsUrl(null);
+              }}
+            />
+          </div>
 
           <Field
             label={`רדיוס צ׳ק־אין: ${radius} מטר`}
