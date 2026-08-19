@@ -30,7 +30,9 @@ export default async function EventPage({
   const { status, opensAt, closesAt } = checkInWindow(event);
   const minutesBefore = formatMinutes(event.checkin_opens_before_min);
   // אף פעם לא מפיל את העמוד — GoSurf לא זמין נחשב "אין תחזית", לא שגיאה
-  const forecast = await getSeaForecastForEvent(event.starts_at);
+  const forecast = event.is_sea
+    ? await getSeaForecastForEvent(event.starts_at)
+    : null;
   const agendaText = getEventAgendaText(event);
 
   const isOrganizer = viewer.role === "organizer";

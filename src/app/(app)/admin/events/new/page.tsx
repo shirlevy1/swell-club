@@ -66,6 +66,7 @@ export default function NewEventPage() {
   // מחשב (לשעה המקומית) — מתמלא ברגע שהעמוד עולה בדפדפן.
   const [startsAt, setStartsAt] = useState("");
   const [description, setDescription] = useState("");
+  const [isSea, setIsSea] = useState(true);
   const [agendaText, setAgendaText] = useState("");
   useEffect(() => {
     const now = roundedNow();
@@ -193,6 +194,7 @@ export default function NewEventPage() {
       checkin_closes_after_min: minutesField(form.get("closes_after")),
       description: description.trim() || null,
       agenda_text: agendaText.trim() || null,
+      is_sea: isSea,
     };
 
     if (demoMode) {
@@ -284,6 +286,21 @@ export default function NewEventPage() {
               placeholder="כאן תוכלו לשתף את כל הפרטים שחשוב לדעת לקראת המפגש, מעבר ללוח הזמנים."
             />
           </Field>
+        </Card>
+
+        <Card>
+          <label className="flex min-h-11 items-center gap-2.5 text-sm font-semibold text-(--color-ink)">
+            <input
+              type="checkbox"
+              checked={isSea}
+              onChange={(e) => setIsSea(e.target.checked)}
+              className="size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
+            />
+            האם המפגש בים?
+          </label>
+          <p className="mt-1 text-xs leading-relaxed text-(--color-ink-faint)">
+            כשמסומן, תוצג תחזית ים ליום המפגש.
+          </p>
         </Card>
 
         <Card className="space-y-4">

@@ -110,6 +110,7 @@ const EVENT_SEEDS: EventSeed[] = [
     created_at: new Date().toISOString(),
     description: null,
     agenda_text: null,
+    is_sea: true,
   },
   {
     id: "demo-e-next",
@@ -127,6 +128,7 @@ const EVENT_SEEDS: EventSeed[] = [
     created_at: new Date().toISOString(),
     description: null,
     agenda_text: null,
+    is_sea: true,
   },
   {
     id: "demo-e-thu",
@@ -146,6 +148,7 @@ const EVENT_SEEDS: EventSeed[] = [
     created_at: new Date().toISOString(),
     description: null,
     agenda_text: null,
+    is_sea: true,
   },
   {
     id: "demo-e-past1",
@@ -163,6 +166,7 @@ const EVENT_SEEDS: EventSeed[] = [
     created_at: new Date().toISOString(),
     description: null,
     agenda_text: null,
+    is_sea: true,
   },
   {
     id: "demo-e-album",
@@ -182,6 +186,7 @@ const EVENT_SEEDS: EventSeed[] = [
     created_at: new Date().toISOString(),
     description: null,
     agenda_text: null,
+    is_sea: true,
   },
   {
     id: "demo-e-past2",
@@ -199,6 +204,7 @@ const EVENT_SEEDS: EventSeed[] = [
     created_at: new Date().toISOString(),
     description: null,
     agenda_text: null,
+    is_sea: true,
   },
 ];
 

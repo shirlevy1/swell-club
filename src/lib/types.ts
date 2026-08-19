@@ -47,6 +47,7 @@ export type SwellEvent = {
   description: string | null;
   // ריק אומר "אין לו״ז מותאם" — נופל על הלו״ז הקבוע. ראו lib/agenda.ts
   agenda_text: string | null;
+  is_sea: boolean;
 };
 
 export type Rsvp = {
