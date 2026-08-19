@@ -1,12 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
 import { createEventAction } from "@/lib/demo/actions";
-import { resolveMapsLinkAction } from "@/lib/actions";
+import {
+  resolveMapsLinkAction,
+  searchLocationAction,
+  type LocationSuggestion,
+} from "@/lib/actions";
 import { DEFAULT_EVENT_LOCATION } from "@/lib/maps";
 import { Button, Card, Field, Input, Notice } from "@/components/ui";
 
@@ -40,6 +44,49 @@ export default function NewEventPage() {
   const [mapsUrl, setMapsUrl] = useState<string | null>(
     DEFAULT_EVENT_LOCATION.mapsUrl,
   );
+
+  // חיפוש מיקום תוך כדי הקלדה בשדה "שם המקום" עצמו — זו הדרך
+  // הראשית לקבוע מיקום. הבחירה ממלאת גם את הקואורדינטות וגם קישור
+  // מפות, לא רק את השם.
+  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  // בחירת הצעה גם היא משנה את locationName — בלי הדגל הזה הבחירה
+  // הייתה מפעילה חיפוש חדש על השם שהיא עצמה קבעה.
+  const skipNextSearch = useRef(false);
+
+  useEffect(() => {
+    if (skipNextSearch.current) {
+      skipNextSearch.current = false;
+      return;
+    }
+    const query = locationName.trim();
+    if (query.length < 3) {
+      setSuggestions([]);
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    const id = setTimeout(async () => {
+      const results = await searchLocationAction(query);
+      setSuggestions(results);
+      setSearching(false);
+      setShowSuggestions(true);
+    }, 400);
+    return () => clearTimeout(id);
+  }, [locationName]);
+
+  function chooseSuggestion(s: LocationSuggestion) {
+    skipNextSearch.current = true;
+    setLocationName(s.label);
+    setCoords({ lat: s.lat, lng: s.lng });
+    setMapsUrl(`https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`);
+    setSuggestions([]);
+    setShowSuggestions(false);
+  }
+
+  // --- גיבוי ידני: הדבקת קישור Google Maps, למקרה שהחיפוש לא מצא
+  // בדיוק את הנקודה הנכונה ---
   const [mapsLinkInput, setMapsLinkInput] = useState("");
   const [resolvingLink, setResolvingLink] = useState(false);
   const [linkError, setLinkError] = useState<string | null>(null);
@@ -61,7 +108,10 @@ export default function NewEventPage() {
 
     setCoords({ lat: result.lat, lng: result.lng });
     setMapsUrl(result.url);
-    if (result.name) setLocationName(result.name);
+    if (result.name) {
+      skipNextSearch.current = true;
+      setLocationName(result.name);
+    }
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -88,7 +138,7 @@ export default function NewEventPage() {
       location_name: locationName.trim(),
       lat: coords.lat,
       lng: coords.lng,
-      // ברירת המחדל, או קישור ה-Maps שהמנהלת הדביקה ופתרנו בשרת
+      // ברירת המחדל, או קישור ה-Maps שנקבע מהחיפוש/הקישור שהודבק
       maps_url: mapsUrl,
       checkin_radius_m: radius,
       // `?? 15` לא עוזר: שדה שרוקן מחזיר מחרוזת ריקה ולא null, ו-Number("")
@@ -170,45 +220,56 @@ export default function NewEventPage() {
           <Field label="תאריך ושעה">
             <Input name="starts_at" type="datetime-local" dir="ltr" required />
           </Field>
-
-          <Field label="שם המקום" hint="איך אנשים מכירים את המקום">
-            <Input
-              name="location_name"
-              required
-              value={locationName}
-              onChange={(e) => setLocationName(e.target.value)}
-              placeholder="חוף הילטון"
-            />
-          </Field>
         </Card>
 
         <Card className="space-y-4">
           <p className="text-sm font-semibold">איפה נפגשים</p>
           <p className="text-xs leading-relaxed text-(--color-ink-faint)">
-            ברירת המחדל היא חוף הצוק הדרומי. למיקום אחר — הדביקו קישור
-            Google Maps ולחצו על עדכון, במקום לסמן נ.צ ידנית.
+            הקלידו כתובת או שם מקום — הבחירה מהרשימה קובעת גם את המיקום
+            במפה וגם את קישור הניווט, לא רק את השם.
           </p>
 
-          <div className="flex gap-2">
-            <Input
-              type="url"
-              dir="ltr"
-              placeholder="https://maps.app.goo.gl/…"
-              value={mapsLinkInput}
-              onChange={(e) => setMapsLinkInput(e.target.value)}
-              className="text-left"
-            />
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={resolvingLink || !mapsLinkInput.trim()}
-              onClick={onResolveMapsLink}
-              className="shrink-0"
-            >
-              {resolvingLink ? "מאתרים…" : "עדכון מיקום"}
-            </Button>
+          <div className="relative">
+            <Field label="שם המקום" hint="איך אנשים מכירים את המקום">
+              <Input
+                name="location_name"
+                required
+                autoComplete="off"
+                value={locationName}
+                onChange={(e) => {
+                  setLocationName(e.target.value);
+                  // עריכה חופשית אחרי שנבחר משהו כבר לא קשורה לקישור
+                  // הישן — הוא כבר לא בהכרח מתאר את מה שכתוב עכשיו
+                  setMapsUrl(null);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                placeholder="לדוגמה: ענתות 36, או חוף הילטון"
+              />
+            </Field>
+
+            {showSuggestions && (searching || suggestions.length > 0) && (
+              <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-(--color-line) bg-(--color-surface) shadow-lg">
+                {searching && (
+                  <li className="px-4 py-2.5 text-sm text-(--color-ink-faint)">
+                    מחפשים…
+                  </li>
+                )}
+                {!searching &&
+                  suggestions.map((s, i) => (
+                    <li key={`${s.lat},${s.lng},${i}`}>
+                      <button
+                        type="button"
+                        onClick={() => chooseSuggestion(s)}
+                        className="block w-full px-4 py-2.5 text-start text-sm hover:bg-(--color-haze)"
+                      >
+                        {s.label}
+                      </button>
+                    </li>
+                  ))}
+              </ul>
+            )}
           </div>
-          {linkError && <p className="text-xs text-(--color-fail)">{linkError}</p>}
 
           <MapPicker
             lat={coords?.lat ?? null}
@@ -237,6 +298,36 @@ export default function NewEventPage() {
               className="h-11 w-full accent-(--color-sea)"
             />
           </Field>
+
+          <div className="space-y-2 border-t border-(--color-line) pt-4">
+            <p className="text-xs font-semibold text-(--color-ink-soft)">
+              הנקודה על המפה לא מדויקת? אפשר לתקן ידנית
+            </p>
+            <p className="text-xs leading-relaxed text-(--color-ink-faint)">
+              גם לגרור את הסיכה על המפה למעלה, וגם להדביק כאן קישור
+              Google Maps ישירות.
+            </p>
+            <div className="flex gap-2">
+              <Input
+                type="url"
+                dir="ltr"
+                placeholder="https://maps.app.goo.gl/…"
+                value={mapsLinkInput}
+                onChange={(e) => setMapsLinkInput(e.target.value)}
+                className="text-left"
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={resolvingLink || !mapsLinkInput.trim()}
+                onClick={onResolveMapsLink}
+                className="shrink-0"
+              >
+                {resolvingLink ? "מאתרים…" : "עדכון מיקום"}
+              </Button>
+            </div>
+            {linkError && <p className="text-xs text-(--color-fail)">{linkError}</p>}
+          </div>
         </Card>
 
         <Card className="space-y-4">

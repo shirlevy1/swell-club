@@ -50,3 +50,52 @@ export async function resolveMapsLinkAction(
 
   return { ok: true, ...parsed, url };
 }
+
+export type LocationSuggestion = { label: string; lat: number; lng: number };
+
+/**
+ * השלמת כתובות תוך כדי הקלדה, דרך Nominatim (OpenStreetMap) —
+ * אותו מקור מפות שכבר מזין את Leaflet באתר, בלי מפתח API ובלי עלות.
+ * מדיניות השימוש שלהם דורשת User-Agent מזהה אמיתי ובקשות מהשרת,
+ * לא ישירות מהדפדפן.
+ */
+export async function searchLocationAction(
+  query: string,
+): Promise<LocationSuggestion[]> {
+  const viewer = await getViewer();
+  if (!viewer) return [];
+
+  const q = query.trim();
+  if (q.length < 3) return [];
+
+  const url = new URL("https://nominatim.openstreetmap.org/search");
+  url.searchParams.set("q", q);
+  url.searchParams.set("format", "jsonv2");
+  url.searchParams.set("limit", "5");
+  url.searchParams.set("countrycodes", "il");
+  url.searchParams.set("accept-language", "he");
+
+  try {
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(5000),
+      headers: {
+        "User-Agent": "SwellClub/1.0 (community swim app; Supabase-hosted)",
+      },
+    });
+    if (!response.ok) return [];
+
+    const results = (await response.json()) as {
+      display_name: string;
+      lat: string;
+      lon: string;
+    }[];
+
+    return results.map((r) => ({
+      label: r.display_name,
+      lat: Number(r.lat),
+      lng: Number(r.lon),
+    }));
+  } catch {
+    return [];
+  }
+}
