@@ -44,7 +44,7 @@ export function StreakCard({
     <Card className="space-y-3">
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
-          הרצף שלך
+          הסוואל שלך
         </h2>
         <p className="text-xs text-(--color-ink-faint)">
           {attendedWeeks} מתוך {windowWeeks} השבועות האחרונים
@@ -59,8 +59,8 @@ export function StreakCard({
           {current === 0
             ? byGender(gender, "מתחיל מחדש", "מתחילה מחדש")
             : current === 1
-              ? "שבוע אחד ברצף"
-              : `${current} שבועות ברצף`}
+              ? "שבוע אחד על הגל"
+              : `${current} שבועות על הגל`}
         </p>
       </div>
 

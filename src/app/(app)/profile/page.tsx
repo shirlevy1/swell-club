@@ -31,27 +31,26 @@ function EditIcon({ className }: { className?: string }) {
 }
 
 /**
- * "נכחת ב-Y מתוך X מפגשים שהיו בחודש האחרון" — X ו-Y תמיד ספרות, גם
- * כש-Y הוא 0 או 1: זו כאן יחס/סטטיסטיקה ולא ספירה של שם עצם, ולכן לא
+ * "היית איתנו ב-Y מתוך X מפגשים החודש" — X ו-Y תמיד ספרות, גם כש-Y
+ * הוא 0 או 1: זו כאן יחס/סטטיסטיקה ולא ספירה של שם עצם, ולכן לא
  * דורשת את "מפגש אחד" הכתוב במלא כמו במקומות אחרים באפליקציה.
- * "שהיה"/"שהיו" משתנה לפי יחיד/רבים של X, לא רק "שהיו" קבוע.
+ * "היית" זהה בכתיב לזכר ולנקבה — אין צורך בפיצול מגדרי כאן.
  *
- * "בחודש האחרון" הוא חלון נגלל של 30 יום אחורה מעכשיו (למשל
- * 17.7–16.8), לא חודש קלנדרי — ראו getRecentMonthStats ב-lib/data.ts.
+ * "החודש" הוא חלון נגלל של 30 יום אחורה מעכשיו (למשל 17.7–16.8),
+ * לא חודש קלנדרי — ראו getRecentMonthStats ב-lib/data.ts.
  */
 function monthAttendanceLine(attended: number, total: number) {
-  if (total === 0) return "אין מפגשים שהיו בחודש האחרון";
+  if (total === 0) return "לא היו מפגשים החודש";
   return (
     <>
-      נכחת ב־<span className="ltr-nums">{attended}</span> מתוך{" "}
+      היית איתנו ב־<span className="ltr-nums">{attended}</span> מתוך{" "}
       {total === 1 ? (
-        "מפגש אחד שהיה"
+        "מפגש אחד החודש"
       ) : (
         <>
-          <span className="ltr-nums">{total}</span> מפגשים שהיו
+          <span className="ltr-nums">{total}</span> מפגשים החודש
         </>
-      )}{" "}
-      בחודש האחרון
+      )}
     </>
   );
 }
@@ -101,10 +100,10 @@ export default async function ProfilePage() {
               {monthStats
                 ? monthAttendanceLine(monthStats.attended, monthStats.total)
                 : count === 0
-                  ? "עוד לא סימנת הגעה למפגש"
+                  ? "עוד לא היית איתנו באף מפגש"
                   : count === 1
-                    ? "נכחת במפגש אחד"
-                    : `נכחת ב־${count} מפגשים`}
+                    ? "היית איתנו במפגש אחד"
+                    : `היית איתנו ב־${count} מפגשים`}
             </p>
           </div>
         </div>
@@ -130,10 +129,10 @@ export default async function ProfilePage() {
         <section className="space-y-3">
           <div className="space-y-0.5">
             <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
-              הסלפים שלי
+              הרגעים מהסוואל
             </h2>
             <p className="text-xs text-(--color-ink-faint)">
-              תמונה מכל מפגש שנכחת בו. רק מי שהיה שם רואה אותה.
+              רגעים מהמפגשים שהיית בהם איתנו.
             </p>
           </div>
           <SelfieHistory shots={shots} albumsByEvent={albumsByEvent} />
