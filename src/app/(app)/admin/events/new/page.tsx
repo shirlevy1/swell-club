@@ -70,6 +70,9 @@ export default function NewEventPage() {
     }
     setSearching(true);
     setSearchError(null);
+    // נראה מיד עם תחילת החיפוש (לא רק כשהוא מסתיים) — כדי שתמיד יהיה
+    // ברור שמשהו קורה, במקום מסך ריק בזמן ההמתנה.
+    setShowSuggestions(true);
     const id = setTimeout(async () => {
       const result = await searchLocationAction(query);
       if (result.ok) {
@@ -79,7 +82,6 @@ export default function NewEventPage() {
         setSearchError(result.error);
       }
       setSearching(false);
-      setShowSuggestions(true);
     }, 400);
     return () => clearTimeout(id);
   }, [locationName]);
@@ -250,8 +252,6 @@ export default function NewEventPage() {
                   // הישן — הוא כבר לא בהכרח מתאר את מה שכתוב עכשיו
                   setMapsUrl(null);
                 }}
-                onFocus={() => setShowSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                 placeholder="לדוגמה: ענתות 36, או חוף הילטון"
               />
             </Field>
