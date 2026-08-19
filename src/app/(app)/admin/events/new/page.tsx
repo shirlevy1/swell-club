@@ -12,7 +12,13 @@ import {
   type LocationSuggestion,
 } from "@/lib/actions";
 import { DEFAULT_EVENT_LOCATION } from "@/lib/maps";
-import { Button, Card, Field, Input, Notice } from "@/components/ui";
+import {
+  DEFAULT_AGENDA_CLOSING,
+  defaultAgendaSteps,
+  type AgendaStep,
+} from "@/lib/agenda";
+import { AgendaEditor } from "@/components/agenda-editor";
+import { Button, Card, Field, Input, Notice, Textarea } from "@/components/ui";
 
 // Leaflet ניגש ל-window בזמן הטעינה — חייב להיטען רק בדפדפן
 const MapPicker = dynamic(
@@ -33,13 +39,17 @@ function minutesField(raw: FormDataEntryValue | null): number {
 }
 
 /** עכשיו, מעוגל כלפי מעלה לשעה העגולה הקרובה — 19:48 הופך ל-20:00. */
-function defaultStartsAt(): string {
+function roundedNow(): Date {
   const d = new Date();
   d.setSeconds(0, 0);
   if (d.getMinutes() > 0) {
     d.setMinutes(0);
     d.setHours(d.getHours() + 1);
   }
+  return d;
+}
+
+function toDatetimeLocalValue(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
@@ -60,8 +70,15 @@ export default function NewEventPage() {
   // ריק בהתחלה כדי שלא יהיה פער בין מה שהשרת רינדר למה שהדפדפן
   // מחשב (לשעה המקומית) — מתמלא ברגע שהעמוד עולה בדפדפן.
   const [startsAt, setStartsAt] = useState("");
+  const [description, setDescription] = useState("");
+  const [agendaSteps, setAgendaSteps] = useState<AgendaStep[]>([]);
+  const [agendaClosing, setAgendaClosing] = useState(DEFAULT_AGENDA_CLOSING);
   useEffect(() => {
-    setStartsAt(defaultStartsAt());
+    const now = roundedNow();
+    setStartsAt(toDatetimeLocalValue(now));
+    // ברירת המחדל של הלו״ז נקבעת פעם אחת ביחס לשעה הראשונית — אחרי
+    // זה היא נשארת בידי מי שעורכת, גם אם היא משנה את התאריך אחר כך.
+    setAgendaSteps(defaultAgendaSteps(now.toISOString()));
   }, []);
 
   // חיפוש מיקום תוך כדי הקלדה בשדה "שם המקום" עצמו — זו הדרך
@@ -180,6 +197,11 @@ export default function NewEventPage() {
       // הוא 0 — כלומר החלון נפתח בדיוק בשעת ההתחלה, בשקט.
       checkin_opens_before_min: minutesField(form.get("opens_before")),
       checkin_closes_after_min: minutesField(form.get("closes_after")),
+      description: description.trim() || null,
+      agenda: agendaSteps
+        .filter((s) => s.label.trim())
+        .map((s) => ({ time: s.time.trim(), label: s.label.trim() })),
+      agenda_closing: agendaClosing.trim() || null,
     };
 
     if (demoMode) {
@@ -262,6 +284,25 @@ export default function NewEventPage() {
               onChange={(e) => setStartsAt(e.target.value)}
             />
           </Field>
+
+          <Field label="תיאור המפגש (אופציונלי)">
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              placeholder="יש משהו שכדאי לדעת מראש? זה יופיע מעל הלו״ז."
+            />
+          </Field>
+        </Card>
+
+        <Card className="space-y-4">
+          <p className="text-sm font-semibold">לו״ז המפגש</p>
+          <AgendaEditor
+            steps={agendaSteps}
+            onStepsChange={setAgendaSteps}
+            closing={agendaClosing}
+            onClosingChange={setAgendaClosing}
+          />
         </Card>
 
         <Card className="space-y-4">

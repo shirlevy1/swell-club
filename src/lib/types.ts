@@ -30,6 +30,8 @@ export type ClubMember = {
   joined_at: string;
 };
 
+export type EventAgendaStep = { time: string; label: string };
+
 export type SwellEvent = {
   id: string;
   club_id: string;
@@ -44,6 +46,10 @@ export type SwellEvent = {
   checkin_closes_after_min: number;
   created_by: string | null;
   created_at: string;
+  description: string | null;
+  // ריק אומר "אין לו״ז מפורש" — נופל על הלו״ז הקבוע. ראו lib/agenda.ts
+  agenda: EventAgendaStep[];
+  agenda_closing: string | null;
 };
 
 export type Rsvp = {

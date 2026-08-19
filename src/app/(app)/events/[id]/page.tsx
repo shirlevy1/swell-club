@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getViewer, getEvent, getEventDetail, getEventPhotos } from "@/lib/data";
 import { formatDateTime, formatMinutes, formatTime } from "@/lib/format";
@@ -30,7 +31,7 @@ export default async function EventPage({
   const minutesBefore = formatMinutes(event.checkin_opens_before_min);
   // אף פעם לא מפיל את העמוד — GoSurf לא זמין נחשב "אין תחזית", לא שגיאה
   const forecast = await getSeaForecastForEvent(event.starts_at);
-  const agenda = getEventAgenda(event.starts_at);
+  const agenda = getEventAgenda(event);
 
   const isOrganizer = viewer.role === "organizer";
   const eventHasStarted = hasEventStarted(event);
@@ -65,7 +66,23 @@ export default async function EventPage({
         </a>
       </header>
 
-      <EventAgendaView agenda={agenda} />
+      {event.description && (
+        <p className="text-sm leading-relaxed text-(--color-ink-soft)">
+          {event.description}
+        </p>
+      )}
+
+      <div className="space-y-2">
+        <EventAgendaView agenda={agenda} />
+        {isOrganizer && (
+          <Link
+            href={`/admin/events/${id}/edit`}
+            className="inline-flex min-h-11 items-center text-sm font-semibold text-(--color-sea)"
+          >
+            עריכת תיאור ולו״ז
+          </Link>
+        )}
+      </div>
 
       {forecast && <SeaForecast day={forecast} />}
 
