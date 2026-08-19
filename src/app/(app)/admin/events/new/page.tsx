@@ -339,7 +339,15 @@ export default function NewEventPage() {
                   setMapsUrl(null);
                 }}
                 onKeyDown={(e) => {
-                  if (!showSuggestions || suggestions.length === 0) return;
+                  if (!showSuggestions) return;
+                  // ESC סוגר תמיד כשהרשימה פתוחה — גם בזמן חיפוש וגם
+                  // כשאין תוצאות. הוא היה תקוע מאחורי הבדיקה של
+                  // suggestions.length, ולכן לא עשה כלום כשהיו הצעות.
+                  if (e.key === "Escape") {
+                    setShowSuggestions(false);
+                    return;
+                  }
+                  if (suggestions.length === 0) return;
                   if (e.key === "ArrowDown") {
                     e.preventDefault();
                     setHighlightedIndex((i) =>
@@ -355,8 +363,6 @@ export default function NewEventPage() {
                       e.preventDefault();
                       chooseSuggestion(suggestions[highlightedIndex]);
                     }
-                  } else if (e.key === "Escape") {
-                    setShowSuggestions(false);
                   }
                 }}
               />
