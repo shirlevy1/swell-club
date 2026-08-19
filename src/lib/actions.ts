@@ -51,7 +51,14 @@ export async function resolveMapsLinkAction(
   return { ok: true, ...parsed, url };
 }
 
-export type LocationSuggestion = { label: string; lat: number; lng: number };
+export type LocationSuggestion = {
+  /** הכתובת המלאה — מוצגת ברשימת ההצעות, לצורך הבחנה בין תוצאות דומות. */
+  label: string;
+  /** רחוב+מספר, עיר — מה שנשמר בפועל בתור שם המקום אחרי בחירה. */
+  shortLabel: string;
+  lat: number;
+  lng: number;
+};
 
 export type LocationSearchResult =
   | { ok: true; suggestions: LocationSuggestion[] }
@@ -84,6 +91,7 @@ export async function searchLocationAction(
   url.searchParams.set("limit", "5");
   url.searchParams.set("countrycodes", "il");
   url.searchParams.set("accept-language", "he");
+  url.searchParams.set("addressdetails", "1");
 
   try {
     const response = await fetch(url, {
@@ -103,15 +111,31 @@ export async function searchLocationAction(
       display_name: string;
       lat: string;
       lon: string;
+      address?: {
+        road?: string;
+        house_number?: string;
+        city?: string;
+        town?: string;
+        village?: string;
+        suburb?: string;
+        county?: string;
+      };
     }[];
 
     return {
       ok: true,
-      suggestions: results.map((r) => ({
-        label: r.display_name,
-        lat: Number(r.lat),
-        lng: Number(r.lon),
-      })),
+      suggestions: results.map((r) => {
+        const addr = r.address ?? {};
+        const street = [addr.road, addr.house_number].filter(Boolean).join(" ");
+        const city = addr.city ?? addr.town ?? addr.village ?? addr.suburb ?? addr.county;
+        const shortLabel = [street, city].filter(Boolean).join(", ") || r.display_name;
+        return {
+          label: r.display_name,
+          shortLabel,
+          lat: Number(r.lat),
+          lng: Number(r.lon),
+        };
+      }),
     };
   } catch (err) {
     return {

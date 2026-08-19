@@ -123,7 +123,7 @@ export default function NewEventPage() {
 
   function chooseSuggestion(s: LocationSuggestion) {
     skipNextSearch.current = true;
-    setLocationName(s.label);
+    setLocationName(s.shortLabel);
     setCoords({ lat: s.lat, lng: s.lng });
     setMapsUrl(`https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`);
     setSuggestions([]);
