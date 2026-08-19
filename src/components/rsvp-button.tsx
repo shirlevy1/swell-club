@@ -71,7 +71,7 @@ export function RsvpButton({
 
       <p className="text-center text-sm text-(--color-ink-soft)">
         {count === 0 ? (
-          "עוד אף אחד לא סימן"
+          "תהיו הראשונים לסמן"
         ) : count === 1 ? (
           "אדם אחד מתכוון להגיע"
         ) : (
