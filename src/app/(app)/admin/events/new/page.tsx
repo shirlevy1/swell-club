@@ -246,7 +246,7 @@ export default function NewEventPage() {
           </p>
 
           <div className="relative z-20">
-            <Field label="שם המקום" hint="איך אנשים מכירים את המקום">
+            <Field label="מיקום המפגש" hint="איך אנשים מכירים את המקום">
               <Input
                 name="location_name"
                 required
@@ -258,7 +258,6 @@ export default function NewEventPage() {
                   // הישן — הוא כבר לא בהכרח מתאר את מה שכתוב עכשיו
                   setMapsUrl(null);
                 }}
-                placeholder="לדוגמה: ענתות 36, או חוף הילטון"
               />
             </Field>
 
