@@ -12,6 +12,7 @@ import { GoingList } from "@/components/going-list";
 import { SeaForecast } from "@/components/sea-forecast";
 import { EventAgendaView } from "@/components/event-agenda";
 import { EventPhotoAlbum } from "@/components/event-photo-album";
+import { EditSelfieButton } from "@/components/edit-selfie-button";
 
 export default async function EventPage({
   params,
@@ -125,6 +126,10 @@ export default async function EventPage({
             </span>
           </div>
           <AttendeeGrid attendees={attendees} eventId={id} />
+          {/* אותו חלון זמן בדיוק כמו הצ'ק־אין עצמו — לא נפרד וגם לא
+              פתוח לצמיתות. selfies_update_own ב-storage אוכפת את זה
+              שוב בשרת, לא רק כאן. */}
+          {status === "open" && <EditSelfieButton eventId={id} />}
         </section>
       )}
 
