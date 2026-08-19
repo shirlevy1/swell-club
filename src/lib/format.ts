@@ -1,4 +1,20 @@
+import type { Gender } from "./types";
+
 const TZ = "Asia/Jerusalem";
+
+/**
+ * ניסוח מגדרי לפנייה בגוף שני יחיד. "אחר" נופל על לשון זכר, לא צורה
+ * שלישית — כך התבקש. רוב הפעלים בעבר נכתבים זהה לזכר/נקבה בלי ניקוד
+ * ("נכחת", "שלך") ולא צריכים בכלל לעבור דרך הפונקציה הזו — היא
+ * נחוצה רק בהווה/עתיד, איפה שהכתיב באמת משתנה ("מרים"/"מרימה").
+ */
+export function byGender(
+  gender: Gender | null,
+  masculine: string,
+  feminine: string,
+): string {
+  return gender === "female" ? feminine : masculine;
+}
 
 /**
  * הקהילה בישראל. קיבוע אזור הזמן מונע הפתעות למי שגולש מחו"ל.

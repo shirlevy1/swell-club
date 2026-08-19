@@ -31,7 +31,7 @@ function EditIcon({ className }: { className?: string }) {
 }
 
 /**
- * "נכחתם ב-Y מתוך X מפגשים שהיו בחודש האחרון" — X ו-Y תמיד ספרות, גם
+ * "נכחת ב-Y מתוך X מפגשים שהיו בחודש האחרון" — X ו-Y תמיד ספרות, גם
  * כש-Y הוא 0 או 1: זו כאן יחס/סטטיסטיקה ולא ספירה של שם עצם, ולכן לא
  * דורשת את "מפגש אחד" הכתוב במלא כמו במקומות אחרים באפליקציה.
  * "שהיה"/"שהיו" משתנה לפי יחיד/רבים של X, לא רק "שהיו" קבוע.
@@ -43,7 +43,7 @@ function monthAttendanceLine(attended: number, total: number) {
   if (total === 0) return "אין מפגשים שהיו בחודש האחרון";
   return (
     <>
-      נכחתם ב־<span className="ltr-nums">{attended}</span> מתוך{" "}
+      נכחת ב־<span className="ltr-nums">{attended}</span> מתוך{" "}
       {total === 1 ? (
         "מפגש אחד שהיה"
       ) : (
@@ -69,7 +69,7 @@ export default async function ProfilePage() {
     ? await getRecentMonthStats(viewer.club.id, viewer.userId)
     : null;
   const fullName = viewer.profile?.full_name ?? "הפרופיל שלי";
-  // הסלפי האחרון שלכם — shots כבר ממוינים מהאחרון לראשון
+  // הסלפי האחרון שלך — shots כבר ממוינים מהאחרון לראשון
   const latestSelfie = shots[0]?.selfieUrl ?? null;
 
   return (
@@ -101,10 +101,10 @@ export default async function ProfilePage() {
               {monthStats
                 ? monthAttendanceLine(monthStats.attended, monthStats.total)
                 : count === 0
-                  ? "עוד לא סימנתם הגעה למפגש"
+                  ? "עוד לא סימנת הגעה למפגש"
                   : count === 1
-                    ? "נכחתם במפגש אחד"
-                    : `נכחתם ב־${count} מפגשים`}
+                    ? "נכחת במפגש אחד"
+                    : `נכחת ב־${count} מפגשים`}
             </p>
           </div>
         </div>
@@ -120,7 +120,9 @@ export default async function ProfilePage() {
         )}
       </header>
 
-      {count > 0 && <StreakCard streak={streak} />}
+      {count > 0 && (
+        <StreakCard streak={streak} gender={viewer.profile?.gender ?? null} />
+      )}
 
       <NotificationToggle />
 
@@ -131,7 +133,7 @@ export default async function ProfilePage() {
               הסלפים שלי
             </h2>
             <p className="text-xs text-(--color-ink-faint)">
-              תמונה מכל מפגש שנכחתם בו. רק מי שהיה שם רואה אותה.
+              תמונה מכל מפגש שנכחת בו. רק מי שהיה שם רואה אותה.
             </p>
           </div>
           <SelfieHistory shots={shots} albumsByEvent={albumsByEvent} />
@@ -139,7 +141,7 @@ export default async function ProfilePage() {
       )}
 
       <p className="text-center text-xs leading-relaxed text-(--color-ink-faint)">
-        הפרטים שלכם נראים רק לחברי קהילה שנכחו באותו מפגש כמוכם.
+        הפרטים שלך נראים רק לחברי קהילה שנכחו באותו מפגש כמוך.
       </p>
 
       {!demoMode && (

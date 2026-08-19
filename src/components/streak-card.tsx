@@ -1,4 +1,6 @@
 import type { Streak } from "@/lib/streak";
+import type { Gender } from "@/lib/types";
+import { byGender } from "@/lib/format";
 import { Card } from "./ui";
 
 /**
@@ -29,14 +31,20 @@ function WaveIcon({ className }: { className?: string }) {
  * להבה" באפליקציות אחרות, רק בשפה הכחולה של Swell במקום כתום) —
  * שורת הנקודות נשארת כפירוט משני, לא הדבר הראשון שצריך לפענח.
  */
-export function StreakCard({ streak }: { streak: Streak }) {
+export function StreakCard({
+  streak,
+  gender,
+}: {
+  streak: Streak;
+  gender: Gender | null;
+}) {
   const { weeks, current, attendedWeeks, windowWeeks } = streak;
 
   return (
     <Card className="space-y-3">
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
-          הרצף שלכם
+          הרצף שלך
         </h2>
         <p className="text-xs text-(--color-ink-faint)">
           {attendedWeeks} מתוך {windowWeeks} השבועות האחרונים
@@ -49,7 +57,7 @@ export function StreakCard({ streak }: { streak: Streak }) {
         </div>
         <p className="font-[family-name:var(--font-display)] text-2xl font-bold">
           {current === 0
-            ? "מתחילים מחדש"
+            ? byGender(gender, "מתחיל מחדש", "מתחילה מחדש")
             : current === 1
               ? "שבוע אחד ברצף"
               : `${current} שבועות ברצף`}
@@ -81,7 +89,7 @@ export function StreakCard({ streak }: { streak: Streak }) {
 
       <p className="text-xs leading-relaxed text-(--color-ink-faint)">
         {weeks[weeks.length - 1]
-          ? "השבוע כבר נכחתם."
+          ? "השבוע כבר נכחת."
           : current > 0
             ? "השבוע עוד פתוח — שחייה אחת שומרת על הרצף."
             : "שחייה אחת מתחילה רצף חדש."}
