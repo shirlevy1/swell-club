@@ -281,7 +281,7 @@ export default function NewEventPage() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              placeholder="יש משהו שכדאי לדעת מראש? זה יופיע מעל הלו״ז."
+              placeholder="כאן תוכלו לשתף את כל הפרטים שחשוב לדעת לקראת המפגש, מעבר ללוח הזמנים."
             />
           </Field>
         </Card>
