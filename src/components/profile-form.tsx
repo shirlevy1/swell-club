@@ -6,9 +6,9 @@ import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
 import { updateProfileAction } from "@/lib/demo/actions";
 import { isValidIsraeliPhone, normalizeInstagram } from "@/lib/format";
-import { ISRAELI_CITIES } from "@/lib/israeli-cities";
+import { CityAutocomplete } from "@/components/city-autocomplete";
 import type { Profile } from "@/lib/types";
-import { Button, Card, Field, Input, Notice, Select } from "./ui";
+import { Button, Card, Field, Input, Notice } from "./ui";
 
 export function ProfileForm({ profile }: { profile: Profile }) {
   const router = useRouter();
@@ -100,26 +100,14 @@ export function ProfileForm({ profile }: { profile: Profile }) {
             defaultValue={profile.birth_date ?? ""}
             required
             max={new Date().toISOString().slice(0, 10)}
-            className="text-left"
+            // ה-RTL של העמוד "מעקם" את הבקרה המובנית של הדפדפן לתאריך
+            // אם לא נועלים לה כיוון תוכן משלה, בנפרד מה-dir של השדה עצמו.
+            className="text-left [direction:ltr]"
           />
         </Field>
 
         <Field label="עיר מגורים">
-          <Select
-            name="city"
-            autoComplete="address-level2"
-            required
-            defaultValue={profile.city ?? ""}
-          >
-            <option value="" disabled>
-              בחרו עיר
-            </option>
-            {ISRAELI_CITIES.map((city) => (
-              <option key={city} value={city}>
-                {city}
-              </option>
-            ))}
-          </Select>
+          <CityAutocomplete name="city" defaultValue={profile.city ?? ""} />
         </Field>
 
         <Field label="אינסטגרם" hint="שם משתמש או קישור — שניהם טובים">
@@ -127,7 +115,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
             name="instagram"
             dir="ltr"
             defaultValue={profile.instagram ?? ""}
-            placeholder="@shirlevi"
+            placeholder="@username"
             className="text-left"
           />
         </Field>

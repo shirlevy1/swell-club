@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { isValidIsraeliPhone, normalizeInstagram } from "@/lib/format";
 import { demoMode } from "@/lib/config";
-import { ISRAELI_CITIES } from "@/lib/israeli-cities";
-import { Button, Field, Input, Notice, Select } from "@/components/ui";
+import { CityAutocomplete } from "@/components/city-autocomplete";
+import { Button, Field, Input, Notice } from "@/components/ui";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -112,12 +112,7 @@ export default function SignupPage() {
 
       <form onSubmit={onSubmit} className="space-y-4">
         <Field label="שם מלא">
-          <Input
-            name="full_name"
-            autoComplete="name"
-            required
-            placeholder="שיר לוי"
-          />
+          <Input name="full_name" autoComplete="name" required />
         </Field>
 
         <Field label="אימייל" hint="משמש להתחברות ולשחזור סיסמה">
@@ -165,21 +160,14 @@ export default function SignupPage() {
             dir="ltr"
             required
             max={new Date().toISOString().slice(0, 10)}
-            className="text-left"
+            // ה-RTL של העמוד "מעקם" את הבקרה המובנית של הדפדפן לתאריך
+            // אם לא נועלים לה כיוון תוכן משלה, בנפרד מה-dir של השדה עצמו.
+            className="text-left [direction:ltr]"
           />
         </Field>
 
         <Field label="עיר מגורים">
-          <Select name="city" autoComplete="address-level2" required defaultValue="">
-            <option value="" disabled>
-              בחרו עיר
-            </option>
-            {ISRAELI_CITIES.map((city) => (
-              <option key={city} value={city}>
-                {city}
-              </option>
-            ))}
-          </Select>
+          <CityAutocomplete name="city" />
         </Field>
 
         <Field label="אינסטגרם" hint="שם משתמש או קישור — שניהם טובים">
@@ -187,7 +175,7 @@ export default function SignupPage() {
             name="instagram"
             autoComplete="off"
             dir="ltr"
-            placeholder="@shirlevi"
+            placeholder="@username"
             className="text-left"
           />
         </Field>
