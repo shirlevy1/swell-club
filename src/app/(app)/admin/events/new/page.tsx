@@ -12,12 +12,7 @@ import {
   type LocationSuggestion,
 } from "@/lib/actions";
 import { DEFAULT_EVENT_LOCATION } from "@/lib/maps";
-import {
-  DEFAULT_AGENDA_CLOSING,
-  defaultAgendaSteps,
-  type AgendaStep,
-} from "@/lib/agenda";
-import { AgendaEditor } from "@/components/agenda-editor";
+import { defaultAgendaText } from "@/lib/agenda";
 import { Button, Card, Field, Input, Notice, Textarea } from "@/components/ui";
 
 // Leaflet ניגש ל-window בזמן הטעינה — חייב להיטען רק בדפדפן
@@ -71,14 +66,13 @@ export default function NewEventPage() {
   // מחשב (לשעה המקומית) — מתמלא ברגע שהעמוד עולה בדפדפן.
   const [startsAt, setStartsAt] = useState("");
   const [description, setDescription] = useState("");
-  const [agendaSteps, setAgendaSteps] = useState<AgendaStep[]>([]);
-  const [agendaClosing, setAgendaClosing] = useState(DEFAULT_AGENDA_CLOSING);
+  const [agendaText, setAgendaText] = useState("");
   useEffect(() => {
     const now = roundedNow();
     setStartsAt(toDatetimeLocalValue(now));
     // ברירת המחדל של הלו״ז נקבעת פעם אחת ביחס לשעה הראשונית — אחרי
     // זה היא נשארת בידי מי שעורכת, גם אם היא משנה את התאריך אחר כך.
-    setAgendaSteps(defaultAgendaSteps(now.toISOString()));
+    setAgendaText(defaultAgendaText(now.toISOString()));
   }, []);
 
   // חיפוש מיקום תוך כדי הקלדה בשדה "שם המקום" עצמו — זו הדרך
@@ -198,10 +192,7 @@ export default function NewEventPage() {
       checkin_opens_before_min: minutesField(form.get("opens_before")),
       checkin_closes_after_min: minutesField(form.get("closes_after")),
       description: description.trim() || null,
-      agenda: agendaSteps
-        .filter((s) => s.label.trim())
-        .map((s) => ({ time: s.time.trim(), label: s.label.trim() })),
-      agenda_closing: agendaClosing.trim() || null,
+      agenda_text: agendaText.trim() || null,
     };
 
     if (demoMode) {
@@ -296,13 +287,14 @@ export default function NewEventPage() {
         </Card>
 
         <Card className="space-y-4">
-          <p className="text-sm font-semibold">לו״ז המפגש</p>
-          <AgendaEditor
-            steps={agendaSteps}
-            onStepsChange={setAgendaSteps}
-            closing={agendaClosing}
-            onClosingChange={setAgendaClosing}
-          />
+          <Field label="לו״ז המפגש">
+            <Textarea
+              value={agendaText}
+              onChange={(e) => setAgendaText(e.target.value)}
+              rows={7}
+              dir="auto"
+            />
+          </Field>
         </Card>
 
         <Card className="space-y-4">

@@ -1,10 +1,4 @@
-import type {
-  Club,
-  EventAgendaStep,
-  MemberRole,
-  Profile,
-  SwellEvent,
-} from "../types";
+import type { Club, MemberRole, Profile, SwellEvent } from "../types";
 import { DEFAULT_EVENT_LOCATION } from "../maps";
 
 /**
@@ -115,8 +109,7 @@ const EVENT_SEEDS: EventSeed[] = [
     created_by: ME_ID,
     created_at: new Date().toISOString(),
     description: null,
-    agenda: [],
-    agenda_closing: null,
+    agenda_text: null,
   },
   {
     id: "demo-e-next",
@@ -133,8 +126,7 @@ const EVENT_SEEDS: EventSeed[] = [
     created_by: ME_ID,
     created_at: new Date().toISOString(),
     description: null,
-    agenda: [],
-    agenda_closing: null,
+    agenda_text: null,
   },
   {
     id: "demo-e-thu",
@@ -153,8 +145,7 @@ const EVENT_SEEDS: EventSeed[] = [
     created_by: ME_ID,
     created_at: new Date().toISOString(),
     description: null,
-    agenda: [],
-    agenda_closing: null,
+    agenda_text: null,
   },
   {
     id: "demo-e-past1",
@@ -171,8 +162,7 @@ const EVENT_SEEDS: EventSeed[] = [
     created_by: ME_ID,
     created_at: new Date().toISOString(),
     description: null,
-    agenda: [],
-    agenda_closing: null,
+    agenda_text: null,
   },
   {
     id: "demo-e-album",
@@ -191,8 +181,7 @@ const EVENT_SEEDS: EventSeed[] = [
     created_by: ME_ID,
     created_at: new Date().toISOString(),
     description: null,
-    agenda: [],
-    agenda_closing: null,
+    agenda_text: null,
   },
   {
     id: "demo-e-past2",
@@ -209,8 +198,7 @@ const EVENT_SEEDS: EventSeed[] = [
     created_by: ME_ID,
     created_at: new Date().toISOString(),
     description: null,
-    agenda: [],
-    agenda_closing: null,
+    agenda_text: null,
   },
 ];
 
@@ -457,11 +445,7 @@ export function demoCreateEvent(event: SwellEvent) {
 
 export function demoUpdateEventSchedule(
   eventId: string,
-  patch: {
-    description: string | null;
-    agenda: EventAgendaStep[];
-    agenda_closing: string | null;
-  },
+  patch: { description: string | null; agenda_text: string | null },
 ) {
   const seed = EVENT_SEEDS.find((e) => e.id === eventId);
   if (seed) Object.assign(seed, patch);

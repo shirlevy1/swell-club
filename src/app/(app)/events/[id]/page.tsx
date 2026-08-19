@@ -4,7 +4,7 @@ import { getViewer, getEvent, getEventDetail, getEventPhotos } from "@/lib/data"
 import { formatDateTime, formatMinutes, formatTime } from "@/lib/format";
 import { checkInWindow, hasEventStarted } from "@/lib/checkin";
 import { getSeaForecastForEvent } from "@/lib/gosurf";
-import { getEventAgenda } from "@/lib/agenda";
+import { getEventAgendaText } from "@/lib/agenda";
 import { BackLink, Card, Notice } from "@/components/ui";
 import { RsvpButton } from "@/components/rsvp-button";
 import { CheckInFlow } from "@/components/check-in-flow";
@@ -31,7 +31,7 @@ export default async function EventPage({
   const minutesBefore = formatMinutes(event.checkin_opens_before_min);
   // אף פעם לא מפיל את העמוד — GoSurf לא זמין נחשב "אין תחזית", לא שגיאה
   const forecast = await getSeaForecastForEvent(event.starts_at);
-  const agenda = getEventAgenda(event);
+  const agendaText = getEventAgendaText(event);
 
   const isOrganizer = viewer.role === "organizer";
   const eventHasStarted = hasEventStarted(event);
@@ -73,7 +73,7 @@ export default async function EventPage({
       )}
 
       <div className="space-y-2">
-        <EventAgendaView agenda={agenda} />
+        <EventAgendaView text={agendaText} />
         {isOrganizer && (
           <Link
             href={`/admin/events/${id}/edit`}

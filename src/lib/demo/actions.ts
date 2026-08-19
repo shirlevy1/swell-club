@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { demoMode } from "../config";
-import type { EventAgendaStep, MemberRole, Profile, SwellEvent } from "../types";
+import type { MemberRole, Profile, SwellEvent } from "../types";
 import {
   demoAddEventPhoto,
   demoApproveEventPhoto,
@@ -49,11 +49,7 @@ export async function createEventAction(event: SwellEvent) {
 
 export async function updateEventScheduleAction(
   eventId: string,
-  patch: {
-    description: string | null;
-    agenda: EventAgendaStep[];
-    agenda_closing: string | null;
-  },
+  patch: { description: string | null; agenda_text: string | null },
 ) {
   guard();
   demoUpdateEventSchedule(eventId, patch);

@@ -5,20 +5,14 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
 import { updateEventScheduleAction } from "@/lib/demo/actions";
-import { DEFAULT_AGENDA_CLOSING, defaultAgendaSteps, type AgendaStep } from "@/lib/agenda";
+import { getEventAgendaText } from "@/lib/agenda";
 import type { SwellEvent } from "@/lib/types";
-import { AgendaEditor } from "./agenda-editor";
 import { Button, Card, Field, Notice, Textarea } from "./ui";
 
 export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
   const router = useRouter();
   const [description, setDescription] = useState(event.description ?? "");
-  const [agendaSteps, setAgendaSteps] = useState<AgendaStep[]>(
-    event.agenda.length > 0 ? event.agenda : defaultAgendaSteps(event.starts_at),
-  );
-  const [agendaClosing, setAgendaClosing] = useState(
-    event.agenda_closing ?? DEFAULT_AGENDA_CLOSING,
-  );
+  const [agendaText, setAgendaText] = useState(getEventAgendaText(event));
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,10 +23,7 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
 
     const patch = {
       description: description.trim() || null,
-      agenda: agendaSteps
-        .filter((s) => s.label.trim())
-        .map((s) => ({ time: s.time.trim(), label: s.label.trim() })),
-      agenda_closing: agendaClosing.trim() || null,
+      agenda_text: agendaText.trim() || null,
     };
 
     if (demoMode) {
@@ -69,13 +60,14 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
       </Card>
 
       <Card className="space-y-4">
-        <p className="text-sm font-semibold">לו״ז המפגש</p>
-        <AgendaEditor
-          steps={agendaSteps}
-          onStepsChange={setAgendaSteps}
-          closing={agendaClosing}
-          onClosingChange={setAgendaClosing}
-        />
+        <Field label="לו״ז המפגש">
+          <Textarea
+            value={agendaText}
+            onChange={(e) => setAgendaText(e.target.value)}
+            rows={7}
+            dir="auto"
+          />
+        </Field>
       </Card>
 
       {error && <Notice tone="error">{error}</Notice>}
