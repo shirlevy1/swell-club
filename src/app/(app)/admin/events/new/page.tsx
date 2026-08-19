@@ -28,8 +28,20 @@ const MapPicker = dynamic(
 /** `min`/`max` ב-HTML הם הצעה בלבד. הטווח נאכף גם כאן וגם ב-constraint. */
 function minutesField(raw: FormDataEntryValue | null): number {
   const n = Number(String(raw ?? "").trim());
-  if (!Number.isFinite(n)) return 15;
+  if (!Number.isFinite(n)) return 30;
   return Math.min(180, Math.max(0, Math.round(n)));
+}
+
+/** עכשיו, מעוגל כלפי מעלה לשעה העגולה הקרובה — 19:48 הופך ל-20:00. */
+function defaultStartsAt(): string {
+  const d = new Date();
+  d.setSeconds(0, 0);
+  if (d.getMinutes() > 0) {
+    d.setMinutes(0);
+    d.setHours(d.getHours() + 1);
+  }
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 export default function NewEventPage() {
@@ -44,6 +56,13 @@ export default function NewEventPage() {
   const [mapsUrl, setMapsUrl] = useState<string | null>(
     DEFAULT_EVENT_LOCATION.mapsUrl,
   );
+
+  // ריק בהתחלה כדי שלא יהיה פער בין מה שהשרת רינדר למה שהדפדפן
+  // מחשב (לשעה המקומית) — מתמלא ברגע שהעמוד עולה בדפדפן.
+  const [startsAt, setStartsAt] = useState("");
+  useEffect(() => {
+    setStartsAt(defaultStartsAt());
+  }, []);
 
   // חיפוש מיקום תוך כדי הקלדה בשדה "שם המקום" עצמו — זו הדרך
   // הראשית לקבוע מיקום. הבחירה ממלאת גם את הקואורדינטות וגם קישור
@@ -230,11 +249,18 @@ export default function NewEventPage() {
       <form onSubmit={onSubmit} className="space-y-5">
         <Card className="space-y-4">
           <Field label="שם המפגש">
-            <Input name="title" required placeholder="שחיית בוקר" />
+            <Input name="title" required defaultValue="שחיית בוקר" />
           </Field>
 
           <Field label="תאריך ושעה">
-            <Input name="starts_at" type="datetime-local" dir="ltr" required />
+            <Input
+              name="starts_at"
+              type="datetime-local"
+              dir="ltr"
+              required
+              value={startsAt}
+              onChange={(e) => setStartsAt(e.target.value)}
+            />
           </Field>
         </Card>
 
@@ -369,7 +395,7 @@ export default function NewEventPage() {
                 dir="ltr"
                 min={0}
                 max={180}
-                defaultValue={15}
+                defaultValue={30}
                 className="text-left"
               />
             </Field>
@@ -380,7 +406,7 @@ export default function NewEventPage() {
                 dir="ltr"
                 min={0}
                 max={180}
-                defaultValue={15}
+                defaultValue={30}
                 className="text-left"
               />
             </Field>
