@@ -55,6 +55,10 @@ export default function NewEventPage() {
   // בחירת הצעה גם היא משנה את locationName — בלי הדגל הזה הבחירה
   // הייתה מפעילה חיפוש חדש על השם שהיא עצמה קבעה.
   const skipNextSearch = useRef(false);
+  // עולה בכל פעם שהמיקום נקבע פרוגרמטית (בחירה מהרשימה, קישור שהודבק) —
+  // כדי שהמפה תזוז לשם. לא עולה בלחיצה ידנית על המפה, כי שם המשתמשת
+  // כבר רואה בדיוק את הנקודה שבה היא לחצה.
+  const [focusSignal, setFocusSignal] = useState(0);
 
   useEffect(() => {
     if (skipNextSearch.current) {
@@ -93,6 +97,7 @@ export default function NewEventPage() {
     setMapsUrl(`https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`);
     setSuggestions([]);
     setShowSuggestions(false);
+    setFocusSignal((n) => n + 1);
   }
 
   // --- גיבוי ידני: הדבקת קישור Google Maps, למקרה שהחיפוש לא מצא
@@ -122,6 +127,7 @@ export default function NewEventPage() {
       skipNextSearch.current = true;
       setLocationName(result.name);
     }
+    setFocusSignal((n) => n + 1);
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -297,6 +303,7 @@ export default function NewEventPage() {
               lat={coords?.lat ?? null}
               lng={coords?.lng ?? null}
               radiusM={radius}
+              focusSignal={focusSignal}
               onChange={(c) => {
                 setCoords(c);
                 // סימון ידני מבטל את הקישור שנשמר — הוא כבר לא מתאר את

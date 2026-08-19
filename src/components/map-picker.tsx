@@ -12,11 +12,14 @@ export function MapPicker({
   lat,
   lng,
   radiusM,
+  focusSignal,
   onChange,
 }: {
   lat: number | null;
   lng: number | null;
   radiusM: number;
+  /** עולה כדי לאותת "זוזי לנקודה הזו" — לא כל שינוי קואורדינטות אמור להזיז את התצוגה. */
+  focusSignal?: number;
   onChange: (coords: { lat: number; lng: number }) => void;
 }) {
   const [geoError, setGeoError] = useState<string | null>(null);
@@ -100,6 +103,15 @@ export function MapPicker({
     }
     ring.current?.setRadius(radiusM);
   }, [lat, lng, radiusM]);
+
+  // תזוזה יזומה לנקודה החדשה — רק כשמישהו קבע מיקום בכוונה (בחירה
+  // מהרשימה, קישור שהודבק), לא כשהיא רק זזה ברקע.
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !focusSignal || lat == null || lng == null) return;
+    m.flyTo([lat, lng], 16, { duration: 0.8 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusSignal]);
 
   return (
     <div className="space-y-2">
