@@ -140,7 +140,7 @@ export default async function ProfilePage() {
       )}
 
       <p className="text-center text-xs leading-relaxed text-(--color-ink-faint)">
-        הפרטים שלך נראים רק לחברי קהילה שנכחו באותו מפגש כמוך.
+        הפרטים שלך גלויים רק למי שהיה איתך במים.
       </p>
 
       {!demoMode && (
