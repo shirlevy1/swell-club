@@ -150,6 +150,18 @@ export default async function ProfilePage() {
             alt="דיבוג"
             className="max-h-96 w-auto border border-(--color-line)"
           />
+          <p className="text-xs font-bold text-(--color-fail)">
+            אותו חיתוך כמו העיגול למעלה, אבל גדול
+          </p>
+          <div className="size-60 overflow-hidden border-2 border-(--color-fail)">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={latestSelfie}
+              alt="דיבוג חיתוך"
+              className="size-full object-cover"
+              style={latestSelfiePosition}
+            />
+          </div>
         </div>
       )}
 
