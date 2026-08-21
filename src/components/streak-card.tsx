@@ -89,7 +89,7 @@ export function StreakCard({
 
       <p className="text-xs leading-relaxed text-(--color-ink-faint)">
         {weeks[weeks.length - 1]
-          ? "השבוע כבר נכחת."
+          ? "השבוע כבר היית איתנו."
           : current > 0
             ? "השבוע עוד פתוח — שחייה אחת שומרת על הרצף."
             : "שחייה אחת מתחילה רצף חדש."}
