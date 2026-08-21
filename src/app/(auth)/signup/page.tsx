@@ -148,7 +148,7 @@ export default function SignupPage() {
           />
         </Field>
 
-        <Field label="מספר טלפון">
+        <Field label="מספר טלפון" hint="כדי להמשיך את השיחה גם מחוץ למים.">
           <Input
             name="phone"
             type="tel"
@@ -169,7 +169,7 @@ export default function SignupPage() {
           <CityAutocomplete name="city" />
         </Field>
 
-        <Field label="אינסטגרם" hint="שם משתמש או קישור — שניהם טובים">
+        <Field label="אינסטגרם" hint="כדי להכיר את מי שמאחורי השחייה.">
           <Input
             name="instagram"
             autoComplete="off"

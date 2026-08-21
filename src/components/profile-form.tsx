@@ -87,7 +87,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           <GenderInput name="gender" defaultValue={profile.gender ?? ""} />
         </Field>
 
-        <Field label="מספר טלפון" hint="משמש לכפתור הוואטסאפ בכרטיס שלכם">
+        <Field label="מספר טלפון" hint="כדי להמשיך את השיחה גם מחוץ למים.">
           <Input
             name="phone"
             type="tel"
@@ -108,7 +108,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           <CityAutocomplete name="city" defaultValue={profile.city ?? ""} />
         </Field>
 
-        <Field label="אינסטגרם" hint="שם משתמש או קישור — שניהם טובים">
+        <Field label="אינסטגרם" hint="כדי להכיר את מי שמאחורי השחייה.">
           <Input
             name="instagram"
             dir="ltr"
