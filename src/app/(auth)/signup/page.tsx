@@ -148,7 +148,7 @@ export default function SignupPage() {
           />
         </Field>
 
-        <Field label="פלאפון">
+        <Field label="מספר טלפון">
           <Input
             name="phone"
             type="tel"
