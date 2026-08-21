@@ -89,7 +89,7 @@ export default async function ProfilePage() {
     <div className="space-y-7">
       <header className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-4">
-          <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)">
+          <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)">
             {latestSelfie ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img

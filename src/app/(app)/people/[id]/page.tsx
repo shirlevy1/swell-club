@@ -66,7 +66,7 @@ export default async function PersonPage({
       <BackLink href="/events">לכל המפגשים</BackLink>
 
       <header className="flex items-center gap-4">
-        <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)">
+        <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)">
           {headerShot?.selfieUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
