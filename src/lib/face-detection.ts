@@ -76,11 +76,54 @@ export type FaceDetectionResult = {
    * נתמך, בעיית רשת בהורדת המודל) — תקלה בתשתית הזיהוי לא אמורה לחסום
    * מישהו מלסמן הגעה אמיתית. */
   hasFace: boolean;
-  /** מרכז הפנים כאחוזים (0–1) של רוחב/גובה התמונה, לחיתוך ממורכז
-   * בתמונות פרופיל עגולות/ריבועיות. null כשלא זוהו פנים תקינות —
-   * כולל כשהבדיקה עצמה נכשלה, כי אז אין נתון אמיתי לסמוך עליו. */
+  /**
+   * ⚠️ זה *לא* מיקום הפנים הגולמי בתמונה — זה כבר `object-position`
+   * מוכן שממרכז את הפנים בחיתוך `object-fit: cover` לתוך קונטיינר
+   * ריבועי. `object-position: X% Y%` לא ממרכז נקודה שאינה כבר במרכז —
+   * הוא רק משמר את המיקום היחסי שלה בתוך החלון החתוך (זו התנהגות
+   * מתועדת של CSS, לא באג בדפדפן). פנים שהיו נמוך בפריים המקורי היו
+   * נשארות נמוך גם בחיתוך העגול. החישוב כאן פותר את זה: הוא לוקח
+   * בחשבון כמה בדיוק נחתך מהתמונה (לפי היחס בין רוחב לגובה המקור)
+   * ומזיז את נקודת ה-object-position כך שהפנים יופיעו קרוב ככל
+   * האפשר למרכז החיתוך, לא רק באותו יחס כמו במקור.
+   */
   center: { x: number; y: number } | null;
 };
+
+function clamp01(n: number): number {
+  return Math.min(1, Math.max(0, n));
+}
+
+/**
+ * ממירה מיקום פנים גולמי (שבר מרוחב/גובה התמונה המקורית) ל-
+ * object-position שממרכז אותן בפועל בחיתוך ריבועי (כל התמונות באתר
+ * מוצגות בקונטיינר 1:1 — עיגול או ריבוע). כשהתמונה עצמה כבר ריבועית
+ * אין בכלל חיתוך, והמיקום הגולמי תקף כמו שהוא.
+ */
+function centerInSquareCrop(
+  faceX: number,
+  faceY: number,
+  imageWidth: number,
+  imageHeight: number,
+): { x: number; y: number } {
+  const ratio = imageWidth / imageHeight;
+
+  if (ratio > 1) {
+    // רחבה יותר מגבוהה: הגובה נראה במלואו, יש חיתוך רק בצדדים
+    const windowFrac = 1 / ratio;
+    const range = 1 - windowFrac;
+    const x = range <= 0 ? 0.5 : clamp01((faceX - windowFrac / 2) / range);
+    return { x, y: 0.5 };
+  }
+  if (ratio < 1) {
+    // גבוהה יותר מרחבה (המצב הרגיל בסלפי מהנייד): יש חיתוך רק למעלה/למטה
+    const windowFrac = ratio;
+    const range = 1 - windowFrac;
+    const y = range <= 0 ? 0.5 : clamp01((faceY - windowFrac / 2) / range);
+    return { x: 0.5, y };
+  }
+  return { x: faceX, y: faceY };
+}
 
 export async function detectFace(
   canvas: HTMLCanvasElement,
@@ -104,12 +147,17 @@ export async function detectFace(
       )
         continue;
 
+      const faceX = (rightCheek.x + leftCheek.x) / 2;
+      const faceY = (forehead.y + chin.y) / 2;
+
       return {
         hasFace: true,
-        center: {
-          x: (rightCheek.x + leftCheek.x) / 2,
-          y: (forehead.y + chin.y) / 2,
-        },
+        center: centerInSquareCrop(
+          faceX,
+          faceY,
+          canvas.width,
+          canvas.height,
+        ),
       };
     }
     return { hasFace: false, center: null };
