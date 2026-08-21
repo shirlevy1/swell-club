@@ -16,6 +16,10 @@
  * ההפך ממה שרוצים כאן. ברשת המלאה, נקודה שהאזור שלה לא באמת נראה
  * בתמונה נוטה לצאת עם קואורדינטה מחוץ לגבולות הפריים (0–1), כי המודל
  * מעריך מיקום יחסי ולא מוגבל לפיקסלים שבאמת קיימים — וזה כן אות אמין.
+ *
+ * אותה ריצה גם מחזירה את מרכז הפנים (ראו FaceDetectionResult) — לא
+ * ריצה נוספת, רק עוד פרט מהתוצאה שכבר חושבה, לשימוש בחיתוך ממורכז
+ * של תמונות פרופיל. ראו lib/face-position.ts.
  */
 
 import type { FaceLandmarker } from "@mediapipe/tasks-vision";
@@ -31,7 +35,7 @@ async function getLandmarker(): Promise<FaceLandmarker> {
       // הגרסה כאן חייבת להיות זהה לגרסה המותקנת ב-package.json —
       // אי-התאמה בין ה-JS (מהחבילה שלנו) ל-WASM (מה-CDN הזה) גורמת
       // לאתחול להיכשל בשקט, ובלי לזרוק שגיאה ברורה. כשזה קורה,
-      // photoHasFace() נכשלת אל תוך ה-catch ומחזירה true תמיד —
+      // detectFace() נכשלת אל תוך ה-catch ומחזירה hasFace:true תמיד —
       // כלומר הבדיקה כולה הופכת לא-פעילה בלי שרואים את זה בממשק.
       const vision = await FilesetResolver.forVisionTasks(
         "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm",
@@ -66,25 +70,50 @@ function withinFrame(value: number): boolean {
   return value > EDGE_MARGIN && value < 1 - EDGE_MARGIN;
 }
 
-/**
- * true = הפנים כולן נראות בתמונה — מצח עד סנטר, לחי עד לחי — לא רק
- * חלק מהן. גם true אם הבדיקה עצמה נכשלה (מודל לא נטען, דפדפן לא
- * נתמך, בעיית רשת בהורדת המודל) — תקלה בתשתית הזיהוי לא אמורה לחסום
- * מישהו מלסמן הגעה אמיתית.
- */
-export async function photoHasFace(canvas: HTMLCanvasElement): Promise<boolean> {
+export type FaceDetectionResult = {
+  /** true = הפנים כולן נראות בתמונה — מצח עד סנטר, לחי עד לחי — לא רק
+   * חלק מהן. גם true אם הבדיקה עצמה נכשלה (מודל לא נטען, דפדפן לא
+   * נתמך, בעיית רשת בהורדת המודל) — תקלה בתשתית הזיהוי לא אמורה לחסום
+   * מישהו מלסמן הגעה אמיתית. */
+  hasFace: boolean;
+  /** מרכז הפנים כאחוזים (0–1) של רוחב/גובה התמונה, לחיתוך ממורכז
+   * בתמונות פרופיל עגולות/ריבועיות. null כשלא זוהו פנים תקינות —
+   * כולל כשהבדיקה עצמה נכשלה, כי אז אין נתון אמיתי לסמוך עליו. */
+  center: { x: number; y: number } | null;
+};
+
+export async function detectFace(
+  canvas: HTMLCanvasElement,
+): Promise<FaceDetectionResult> {
   try {
     const landmarker = await getLandmarker();
     const result = landmarker.detect(canvas);
 
-    return result.faceLandmarks.some((landmarks) => {
-      const corners = [FOREHEAD, CHIN, RIGHT_CHEEK, LEFT_CHEEK].map(
-        (i) => landmarks[i],
-      );
-      if (corners.some((p) => !p)) return false;
-      return corners.every((p) => withinFrame(p.x) && withinFrame(p.y));
-    });
+    for (const landmarks of result.faceLandmarks) {
+      const [forehead, chin, rightCheek, leftCheek] = [
+        FOREHEAD,
+        CHIN,
+        RIGHT_CHEEK,
+        LEFT_CHEEK,
+      ].map((i) => landmarks[i]);
+      if (!forehead || !chin || !rightCheek || !leftCheek) continue;
+      if (
+        ![forehead, chin, rightCheek, leftCheek].every(
+          (p) => withinFrame(p.x) && withinFrame(p.y),
+        )
+      )
+        continue;
+
+      return {
+        hasFace: true,
+        center: {
+          x: (rightCheek.x + leftCheek.x) / 2,
+          y: (forehead.y + chin.y) / 2,
+        },
+      };
+    }
+    return { hasFace: false, center: null };
   } catch {
-    return true;
+    return { hasFace: true, center: null };
   }
 }

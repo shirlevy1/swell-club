@@ -13,6 +13,7 @@ import {
 } from "@/lib/format";
 import { BackLink, Card } from "@/components/ui";
 import { SelfieHistory } from "@/components/selfie-history";
+import { facePositionStyle } from "@/lib/face-position";
 
 export default async function AdminMemberPage({
   params,
@@ -45,6 +46,7 @@ export default async function AdminMemberPage({
               src={shots[0].selfieUrl}
               alt={profile.full_name}
               className="size-full object-cover"
+              style={facePositionStyle(shots[0].faceX, shots[0].faceY)}
             />
           ) : null}
         </div>

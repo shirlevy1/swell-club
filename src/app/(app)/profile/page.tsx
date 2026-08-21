@@ -11,6 +11,7 @@ import { attendanceStreak } from "@/lib/streak";
 import { StreakCard } from "@/components/streak-card";
 import { NotificationToggle } from "@/components/notification-toggle";
 import { SelfieHistory } from "@/components/selfie-history";
+import { facePositionStyle } from "@/lib/face-position";
 import { Button } from "@/components/ui";
 
 function EditIcon({ className }: { className?: string }) {
@@ -79,6 +80,10 @@ export default async function ProfilePage() {
   const fullName = viewer.profile?.full_name ?? "הפרופיל שלי";
   // הסלפי האחרון שלך — shots כבר ממוינים מהאחרון לראשון
   const latestSelfie = shots[0]?.selfieUrl ?? null;
+  const latestSelfiePosition = facePositionStyle(
+    shots[0]?.faceX ?? null,
+    shots[0]?.faceY ?? null,
+  );
 
   return (
     <div className="space-y-7">
@@ -91,6 +96,7 @@ export default async function ProfilePage() {
                 src={latestSelfie}
                 alt={fullName}
                 className="size-full object-cover"
+                style={latestSelfiePosition}
               />
             ) : (
               <span

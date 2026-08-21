@@ -213,6 +213,9 @@ export type DemoAttendance = {
   profileId: string;
   selfie: string | null;
   at: string;
+  // מרכז הפנים (0–1), לחיתוך ממורכז. ראו lib/face-position.ts
+  faceX: number | null;
+  faceY: number | null;
 };
 
 export type DemoEventPhoto = {
@@ -245,6 +248,8 @@ function seed(): DemoDb {
       profileId: p.id,
       selfie: p.avatar_path,
       at: new Date().toISOString(),
+      faceX: null,
+      faceY: null,
     }));
 
   const rsvpFor = (eventId: string, who: Profile[]) =>
@@ -269,6 +274,8 @@ function seed(): DemoDb {
         profileId: ME_ID,
         selfie: "/demo/avatar-9.png",
         at: new Date().toISOString(),
+        faceX: null,
+        faceY: null,
       },
       // מפגש שלא הייתי בו — הרשימה נעולה. זה מדגים את כל הרעיון.
       ...attendanceFor("demo-e-past2", others.slice(2, 7)),
@@ -281,6 +288,8 @@ function seed(): DemoDb {
         profileId: ME_ID,
         selfie: "/demo/avatar-9.png",
         at: new Date().toISOString(),
+        faceX: null,
+        faceY: null,
       },
     ],
     // אלבום לדוגמה, כדי שהפיצ'ר יהיה גלוי מיד ולא רק אחרי העלאה ידנית
@@ -396,7 +405,12 @@ export function demoToggleRsvp(eventId: string) {
   else rows.push({ eventId, profileId: ME_ID, going: true });
 }
 
-export function demoCheckIn(eventId: string, selfie: string | null) {
+export function demoCheckIn(
+  eventId: string,
+  selfie: string | null,
+  faceX: number | null = null,
+  faceY: number | null = null,
+) {
   const rows = db().attendances;
   if (rows.some((a) => a.eventId === eventId && a.profileId === ME_ID)) return;
   rows.push({
@@ -404,6 +418,8 @@ export function demoCheckIn(eventId: string, selfie: string | null) {
     profileId: ME_ID,
     selfie,
     at: new Date().toISOString(),
+    faceX,
+    faceY,
   });
 }
 

@@ -9,6 +9,7 @@ import {
 } from "@/lib/data";
 import { formatDateTime, formatPhone, normalizeInstagram } from "@/lib/format";
 import { checkInWindow } from "@/lib/checkin";
+import { facePositionStyle } from "@/lib/face-position";
 import { Card, EmptyState, LinkButton, PageHeader } from "@/components/ui";
 import { ExportButton } from "@/components/export-button";
 import { PendingMemberRow } from "@/components/pending-member-row";
@@ -258,6 +259,7 @@ export default async function AdminPage() {
                     alt={m.profile.full_name}
                     className="size-full object-cover"
                     loading="lazy"
+                    style={facePositionStyle(m.latestFaceX, m.latestFaceY)}
                   />
                 ) : null}
               </div>

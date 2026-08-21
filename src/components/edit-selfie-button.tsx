@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { photoHasFace } from "@/lib/face-detection";
+import { detectFace } from "@/lib/face-detection";
 import { Button, Card, Notice } from "./ui";
 
 type Step = "idle" | "opening" | "camera" | "checking" | "uploading" | "done";
@@ -108,8 +108,8 @@ export function EditSelfieButton({ eventId }: { eventId: string }) {
 
       setError(null);
       setStep("checking");
-      const hasFace = await photoHasFace(canvas);
-      if (!hasFace) {
+      const detection = await detectFace(canvas);
+      if (!detection.hasFace) {
         setStep("camera");
         setError(
           "לא זיהינו פנים מלאות בתמונה. ודאו שהפנים שלכם נראות בבירור ונסו שוב.",
@@ -141,6 +141,14 @@ export function EditSelfieButton({ eventId }: { eventId: string }) {
           "העדכון נכשל. ייתכן שחלון עריכת הסלפי נסגר, או שהקליטה חלשה — נסו שוב.",
         );
       }
+
+      // לא חוסם את ההצלחה: התמונה כבר הוחלפה בפועל, ומיקום הפנים הוא
+      // שיפור תצוגה משני. אם זה נכשל, החיתוך פשוט נופל חזרה למרכז.
+      await supabase.rpc("update_selfie_face_position", {
+        p_event_id: eventId,
+        p_face_x: detection.center?.x ?? null,
+        p_face_y: detection.center?.y ?? null,
+      });
 
       setStep("done");
       router.refresh();

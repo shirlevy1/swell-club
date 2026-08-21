@@ -13,7 +13,7 @@ import {
 import { checkInErrorMessage } from "@/lib/checkin";
 import { demoMode } from "@/lib/config";
 import { checkInAction } from "@/lib/demo/actions";
-import { photoHasFace } from "@/lib/face-detection";
+import { detectFace } from "@/lib/face-detection";
 import type { SwellEvent } from "@/lib/types";
 import { Button, Card, Notice } from "./ui";
 
@@ -205,9 +205,9 @@ export function CheckInFlow({
     // בכלל (תקרה, שמיים).
     setError(null);
     setCheckingFace(true);
-    const hasFace = await photoHasFace(canvas);
+    const detection = await detectFace(canvas);
     setCheckingFace(false);
-    if (!hasFace) {
+    if (!detection.hasFace) {
       setError("לא זיהינו פנים בתמונה. ודאו שהפנים שלכם נראות בבירור ונסו שוב.");
       return;
     }
@@ -218,6 +218,8 @@ export function CheckInFlow({
       await checkInAction(
         event.id,
         canvas.toDataURL("image/jpeg", JPEG_QUALITY),
+        detection.center?.x ?? null,
+        detection.center?.y ?? null,
       );
       setStep("done");
       router.refresh();
@@ -271,6 +273,8 @@ export function CheckInFlow({
       p_lng: coords.lng,
       p_accuracy_m: coords.accuracy,
       p_selfie_path: path,
+      p_face_x: detection.center?.x ?? null,
+      p_face_y: detection.center?.y ?? null,
     });
 
     if (rpcError) {

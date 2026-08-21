@@ -67,6 +67,9 @@ export type Attendance = {
   accuracy_m: number | null;
   distance_m: number | null;
   added_manually: boolean;
+  // מרכז הפנים בתמונה (0–1), לחיתוך ממורכז. ראו lib/face-position.ts
+  face_x: number | null;
+  face_y: number | null;
 };
 
 /** קודי השגיאה ש-check_in() זורקת. הטקסט למשתמש ב-lib/errors.ts */

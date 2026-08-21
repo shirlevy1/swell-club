@@ -415,6 +415,9 @@ export type SelfieShot = {
   startsAt: string;
   selfieUrl: string | null;
   checkedInAt: string;
+  // מרכז הפנים (0–1), לחיתוך ממורכז. ראו lib/face-position.ts
+  faceX: number | null;
+  faceY: number | null;
 };
 
 /**
@@ -442,6 +445,8 @@ export async function getSelfieHistory(
                 startsAt: event.starts_at,
                 selfieUrl: a.selfie,
                 checkedInAt: a.at,
+                faceX: a.faceX,
+                faceY: a.faceY,
               },
             ]
           : [];
@@ -452,7 +457,9 @@ export async function getSelfieHistory(
   const supabase = await createClient();
   const { data } = await supabase
     .from("attendances")
-    .select("event_id, selfie_path, checked_in_at, events(title, starts_at)")
+    .select(
+      "event_id, selfie_path, checked_in_at, face_x, face_y, events(title, starts_at)",
+    )
     .eq("profile_id", profileId)
     .order("checked_in_at", { ascending: false });
 
@@ -460,6 +467,8 @@ export async function getSelfieHistory(
     event_id: string;
     selfie_path: string | null;
     checked_in_at: string;
+    face_x: number | null;
+    face_y: number | null;
     events: { title: string; starts_at: string } | null;
   }[];
 
@@ -483,6 +492,8 @@ export async function getSelfieHistory(
               ? (urlByPath.get(r.selfie_path) ?? null)
               : null,
             checkedInAt: r.checked_in_at,
+            faceX: r.face_x,
+            faceY: r.face_y,
           },
         ]
       : [],
@@ -589,6 +600,9 @@ export type AttendeeCard = {
   profile: PublicProfile;
   selfieUrl: string | null;
   isMe: boolean;
+  // מרכז הפנים (0–1), לחיתוך ממורכז. ראו lib/face-position.ts
+  faceX: number | null;
+  faceY: number | null;
 };
 
 /**
@@ -649,6 +663,8 @@ export async function getEventDetail(
                     profile,
                     selfieUrl: a.selfie,
                     isMe: a.profileId === demo.demoMeId,
+                    faceX: a.faceX,
+                    faceY: a.faceY,
                   },
                 ]
               : [];
@@ -693,7 +709,7 @@ export async function getEventDetail(
     const { data } = await supabase
       .from("attendances")
       .select(
-        "event_id, profile_id, selfie_path, checked_in_at, profiles(id, full_name, phone, instagram)",
+        "event_id, profile_id, selfie_path, checked_in_at, face_x, face_y, profiles(id, full_name, phone, instagram)",
       )
       .eq("event_id", eventId)
       .order("checked_in_at", { ascending: true });
@@ -723,6 +739,8 @@ export async function getEventDetail(
                 ? (urlByPath.get(r.selfie_path) ?? null)
                 : null,
               isMe: r.profile_id === userId,
+              faceX: r.face_x,
+              faceY: r.face_y,
             },
           ]
         : [],
@@ -856,6 +874,9 @@ export type AdminMember = {
   attendedCount: number;
   /** הסלפי האחרון — כדי שהמנהלת תזהה פנים ברשימה, לא רק שמות */
   latestSelfieUrl: string | null;
+  // מרכז הפנים של latestSelfieUrl (0–1). ראו lib/face-position.ts
+  latestFaceX: number | null;
+  latestFaceY: number | null;
 };
 
 export async function getAdminData(clubId: string) {
@@ -883,10 +904,13 @@ export async function getAdminData(clubId: string) {
             eventOrder.get(x.eventId) ?? "",
           ),
         );
+      const latest = mine.find((a) => a.selfie);
       return {
         profile,
         attendedCount: mine.length,
-        latestSelfieUrl: mine.find((a) => a.selfie)?.selfie ?? null,
+        latestSelfieUrl: latest?.selfie ?? null,
+        latestFaceX: latest?.faceX ?? null,
+        latestFaceY: latest?.faceY ?? null,
       };
     });
 
@@ -898,7 +922,7 @@ export async function getAdminData(clubId: string) {
     supabase
       .from("events")
       .select(
-        "*, rsvps(profile_id, going), attendances(profile_id, selfie_path, checked_in_at)",
+        "*, rsvps(profile_id, going), attendances(profile_id, selfie_path, checked_in_at, face_x, face_y)",
       )
       .eq("club_id", clubId)
       .order("starts_at", { ascending: false }),
@@ -917,16 +941,23 @@ export async function getAdminData(clubId: string) {
       profile_id: string;
       selfie_path: string | null;
       checked_in_at: string;
+      face_x: number | null;
+      face_y: number | null;
     }[];
   })[];
 
   // המפגשים כבר ממוינים מהחדש לישן, ולכן הסלפי הראשון שנתקלים בו
   // לכל אדם הוא העדכני ביותר
   const latestPathByProfile = new Map<string, string>();
+  const latestFaceByProfile = new Map<
+    string,
+    { x: number | null; y: number | null }
+  >();
   for (const event of rows) {
     for (const a of event.attendances) {
       if (a.selfie_path && !latestPathByProfile.has(a.profile_id)) {
         latestPathByProfile.set(a.profile_id, a.selfie_path);
+        latestFaceByProfile.set(a.profile_id, { x: a.face_x, y: a.face_y });
       }
     }
   }
@@ -974,6 +1005,8 @@ export async function getAdminData(clubId: string) {
               const path = latestPathByProfile.get(m.profile_id);
               return path ? (urlByLatestPath.get(path) ?? null) : null;
             })(),
+            latestFaceX: latestFaceByProfile.get(m.profile_id)?.x ?? null,
+            latestFaceY: latestFaceByProfile.get(m.profile_id)?.y ?? null,
           },
         ]
       : [],

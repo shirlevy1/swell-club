@@ -27,9 +27,14 @@ export async function toggleRsvpAction(eventId: string) {
 }
 
 /** הסלפי מגיע כ-data URL ונשמר בזיכרון. אין אחסון במצב הדגמה. */
-export async function checkInAction(eventId: string, selfie: string | null) {
+export async function checkInAction(
+  eventId: string,
+  selfie: string | null,
+  faceX: number | null = null,
+  faceY: number | null = null,
+) {
   guard();
-  demoCheckIn(eventId, selfie);
+  demoCheckIn(eventId, selfie, faceX, faceY);
   revalidatePath("/events");
   revalidatePath(`/events/${eventId}`);
 }

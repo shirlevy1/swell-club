@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { AttendeeCard } from "@/lib/data";
 import { instagramUrl, whatsappUrl } from "@/lib/format";
+import { facePositionStyle } from "@/lib/face-position";
 import { InstagramIcon, WhatsAppIcon } from "./social-icons";
 import { cx } from "./ui";
 
@@ -37,7 +38,7 @@ export function AttendeeGrid({
 
   return (
     <ul className="grid grid-cols-2 gap-3">
-      {attendees.map(({ profile, selfieUrl, isMe }) => {
+      {attendees.map(({ profile, selfieUrl, isMe, faceX, faceY }) => {
         const ig = instagramUrl(profile.instagram);
         const wa = whatsappUrl(profile.phone);
 
@@ -53,6 +54,7 @@ export function AttendeeGrid({
                 alt={profile.full_name}
                 className="size-full object-cover"
                 loading="lazy"
+                style={facePositionStyle(faceX, faceY)}
               />
             ) : (
               <Initials name={profile.full_name} />

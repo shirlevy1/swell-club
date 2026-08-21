@@ -7,6 +7,7 @@ import {
   getEventPhotoCollages,
 } from "@/lib/data";
 import { instagramUrl, whatsappUrl } from "@/lib/format";
+import { facePositionStyle } from "@/lib/face-position";
 import { BackLink, Notice } from "@/components/ui";
 import { SelfieHistory } from "@/components/selfie-history";
 import { InstagramIcon, WhatsAppIcon } from "@/components/social-icons";
@@ -72,6 +73,7 @@ export default async function PersonPage({
               src={headerShot.selfieUrl}
               alt={person.fullName}
               className="size-full object-cover"
+              style={facePositionStyle(headerShot.faceX, headerShot.faceY)}
             />
           ) : (
             <span

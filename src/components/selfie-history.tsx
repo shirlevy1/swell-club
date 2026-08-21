@@ -1,9 +1,19 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import type { SelfieShot } from "@/lib/data";
 import { formatDateShort, formatTime } from "@/lib/format";
+import { facePositionStyle } from "@/lib/face-position";
 import { cx } from "./ui";
 
-function CollageImg({ src, className }: { src: string; className?: string }) {
+function CollageImg({
+  src,
+  className,
+  style,
+}: {
+  src: string;
+  className?: string;
+  style?: CSSProperties;
+}) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -11,6 +21,7 @@ function CollageImg({ src, className }: { src: string; className?: string }) {
       alt=""
       loading="lazy"
       className={cx("size-full object-cover", className)}
+      style={style}
     />
   );
 }
@@ -18,13 +29,17 @@ function CollageImg({ src, className }: { src: string; className?: string }) {
 /**
  * תצוגת המפגש בכרטיס: קולאז' מאלבום המפגש כשיש תמונות בו (עד 4,
  * במבנה שמתאים לכמות), ורק אם אין — נופל חזרה לסלפי של האדם עצמו.
+ * מיקום הפנים רלוונטי רק לנפילה־חזרה הזו — תמונות אלבום הן תמונות
+ * אירוע רגילות, לא סלפים שעברו זיהוי פנים.
  */
 function EventThumbnail({
   album,
   selfieUrl,
+  selfiePosition,
 }: {
   album: string[];
   selfieUrl: string | null;
+  selfiePosition: CSSProperties;
 }) {
   if (album.length >= 4) {
     return (
@@ -60,7 +75,7 @@ function EventThumbnail({
   }
 
   if (selfieUrl) {
-    return <CollageImg src={selfieUrl} />;
+    return <CollageImg src={selfieUrl} style={selfiePosition} />;
   }
 
   return (
@@ -104,6 +119,7 @@ export function SelfieHistory({
               <EventThumbnail
                 album={albumsByEvent?.get(shot.eventId) ?? []}
                 selfieUrl={shot.selfieUrl}
+                selfiePosition={facePositionStyle(shot.faceX, shot.faceY)}
               />
             </div>
             <div className="px-2 py-1.5">
