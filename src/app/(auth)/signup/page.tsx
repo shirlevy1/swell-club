@@ -148,6 +148,10 @@ export default function SignupPage() {
           />
         </Field>
 
+        <Field label="תאריך לידה">
+          <BirthDateInput name="birth_date" />
+        </Field>
+
         <Field label="מספר טלפון" hint="כדי להמשיך את השיחה גם מחוץ למים.">
           <Input
             name="phone"
@@ -161,14 +165,6 @@ export default function SignupPage() {
           />
         </Field>
 
-        <Field label="תאריך לידה">
-          <BirthDateInput name="birth_date" />
-        </Field>
-
-        <Field label="עיר מגורים">
-          <CityAutocomplete name="city" />
-        </Field>
-
         <Field label="אינסטגרם" hint="כדי להכיר את מי שמאחורי השחייה.">
           <Input
             name="instagram"
@@ -177,6 +173,10 @@ export default function SignupPage() {
             placeholder="@username"
             className="text-left"
           />
+        </Field>
+
+        <Field label="עיר מגורים">
+          <CityAutocomplete name="city" />
         </Field>
 
         <p className="text-xs leading-relaxed text-(--color-ink-faint)">

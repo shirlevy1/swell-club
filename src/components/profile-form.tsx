@@ -87,6 +87,10 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           <GenderInput name="gender" defaultValue={profile.gender ?? ""} />
         </Field>
 
+        <Field label="תאריך לידה">
+          <BirthDateInput name="birth_date" defaultValue={profile.birth_date ?? ""} />
+        </Field>
+
         <Field label="מספר טלפון" hint="כדי להמשיך את השיחה גם מחוץ למים.">
           <Input
             name="phone"
@@ -100,14 +104,6 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           />
         </Field>
 
-        <Field label="תאריך לידה">
-          <BirthDateInput name="birth_date" defaultValue={profile.birth_date ?? ""} />
-        </Field>
-
-        <Field label="עיר מגורים">
-          <CityAutocomplete name="city" defaultValue={profile.city ?? ""} />
-        </Field>
-
         <Field label="אינסטגרם" hint="כדי להכיר את מי שמאחורי השחייה.">
           <Input
             name="instagram"
@@ -116,6 +112,10 @@ export function ProfileForm({ profile }: { profile: Profile }) {
             placeholder="@username"
             className="text-left"
           />
+        </Field>
+
+        <Field label="עיר מגורים">
+          <CityAutocomplete name="city" defaultValue={profile.city ?? ""} />
         </Field>
 
         <div className="space-y-3">
