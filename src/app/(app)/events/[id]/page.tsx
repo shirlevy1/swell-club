@@ -127,7 +127,8 @@ export default async function EventPage({
           <span className="ltr-nums font-semibold">
             {formatTime(closesAt.toISOString())}
           </span>
-          .{" "}
+          .
+          <br />
           {attendedCount > 0
             ? `${attendedCount} סימנו הגעה — אבל מי שלא היה שם לא יכול לראות מי הם.`
             : "לא סימנתם הגעה? לא תוכלו לראות מי היה במפגש."}
