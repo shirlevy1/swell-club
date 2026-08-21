@@ -87,7 +87,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           <GenderInput name="gender" defaultValue={profile.gender ?? ""} />
         </Field>
 
-        <Field label="פלאפון" hint="משמש לכפתור הוואטסאפ בכרטיס שלכם">
+        <Field label="מספר טלפון" hint="משמש לכפתור הוואטסאפ בכרטיס שלכם">
           <Input
             name="phone"
             type="tel"

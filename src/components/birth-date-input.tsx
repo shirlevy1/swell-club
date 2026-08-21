@@ -48,17 +48,14 @@ export function BirthDateInput({
     <div className="grid grid-cols-3 gap-2">
       <input type="hidden" name={name} value={value} />
       <Select
-        aria-label="יום"
-        value={day}
-        onChange={(e) => {
-          const v = e.target.value ? Number(e.target.value) : "";
-          setDay(v && maxDay && Number(v) > maxDay ? maxDay : v);
-        }}
+        aria-label="שנה"
+        value={year}
+        onChange={(e) => setYear(e.target.value ? Number(e.target.value) : "")}
       >
-        <option value="">יום</option>
-        {days.map((d) => (
-          <option key={d} value={d}>
-            {d}
+        <option value="">שנה</option>
+        {years.map((y) => (
+          <option key={y} value={y}>
+            {y}
           </option>
         ))}
       </Select>
@@ -75,14 +72,17 @@ export function BirthDateInput({
         ))}
       </Select>
       <Select
-        aria-label="שנה"
-        value={year}
-        onChange={(e) => setYear(e.target.value ? Number(e.target.value) : "")}
+        aria-label="יום"
+        value={day}
+        onChange={(e) => {
+          const v = e.target.value ? Number(e.target.value) : "";
+          setDay(v && maxDay && Number(v) > maxDay ? maxDay : v);
+        }}
       >
-        <option value="">שנה</option>
-        {years.map((y) => (
-          <option key={y} value={y}>
-            {y}
+        <option value="">יום</option>
+        {days.map((d) => (
+          <option key={d} value={d}>
+            {d}
           </option>
         ))}
       </Select>
