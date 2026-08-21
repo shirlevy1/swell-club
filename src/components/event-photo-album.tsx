@@ -493,7 +493,7 @@ export function EventPhotoAlbum({
       ) : (
         pending.length === 0 && (
           <p className="text-sm text-(--color-ink-faint)">
-            עוד לא הועלו תמונות מהמפגש הזה.
+            עוד לא עלו תמונות מהמפגש הזה. יש לכם תמונות? שתפו אותן איתנו.
           </p>
         )
       )}

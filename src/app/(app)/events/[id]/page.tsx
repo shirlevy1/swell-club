@@ -123,14 +123,14 @@ export default async function EventPage({
 
       {!hasAttended && status === "closed" && (
         <Notice tone="warn">
-          הצ׳ק־אין למפגש הזה נסגר ב־
+          הצ׳ק־אין למפגש הזה כבר נסגר ב־
           <span className="ltr-nums font-semibold">
             {formatTime(closesAt.toISOString())}
           </span>
           .{" "}
           {attendedCount > 0
             ? `${attendedCount} סימנו הגעה — אבל מי שלא היה שם לא יכול לראות מי הם.`
-            : "מי שלא סימן הגעה לא יכול לראות מי היה."}
+            : "לא סימנתם הגעה? לא תוכלו לראות מי היה במפגש."}
         </Notice>
       )}
 
@@ -138,7 +138,7 @@ export default async function EventPage({
         <section className="space-y-4">
           <div className="flex items-baseline justify-between">
             <h2 className="font-[family-name:var(--font-display)] text-xl font-bold">
-              מי היה כאן
+              מי היה איתנו?
             </h2>
             <span className="ltr-nums text-sm text-(--color-ink-faint)">
               {attendees.length}
