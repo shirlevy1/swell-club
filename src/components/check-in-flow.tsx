@@ -197,7 +197,13 @@ export function CheckInFlow({
     const canvas = document.createElement("canvas");
     canvas.width = Math.round(video.videoWidth * scale);
     canvas.height = Math.round(video.videoHeight * scale);
-    canvas.getContext("2d")?.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const ctx = canvas.getContext("2d");
+    // ממוראה כמו התצוגה המקדימה — לא רק בזמן הצילום. זיהוי הפנים
+    // רץ אחרי הציור הזה, ולכן מודד את הפנים במיקום הסופי (המוראה)
+    // ולא צריך שום תיקון נפרד.
+    ctx?.translate(canvas.width, 0);
+    ctx?.scale(-1, 1);
+    ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     // בדיקת פנים לפני שממשיכים לכל דבר אחר, ולפני עצירת המצלמה —
     // ככה אפשר לנסות שוב מיד באותה תצוגה חיה, בלי לפתוח הכל מחדש.
