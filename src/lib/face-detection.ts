@@ -150,14 +150,11 @@ export async function detectFace(
       const faceX = (rightCheek.x + leftCheek.x) / 2;
       const faceY = (forehead.y + chin.y) / 2;
 
+      // ניסוי אבחוני זמני: הפוך את הציר האנכי, בלי חישוב המרכוז,
+      // כדי לבודד אם הכיוון האנכי פשוט הפוך. ראו הודעת ה-commit.
       return {
         hasFace: true,
-        center: centerInSquareCrop(
-          faceX,
-          faceY,
-          canvas.width,
-          canvas.height,
-        ),
+        center: { x: faceX, y: 1 - faceY },
       };
     }
     return { hasFace: false, center: null };
