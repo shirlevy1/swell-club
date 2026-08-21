@@ -134,37 +134,6 @@ export default async function ProfilePage() {
         )}
       </header>
 
-      {/* דיבוג זמני: התמונה המלאה בלי חיתוך, כדי לאתר איפה הפנים באמת
-          נמצאות. להסיר אחרי שהחיתוך העגול יעבוד נכון. */}
-      {latestSelfie && (
-        <div className="space-y-1 rounded-xl border border-dashed border-(--color-fail) p-3">
-          <p className="text-xs font-bold text-(--color-fail)">
-            דיבוג זמני — התמונה המקורית המלאה, בלי חיתוך
-          </p>
-          <p className="text-xs text-(--color-ink-faint)">
-            face_x={shots[0]?.faceX} face_y={shots[0]?.faceY}
-          </p>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={latestSelfie}
-            alt="דיבוג"
-            className="max-h-96 w-auto border border-(--color-line)"
-          />
-          <p className="text-xs font-bold text-(--color-fail)">
-            אותו חיתוך כמו העיגול למעלה, אבל גדול
-          </p>
-          <div className="size-60 overflow-hidden border-2 border-(--color-fail)">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={latestSelfie}
-              alt="דיבוג חיתוך"
-              className="size-full object-cover"
-              style={latestSelfiePosition}
-            />
-          </div>
-        </div>
-      )}
-
       {count > 0 && (
         <StreakCard streak={streak} gender={viewer.profile?.gender ?? null} />
       )}
