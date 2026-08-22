@@ -33,6 +33,7 @@ export default function SignupPage() {
     const city = String(form.get("city") ?? "").trim();
     const swimLevel = String(form.get("swim_level") ?? "").trim();
     const instagram = normalizeInstagram(String(form.get("instagram") ?? ""));
+    const privacyAccepted = form.get("privacy_accepted") === "on";
     const waiverAccepted = form.get("waiver_accepted") === "on";
 
     if (fullName.length < 2) return setError("צריך שם מלא.");
@@ -45,6 +46,8 @@ export default function SignupPage() {
     if (!birthDate) return setError("צריך תאריך לידה.");
     if (!city) return setError("צריך לבחור עיר מגורים.");
     if (!swimLevel) return setError("צריך לבחור מה הכי מתאר אתכם במים.");
+    if (!privacyAccepted)
+      return setError("צריך לאשר את הצהרת הפרטיות כדי להצטרף.");
     if (!waiverAccepted)
       return setError("צריך לאשר את כתב הוויתור כדי להצטרף.");
 
@@ -211,6 +214,53 @@ export default function SignupPage() {
           קהילה אחרים <strong className="text-(--color-ink-soft)">שנכחו
           באותו מפגש כמוכם</strong> — ולא לאף אחד אחר.
         </p>
+
+        <div className="space-y-3">
+          <div className="max-h-40 space-y-2 overflow-y-auto rounded-xl border border-(--color-line) bg-(--color-haze) p-4 text-xs leading-relaxed text-(--color-ink-soft)">
+            <p className="font-bold text-(--color-ink)">הצהרת פרטיות</p>
+            <p>
+              <strong className="text-(--color-ink)">איזה מידע נאסף:</strong>{" "}
+              שם מלא, טלפון, אימייל, תאריך לידה, עיר מגורים, מגדר, קישור
+              לאינסטגרם (אופציונלי), רמת שחייה, ותמונת סלפי בכל צ׳ק־אין
+              למפגש. בזמן צ׳ק־אין נאסף גם מיקום GPS, לצורך אימות נוכחות
+              בלבד.
+            </p>
+            <p>
+              <strong className="text-(--color-ink)">למה:</strong> כדי לנהל
+              את החברות שלכם בקהילה, לוודא נוכחות אמיתית במפגשים, ולאפשר
+              לחברי קהילה להכיר אלה את אלה.
+            </p>
+            <p>
+              <strong className="text-(--color-ink)">מי רואה מה:</strong>{" "}
+              השם והתמונה שלכם גלויים רק לחברי קהילה שנכחו איתכם באותו
+              מפגש. הטלפון וכל התמונות שלכם גלויים למנהלת הקהילה בלבד.
+              מיקום ה-GPS משמש לאימות בשרת בלבד ואינו מוצג לאף אחד.
+            </p>
+            <p>
+              <strong className="text-(--color-ink)">איפה שומרים:</strong>{" "}
+              המידע מאוחסן אצל ספק אירוח (Supabase) בתשתית מאובטחת.
+            </p>
+            <p>
+              <strong className="text-(--color-ink)">הזכויות שלכם:</strong>{" "}
+              אפשר לבקש בכל עת לעיין במידע שנשמר עליכם, לתקן אותו, או
+              לבקש למחוק את החשבון וכל המידע הקשור אליו — פנו למנהלת
+              הקהילה.
+            </p>
+          </div>
+
+          <label className="flex items-start gap-2.5 text-sm text-(--color-ink)">
+            <input
+              type="checkbox"
+              name="privacy_accepted"
+              required
+              className="mt-0.5 size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
+            />
+            <span>
+              קראתי ואני מאשר/ת את הצהרת הפרטיות שלמעלה. בלי אישור אי
+              אפשר להצטרף לקהילה.
+            </span>
+          </label>
+        </div>
 
         <div className="space-y-3">
           <div className="max-h-40 space-y-2 overflow-y-auto rounded-xl border border-(--color-line) bg-(--color-haze) p-4 text-xs leading-relaxed text-(--color-ink-soft)">

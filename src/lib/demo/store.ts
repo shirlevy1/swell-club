@@ -39,6 +39,7 @@ function profiles(): Profile[] {
     gender: null,
     swim_level: null,
     waiver_accepted_at: new Date().toISOString(),
+    privacy_accepted_at: new Date().toISOString(),
     avatar_path: null,
     created_at: new Date().toISOString(),
   };
@@ -55,6 +56,7 @@ function profiles(): Profile[] {
       gender: null,
     swim_level: null,
       waiver_accepted_at: new Date().toISOString(),
+    privacy_accepted_at: new Date().toISOString(),
       avatar_path: `/demo/avatar-${i + 1}.png`,
       created_at: new Date().toISOString(),
     })),
