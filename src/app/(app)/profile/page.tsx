@@ -8,10 +8,11 @@ import {
 } from "@/lib/data";
 import { demoMode } from "@/lib/config";
 import { attendanceStreak } from "@/lib/streak";
-import { StreakCard } from "@/components/streak-card";
+import { StreakCard, WaveIcon } from "@/components/streak-card";
 import { NotificationToggle } from "@/components/notification-toggle";
 import { SelfieHistory } from "@/components/selfie-history";
 import { facePositionStyle } from "@/lib/face-position";
+import { swimLevelLabel, SWIM_LEVEL_COLOR } from "@/lib/swim-level";
 import { Button } from "@/components/ui";
 
 function EditIcon({ className }: { className?: string }) {
@@ -100,9 +101,27 @@ export default async function ProfilePage() {
             )}
           </div>
           <div className="min-w-0">
-            <h1 className="truncate font-[family-name:var(--font-display)] text-2xl font-bold">
-              {fullName}
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="truncate font-[family-name:var(--font-display)] text-2xl font-bold">
+                {fullName}
+              </h1>
+              {viewer.profile?.swim_level && (
+                <span
+                  className="flex shrink-0 items-center gap-1 rounded-full border bg-(--color-surface) px-2 py-0.5 text-xs font-semibold text-(--color-ink)"
+                  style={{
+                    borderColor: SWIM_LEVEL_COLOR[viewer.profile.swim_level],
+                  }}
+                >
+                  <WaveIcon
+                    className="size-3"
+                    style={{
+                      color: SWIM_LEVEL_COLOR[viewer.profile.swim_level],
+                    }}
+                  />
+                  {swimLevelLabel(viewer.profile.swim_level)}
+                </span>
+              )}
+            </div>
             <p className="text-sm text-(--color-ink-soft)">
               {monthStats
                 ? monthAttendanceLine(monthStats.attended, monthStats.total)
