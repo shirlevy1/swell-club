@@ -52,24 +52,22 @@ export default async function AdminMemberPage({
             />
           ) : null}
         </div>
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <h1 className="truncate font-[family-name:var(--font-display)] text-2xl font-bold">
-              {profile.full_name}
-            </h1>
-            {profile.swim_level && (
-              <span
-                className="flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold text-(--color-ink)"
-                style={swimLevelBadgeStyle(profile.swim_level)}
-              >
-                <WaveIcon
-                  className="size-3"
-                  style={{ color: SWIM_LEVEL_COLOR[profile.swim_level] }}
-                />
-                {swimLevelLabel(profile.swim_level)}
-              </span>
-            )}
-          </div>
+        <div className="min-w-0 space-y-1">
+          <h1 className="truncate font-[family-name:var(--font-display)] text-2xl font-bold">
+            {profile.full_name}
+          </h1>
+          {profile.swim_level && (
+            <span
+              className="flex w-fit shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm font-semibold text-(--color-ink)"
+              style={swimLevelBadgeStyle(profile.swim_level)}
+            >
+              <WaveIcon
+                className="size-3.5"
+                style={{ color: SWIM_LEVEL_COLOR[profile.swim_level] }}
+              />
+              {swimLevelLabel(profile.swim_level)}
+            </span>
+          )}
           <p className="text-sm text-(--color-ink-soft)">
             {shots.length === 0
               ? "עוד לא נכח במפגש"

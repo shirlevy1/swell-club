@@ -90,24 +90,22 @@ export default async function PersonPage({
             </span>
           )}
         </div>
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <h1 className="truncate font-[family-name:var(--font-display)] text-2xl font-bold">
-              {person.fullName}
-            </h1>
-            {person.swimLevel && (
-              <span
-                className="flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold text-(--color-ink)"
-                style={swimLevelBadgeStyle(person.swimLevel)}
-              >
-                <WaveIcon
-                  className="size-3"
-                  style={{ color: SWIM_LEVEL_COLOR[person.swimLevel] }}
-                />
-                {swimLevelLabel(person.swimLevel)}
-              </span>
-            )}
-          </div>
+        <div className="min-w-0 space-y-1">
+          <h1 className="truncate font-[family-name:var(--font-display)] text-2xl font-bold">
+            {person.fullName}
+          </h1>
+          {person.swimLevel && (
+            <span
+              className="flex w-fit shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm font-semibold text-(--color-ink)"
+              style={swimLevelBadgeStyle(person.swimLevel)}
+            >
+              <WaveIcon
+                className="size-3.5"
+                style={{ color: SWIM_LEVEL_COLOR[person.swimLevel] }}
+              />
+              {swimLevelLabel(person.swimLevel)}
+            </span>
+          )}
           <p className="text-sm text-(--color-ink-soft)">
             {person.attendedCount === 0
               ? "עוד לא נכח במפגש"
