@@ -93,13 +93,14 @@ export default async function PersonPage({
             </h1>
             {person.swimLevel && (
               <span
-                className="flex size-6 shrink-0 items-center justify-center rounded-full bg-(--color-haze)"
-                title={swimLevelLabel(person.swimLevel) ?? undefined}
+                className="flex shrink-0 items-center gap-1 rounded-full border bg-(--color-surface) px-2 py-0.5 text-xs font-semibold text-(--color-ink)"
+                style={{ borderColor: SWIM_LEVEL_COLOR[person.swimLevel] }}
               >
                 <WaveIcon
-                  className="size-3.5"
+                  className="size-3"
                   style={{ color: SWIM_LEVEL_COLOR[person.swimLevel] }}
                 />
+                {swimLevelLabel(person.swimLevel)}
               </span>
             )}
           </div>

@@ -55,13 +55,14 @@ export default async function AdminMemberPage({
             </h1>
             {profile.swim_level && (
               <span
-                className="flex size-6 shrink-0 items-center justify-center rounded-full bg-(--color-haze)"
-                title={swimLevelLabel(profile.swim_level) ?? undefined}
+                className="flex shrink-0 items-center gap-1 rounded-full border bg-(--color-surface) px-2 py-0.5 text-xs font-semibold text-(--color-ink)"
+                style={{ borderColor: SWIM_LEVEL_COLOR[profile.swim_level] }}
               >
                 <WaveIcon
-                  className="size-3.5"
+                  className="size-3"
                   style={{ color: SWIM_LEVEL_COLOR[profile.swim_level] }}
                 />
+                {swimLevelLabel(profile.swim_level)}
               </span>
             )}
           </div>
