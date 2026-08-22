@@ -53,21 +53,22 @@ export function PendingMemberRow({
   }
 
   return (
-    <div className="space-y-2 px-4 py-3">
-      <div className="flex items-center justify-between gap-3">
-        {/* קישור לפרופיל המלא — טלפון, כל הסלפים, הכל. עוגן נפרד
-            מכפתורי האישור/דחייה, לא עוטף אותם. */}
-        <Link href={`/admin/members/${profileId}`} className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold hover:underline">
-            {fullName}
-            {ageYears !== null && (
-              <span className="ms-1.5 font-normal text-(--color-ink-faint)">
-                · גיל {ageYears}
-              </span>
-            )}
-          </p>
-        </Link>
-        <div className="flex shrink-0 items-center gap-1.5">
+    <div className="space-y-3 px-4 py-3">
+      {/* קישור לפרופיל המלא — טלפון, כל הסלפים, הכל. שורה משלו, כדי
+          שהשם לא ייחתך מול האייקונים/כפתורים. */}
+      <Link href={`/admin/members/${profileId}`} className="block w-fit">
+        <p className="text-sm font-semibold hover:underline">
+          {fullName}
+          {ageYears !== null && (
+            <span className="ms-1.5 font-normal text-(--color-ink-faint)">
+              · גיל {ageYears}
+            </span>
+          )}
+        </p>
+      </Link>
+
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex gap-2">
           {wa && (
             <a
               href={wa}
@@ -90,6 +91,9 @@ export function PendingMemberRow({
               <InstagramIcon className="size-4" />
             </a>
           )}
+        </div>
+
+        <div className="flex gap-2">
           <Button
             variant="danger"
             disabled={pending !== null}
@@ -107,6 +111,7 @@ export function PendingMemberRow({
           </Button>
         </div>
       </div>
+
       {error && <Notice tone="error">{error}</Notice>}
     </div>
   );
