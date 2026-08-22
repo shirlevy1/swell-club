@@ -47,6 +47,7 @@ export function CityAutocomplete({
         // עיכוב קטן: אחרת ה-blur סוגר את הרשימה לפני שהקליק על הצעה נקלט
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         autoComplete="off"
+        required
         placeholder="הקלידו שם עיר"
         role="combobox"
         aria-expanded={open && matches.length > 0}

@@ -49,6 +49,7 @@ export function BirthDateInput({
       <input type="hidden" name={name} value={value} />
       <Select
         aria-label="שנה"
+        required
         value={year}
         onChange={(e) => setYear(e.target.value ? Number(e.target.value) : "")}
       >
@@ -61,6 +62,7 @@ export function BirthDateInput({
       </Select>
       <Select
         aria-label="חודש"
+        required
         value={month}
         onChange={(e) => setMonth(e.target.value ? Number(e.target.value) : "")}
       >
@@ -73,6 +75,7 @@ export function BirthDateInput({
       </Select>
       <Select
         aria-label="יום"
+        required
         value={day}
         onChange={(e) => {
           const v = e.target.value ? Number(e.target.value) : "";
