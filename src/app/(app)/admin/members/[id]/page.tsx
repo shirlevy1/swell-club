@@ -40,44 +40,44 @@ export default async function AdminMemberPage({
     <div className="space-y-6">
       <BackLink href="/admin">לניהול</BackLink>
 
-      <header className="flex items-center justify-between gap-4">
-        <div className="flex min-w-0 items-center gap-4">
-          <div className="size-16 shrink-0 overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)">
-            {shots[0]?.selfieUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={shots[0].selfieUrl}
-                alt={profile.full_name}
-                className="size-full object-cover"
-                style={facePositionStyle(shots[0].faceX, shots[0].faceY)}
-              />
-            ) : null}
-          </div>
-          <div className="min-w-0">
+      <header className="flex items-center gap-4">
+        <div className="size-16 shrink-0 overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)">
+          {shots[0]?.selfieUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={shots[0].selfieUrl}
+              alt={profile.full_name}
+              className="size-full object-cover"
+              style={facePositionStyle(shots[0].faceX, shots[0].faceY)}
+            />
+          ) : null}
+        </div>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
             <h1 className="truncate font-[family-name:var(--font-display)] text-2xl font-bold">
               {profile.full_name}
             </h1>
-            <p className="text-sm text-(--color-ink-soft)">
-              {shots.length === 0
-                ? "עוד לא נכח במפגש"
-                : shots.length === 1
-                  ? "נכח במפגש אחד"
-                  : `נכח ב־${shots.length} מפגשים`}
-            </p>
+            {profile.swim_level && (
+              <span
+                className="flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm font-semibold text-(--color-ink)"
+                style={swimLevelBadgeStyle(profile.swim_level)}
+              >
+                <WaveIcon
+                  className="size-3.5"
+                  style={{ color: SWIM_LEVEL_COLOR[profile.swim_level] }}
+                />
+                {swimLevelLabel(profile.swim_level)}
+              </span>
+            )}
           </div>
+          <p className="text-sm text-(--color-ink-soft)">
+            {shots.length === 0
+              ? "עוד לא נכח במפגש"
+              : shots.length === 1
+                ? "נכח במפגש אחד"
+                : `נכח ב־${shots.length} מפגשים`}
+          </p>
         </div>
-        {profile.swim_level && (
-          <span
-            className="flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm font-semibold text-(--color-ink)"
-            style={swimLevelBadgeStyle(profile.swim_level)}
-          >
-            <WaveIcon
-              className="size-3.5"
-              style={{ color: SWIM_LEVEL_COLOR[profile.swim_level] }}
-            />
-            {swimLevelLabel(profile.swim_level)}
-          </span>
-        )}
       </header>
 
       {(wa || ig) && (
