@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { Streak } from "@/lib/streak";
 import type { Gender } from "@/lib/types";
 import { byGender } from "@/lib/format";
@@ -8,7 +9,13 @@ import { Card } from "./ui";
  * (app-nav.tsx), שנגזרה מהגל האמיתי ב-public/logo.png. לא להמציא
  * צורת גל חדשה כאן; זו שפת העיצוב של Swell, לא סינוס גנרי.
  */
-function WaveIcon({ className }: { className?: string }) {
+export function WaveIcon({
+  className,
+  style,
+}: {
+  className?: string;
+  style?: CSSProperties;
+}) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -18,6 +25,7 @@ function WaveIcon({ className }: { className?: string }) {
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
+      style={style}
       aria-hidden
     >
       <path d="M2 11q3-2.8 6.5 0t6.5 0q2-2 5.5-0.8" />

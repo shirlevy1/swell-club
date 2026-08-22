@@ -19,3 +19,10 @@ export const SWIM_LEVEL_OPTIONS = [
 export function swimLevelLabel(value: string | null): string | null {
   return SWIM_LEVEL_OPTIONS.find((o) => o.value === value)?.label ?? null;
 }
+
+/** שלוש עוצמות של אותו כחול — לא צבע שלישי, רק דרגתיות בתוך הפלטה. */
+export const SWIM_LEVEL_COLOR: Record<string, string> = {
+  entering: "var(--color-sky)",
+  flowing: "var(--color-sea)",
+  deepening: "var(--color-deep)",
+};

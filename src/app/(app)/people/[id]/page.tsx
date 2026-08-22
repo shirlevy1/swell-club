@@ -8,10 +8,11 @@ import {
 } from "@/lib/data";
 import { instagramUrl, whatsappUrl } from "@/lib/format";
 import { facePositionStyle } from "@/lib/face-position";
-import { swimLevelLabel } from "@/lib/swim-level";
+import { swimLevelLabel, SWIM_LEVEL_COLOR } from "@/lib/swim-level";
 import { BackLink, Notice } from "@/components/ui";
 import { SelfieHistory } from "@/components/selfie-history";
 import { InstagramIcon, WhatsAppIcon } from "@/components/social-icons";
+import { WaveIcon } from "@/components/streak-card";
 
 /**
  * עמוד של חבר קהילה אחר, שנפתח מלחיצה על שם ברשימת "מי מתכוון להגיע".
@@ -86,9 +87,22 @@ export default async function PersonPage({
           )}
         </div>
         <div className="min-w-0">
-          <h1 className="truncate font-[family-name:var(--font-display)] text-2xl font-bold">
-            {person.fullName}
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="truncate font-[family-name:var(--font-display)] text-2xl font-bold">
+              {person.fullName}
+            </h1>
+            {person.swimLevel && (
+              <span
+                className="flex size-6 shrink-0 items-center justify-center rounded-full bg-(--color-haze)"
+                title={swimLevelLabel(person.swimLevel) ?? undefined}
+              >
+                <WaveIcon
+                  className="size-3.5"
+                  style={{ color: SWIM_LEVEL_COLOR[person.swimLevel] }}
+                />
+              </span>
+            )}
+          </div>
           <p className="text-sm text-(--color-ink-soft)">
             {person.attendedCount === 0
               ? "עוד לא נכח במפגש"
@@ -126,15 +140,6 @@ export default async function PersonPage({
                 </a>
               )}
             </div>
-          )}
-
-          {person.swimLevel && (
-            <p className="text-sm text-(--color-ink-soft)">
-              <span className="text-(--color-ink-faint)">במים: </span>
-              <span className="font-semibold">
-                {swimLevelLabel(person.swimLevel)}
-              </span>
-            </p>
           )}
 
           <section className="space-y-3">

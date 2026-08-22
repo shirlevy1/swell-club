@@ -5,16 +5,13 @@ import {
   getSelfieHistory,
   getEventPhotoCollages,
 } from "@/lib/data";
-import {
-  formatPhone,
-  instagramUrl,
-  normalizeInstagram,
-  whatsappUrl,
-} from "@/lib/format";
+import { instagramUrl, whatsappUrl } from "@/lib/format";
 import { BackLink, Card } from "@/components/ui";
 import { SelfieHistory } from "@/components/selfie-history";
 import { facePositionStyle } from "@/lib/face-position";
-import { swimLevelLabel } from "@/lib/swim-level";
+import { swimLevelLabel, SWIM_LEVEL_COLOR } from "@/lib/swim-level";
+import { WaveIcon } from "@/components/streak-card";
+import { WhatsAppIcon, InstagramIcon } from "@/components/social-icons";
 
 export default async function AdminMemberPage({
   params,
@@ -52,9 +49,22 @@ export default async function AdminMemberPage({
           ) : null}
         </div>
         <div className="min-w-0">
-          <h1 className="truncate font-[family-name:var(--font-display)] text-2xl font-bold">
-            {profile.full_name}
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="truncate font-[family-name:var(--font-display)] text-2xl font-bold">
+              {profile.full_name}
+            </h1>
+            {profile.swim_level && (
+              <span
+                className="flex size-6 shrink-0 items-center justify-center rounded-full bg-(--color-haze)"
+                title={swimLevelLabel(profile.swim_level) ?? undefined}
+              >
+                <WaveIcon
+                  className="size-3.5"
+                  style={{ color: SWIM_LEVEL_COLOR[profile.swim_level] }}
+                />
+              </span>
+            )}
+          </div>
           <p className="text-sm text-(--color-ink-soft)">
             {shots.length === 0
               ? "עוד לא נכח במפגש"
@@ -65,47 +75,32 @@ export default async function AdminMemberPage({
         </div>
       </header>
 
-      <Card className="space-y-3">
-        <Row label="טלפון">
-          {wa ? (
+      {(wa || ig) && (
+        <Card className="flex gap-2">
+          {wa && (
             <a
               href={wa}
               target="_blank"
               rel="noreferrer"
-              dir="ltr"
-              className="font-semibold text-(--color-sea) hover:underline"
+              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-(--color-line) bg-(--color-haze) text-sm font-semibold text-(--color-verified) transition hover:border-(--color-verified)/50 hover:bg-(--color-verified)/10"
             >
-              {formatPhone(profile.phone)}
+              <WhatsAppIcon className="size-4" />
+              וואטסאפ
             </a>
-          ) : (
-            <span className="text-(--color-ink-faint)">—</span>
           )}
-        </Row>
-        <Row label="אינסטגרם">
-          {ig ? (
+          {ig && (
             <a
               href={ig}
               target="_blank"
               rel="noreferrer"
-              dir="ltr"
-              className="font-semibold text-(--color-sea) hover:underline"
+              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-(--color-line) bg-(--color-haze) text-sm font-semibold text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
             >
-              @{normalizeInstagram(profile.instagram)}
+              <InstagramIcon className="size-4" />
+              אינסטגרם
             </a>
-          ) : (
-            <span className="text-(--color-ink-faint)">—</span>
           )}
-        </Row>
-        <Row label="במים">
-          {profile.swim_level ? (
-            <span className="font-semibold">
-              {swimLevelLabel(profile.swim_level)}
-            </span>
-          ) : (
-            <span className="text-(--color-ink-faint)">—</span>
-          )}
-        </Row>
-      </Card>
+        </Card>
+      )}
 
       <section className="space-y-3">
         <div className="space-y-0.5">
@@ -118,21 +113,6 @@ export default async function AdminMemberPage({
         </div>
         <SelfieHistory shots={shots} albumsByEvent={albumsByEvent} />
       </section>
-    </div>
-  );
-}
-
-function Row({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-baseline justify-between gap-3 text-sm">
-      <span className="text-(--color-ink-faint)">{label}</span>
-      {children}
     </div>
   );
 }
