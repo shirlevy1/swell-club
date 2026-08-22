@@ -77,7 +77,7 @@ export default async function AdminMemberPage({
           </div>
           <p className="text-sm text-(--color-ink-soft)">
             {monthAttendanceLine(
-              byGender(profile.gender, "נכח איתנו", "נכחה איתנו"),
+              byGender(profile.gender, "היה איתנו", "הייתה איתנו"),
               monthStats.attended,
               monthStats.total,
             )}
@@ -115,10 +115,10 @@ export default async function AdminMemberPage({
       <section className="space-y-3">
         <div className="space-y-0.5">
           <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
-            הרגעים מהסוואל
+            הסוואל המשותף שלכם
           </h2>
           <p className="text-xs text-(--color-ink-faint)">
-            רגעים מהמפגשים ש{byGender(profile.gender, "נכח", "נכחה")} בהם.
+            רגעים מהמפגשים שהייתם בהם ביחד.
           </p>
         </div>
         <SelfieHistory shots={shots} albumsByEvent={albumsByEvent} />
