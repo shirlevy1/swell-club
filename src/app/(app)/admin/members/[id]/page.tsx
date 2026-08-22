@@ -9,7 +9,11 @@ import { instagramUrl, whatsappUrl } from "@/lib/format";
 import { BackLink, Card } from "@/components/ui";
 import { SelfieHistory } from "@/components/selfie-history";
 import { facePositionStyle } from "@/lib/face-position";
-import { swimLevelLabel, SWIM_LEVEL_COLOR } from "@/lib/swim-level";
+import {
+  swimLevelLabel,
+  SWIM_LEVEL_COLOR,
+  swimLevelBadgeStyle,
+} from "@/lib/swim-level";
 import { WaveIcon } from "@/components/streak-card";
 import { WhatsAppIcon, InstagramIcon } from "@/components/social-icons";
 
@@ -55,8 +59,8 @@ export default async function AdminMemberPage({
             </h1>
             {profile.swim_level && (
               <span
-                className="flex shrink-0 items-center gap-1 rounded-full border bg-(--color-surface) px-2 py-0.5 text-xs font-semibold text-(--color-ink)"
-                style={{ borderColor: SWIM_LEVEL_COLOR[profile.swim_level] }}
+                className="flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold text-(--color-ink)"
+                style={swimLevelBadgeStyle(profile.swim_level)}
               >
                 <WaveIcon
                   className="size-3"

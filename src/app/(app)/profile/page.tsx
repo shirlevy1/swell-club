@@ -12,7 +12,11 @@ import { StreakCard, WaveIcon } from "@/components/streak-card";
 import { NotificationToggle } from "@/components/notification-toggle";
 import { SelfieHistory } from "@/components/selfie-history";
 import { facePositionStyle } from "@/lib/face-position";
-import { swimLevelLabel, SWIM_LEVEL_COLOR } from "@/lib/swim-level";
+import {
+  swimLevelLabel,
+  SWIM_LEVEL_COLOR,
+  swimLevelBadgeStyle,
+} from "@/lib/swim-level";
 import { Button } from "@/components/ui";
 
 function EditIcon({ className }: { className?: string }) {
@@ -107,10 +111,8 @@ export default async function ProfilePage() {
               </h1>
               {viewer.profile?.swim_level && (
                 <span
-                  className="flex shrink-0 items-center gap-1 rounded-full border bg-(--color-surface) px-2 py-0.5 text-xs font-semibold text-(--color-ink)"
-                  style={{
-                    borderColor: SWIM_LEVEL_COLOR[viewer.profile.swim_level],
-                  }}
+                  className="flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold text-(--color-ink)"
+                  style={swimLevelBadgeStyle(viewer.profile.swim_level)}
                 >
                   <WaveIcon
                     className="size-3"

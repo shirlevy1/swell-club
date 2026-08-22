@@ -8,7 +8,11 @@ import {
 } from "@/lib/data";
 import { instagramUrl, whatsappUrl } from "@/lib/format";
 import { facePositionStyle } from "@/lib/face-position";
-import { swimLevelLabel, SWIM_LEVEL_COLOR } from "@/lib/swim-level";
+import {
+  swimLevelLabel,
+  SWIM_LEVEL_COLOR,
+  swimLevelBadgeStyle,
+} from "@/lib/swim-level";
 import { BackLink, Notice } from "@/components/ui";
 import { SelfieHistory } from "@/components/selfie-history";
 import { InstagramIcon, WhatsAppIcon } from "@/components/social-icons";
@@ -93,8 +97,8 @@ export default async function PersonPage({
             </h1>
             {person.swimLevel && (
               <span
-                className="flex shrink-0 items-center gap-1 rounded-full border bg-(--color-surface) px-2 py-0.5 text-xs font-semibold text-(--color-ink)"
-                style={{ borderColor: SWIM_LEVEL_COLOR[person.swimLevel] }}
+                className="flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold text-(--color-ink)"
+                style={swimLevelBadgeStyle(person.swimLevel)}
               >
                 <WaveIcon
                   className="size-3"
