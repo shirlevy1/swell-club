@@ -8,7 +8,7 @@ import {
 } from "@/lib/data";
 import { instagramUrl, whatsappUrl } from "@/lib/format";
 import { facePositionStyle } from "@/lib/face-position";
-import { swimLevelLabel } from "@/components/swim-level-input";
+import { swimLevelLabel } from "@/lib/swim-level";
 import { BackLink, Notice } from "@/components/ui";
 import { SelfieHistory } from "@/components/selfie-history";
 import { InstagramIcon, WhatsAppIcon } from "@/components/social-icons";
