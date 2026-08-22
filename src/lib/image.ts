@@ -35,9 +35,11 @@ export async function compressImageFile(
   }
 }
 
-// תקרת הדלי היא 8MB (0001_init.sql) — 2400px בגובה/רוחב ואיכות 0.92
-// נשארות בנוח מתחת לזה כמעט תמיד, ועדיין משמעותית יותר חדות מסלפי.
-export const ALBUM_PHOTO_OPTIONS = { maxEdge: 2400, quality: 0.92 };
+// היה 2400px/0.92 — הורד ל-1600px/0.82 כדי לצמצם תעבורה (כל תמונה
+// חדשה קטנה משמעותית מעכשיו, לא רק באחסון אלא בכל טעינה שלה). זו
+// עדיין רזולוציה ואיכות גבוהים בהרבה ממה שוואטסאפ שולח כברירת מחדל —
+// לא ירידה שאמורה להיות מורגשת על מסך טלפון.
+export const ALBUM_PHOTO_OPTIONS = { maxEdge: 1600, quality: 0.82 };
 
 export function blobToDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
