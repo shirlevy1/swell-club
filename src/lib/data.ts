@@ -7,6 +7,7 @@ import type {
   MemberStatus,
   Profile,
   SwellEvent,
+  SwimLevel,
 } from "./types";
 import * as demo from "./demo/store";
 
@@ -507,6 +508,8 @@ export type PersonCard = {
   instagram: string | null;
   /** אותו כלל בדיוק כמו אינסטגרם — נעול עד שנכחתם יחד */
   phone: string | null;
+  /** אותו כלל בדיוק כמו אינסטגרם — נעול עד שנכחתם יחד */
+  swimLevel: SwimLevel | null;
   /** בכמה מפגשים נכחתם יחד. אפס = עוד לא נפגשתם, והעמוד נעול */
   sharedCount: number;
   attendedCount: number;
@@ -542,6 +545,7 @@ export async function getPersonCard(
       fullName: profile.full_name,
       instagram: unlocked ? profile.instagram : null,
       phone: unlocked ? profile.phone : null,
+      swimLevel: unlocked ? profile.swim_level : null,
       sharedCount,
       attendedCount: theirs.length,
     };
@@ -556,6 +560,7 @@ export async function getPersonCard(
     full_name: string;
     instagram: string | null;
     phone: string | null;
+    swim_level: SwimLevel | null;
     shared_count: number;
     attended_count: number;
   }[])[0];
@@ -566,6 +571,7 @@ export async function getPersonCard(
     fullName: row.full_name,
     instagram: row.instagram,
     phone: row.phone,
+    swimLevel: row.swim_level,
     sharedCount: row.shared_count,
     attendedCount: row.attended_count,
   };

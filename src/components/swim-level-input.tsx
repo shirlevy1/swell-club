@@ -1,6 +1,6 @@
 "use client";
 
-const SWIM_LEVEL_OPTIONS = [
+export const SWIM_LEVEL_OPTIONS = [
   {
     value: "entering",
     label: "נכנסים",
@@ -17,6 +17,10 @@ const SWIM_LEVEL_OPTIONS = [
     description: "למי שמרגישים בבית במים ורוצים לקחת את השחייה רחוק יותר.",
   },
 ] as const;
+
+export function swimLevelLabel(value: string | null): string | null {
+  return SWIM_LEVEL_OPTIONS.find((o) => o.value === value)?.label ?? null;
+}
 
 export function SwimLevelInput({
   name,

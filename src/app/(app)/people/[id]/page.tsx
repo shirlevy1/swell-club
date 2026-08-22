@@ -8,6 +8,7 @@ import {
 } from "@/lib/data";
 import { instagramUrl, whatsappUrl } from "@/lib/format";
 import { facePositionStyle } from "@/lib/face-position";
+import { swimLevelLabel } from "@/components/swim-level-input";
 import { BackLink, Notice } from "@/components/ui";
 import { SelfieHistory } from "@/components/selfie-history";
 import { InstagramIcon, WhatsAppIcon } from "@/components/social-icons";
@@ -125,6 +126,15 @@ export default async function PersonPage({
                 </a>
               )}
             </div>
+          )}
+
+          {person.swimLevel && (
+            <p className="text-sm text-(--color-ink-soft)">
+              <span className="text-(--color-ink-faint)">במים: </span>
+              <span className="font-semibold">
+                {swimLevelLabel(person.swimLevel)}
+              </span>
+            </p>
           )}
 
           <section className="space-y-3">

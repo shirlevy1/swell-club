@@ -14,6 +14,7 @@ import {
 import { BackLink, Card } from "@/components/ui";
 import { SelfieHistory } from "@/components/selfie-history";
 import { facePositionStyle } from "@/lib/face-position";
+import { swimLevelLabel } from "@/components/swim-level-input";
 
 export default async function AdminMemberPage({
   params,
@@ -91,6 +92,15 @@ export default async function AdminMemberPage({
             >
               @{normalizeInstagram(profile.instagram)}
             </a>
+          ) : (
+            <span className="text-(--color-ink-faint)">—</span>
+          )}
+        </Row>
+        <Row label="במים">
+          {profile.swim_level ? (
+            <span className="font-semibold">
+              {swimLevelLabel(profile.swim_level)}
+            </span>
           ) : (
             <span className="text-(--color-ink-faint)">—</span>
           )}
