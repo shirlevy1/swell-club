@@ -71,49 +71,51 @@ export default async function PersonPage({
     <div className="space-y-6">
       <BackLink href="/events">לכל המפגשים</BackLink>
 
-      <header className="flex items-center gap-4">
-        <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)">
-          {headerShot?.selfieUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={headerShot.selfieUrl}
-              alt={person.fullName}
-              className="size-full object-cover"
-              style={facePositionStyle(headerShot.faceX, headerShot.faceY)}
-            />
-          ) : (
-            <span
-              aria-hidden
-              className="font-[family-name:var(--font-display)] text-2xl font-bold text-(--color-sea)"
-            >
-              {person.fullName.trim()[0]}
-            </span>
-          )}
-        </div>
-        <div className="min-w-0 space-y-1">
-          <h1 className="truncate font-[family-name:var(--font-display)] text-2xl font-bold">
-            {person.fullName}
-          </h1>
-          {person.swimLevel && (
-            <span
-              className="flex w-fit shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm font-semibold text-(--color-ink)"
-              style={swimLevelBadgeStyle(person.swimLevel)}
-            >
-              <WaveIcon
-                className="size-3.5"
-                style={{ color: SWIM_LEVEL_COLOR[person.swimLevel] }}
+      <header className="flex items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-4">
+          <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)">
+            {headerShot?.selfieUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={headerShot.selfieUrl}
+                alt={person.fullName}
+                className="size-full object-cover"
+                style={facePositionStyle(headerShot.faceX, headerShot.faceY)}
               />
-              {swimLevelLabel(person.swimLevel)}
-            </span>
-          )}
-          <p className="text-sm text-(--color-ink-soft)">
-            {person.attendedCount === 0
-              ? "עוד לא נכח במפגש"
-              : person.attendedCount === 1
-                ? "נכח במפגש אחד"
-                : `נכח ב־${person.attendedCount} מפגשים`}
-          </p>
+            ) : (
+              <span
+                aria-hidden
+                className="font-[family-name:var(--font-display)] text-2xl font-bold text-(--color-sea)"
+              >
+                {person.fullName.trim()[0]}
+              </span>
+            )}
+          </div>
+          <div className="min-w-0">
+            <h1 className="truncate font-[family-name:var(--font-display)] text-2xl font-bold">
+              {person.fullName}
+            </h1>
+            <p className="text-sm text-(--color-ink-soft)">
+              {person.attendedCount === 0
+                ? "עוד לא נכח במפגש"
+                : person.attendedCount === 1
+                  ? "נכח במפגש אחד"
+                  : `נכח ב־${person.attendedCount} מפגשים`}
+            </p>
+          </div>
         </div>
+        {person.swimLevel && (
+          <span
+            className="flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm font-semibold text-(--color-ink)"
+            style={swimLevelBadgeStyle(person.swimLevel)}
+          >
+            <WaveIcon
+              className="size-3.5"
+              style={{ color: SWIM_LEVEL_COLOR[person.swimLevel] }}
+            />
+            {swimLevelLabel(person.swimLevel)}
+          </span>
+        )}
       </header>
 
       {met ? (

@@ -122,6 +122,9 @@ export default async function ProfilePage() {
                 {swimLevelLabel(viewer.profile.swim_level)}
               </span>
             )}
+            {/* אין כאן מקום בקצה הרחוק כמו בשני העמודים האחרים —
+                הוא כבר תפוס בכפתור העריכה, ולכן הבד'ג' נשאר כאן,
+                מתחת לשם, ולא בקצה הכותרת. */}
             <p className="text-sm text-(--color-ink-soft)">
               {monthStats
                 ? monthAttendanceLine(monthStats.attended, monthStats.total)
