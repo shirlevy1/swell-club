@@ -104,27 +104,26 @@ export default async function ProfilePage() {
               </span>
             )}
           </div>
-          <div className="min-w-0 space-y-1">
-            <h1 className="truncate font-[family-name:var(--font-display)] text-2xl font-bold">
-              {fullName}
-            </h1>
-            {viewer.profile?.swim_level && (
-              <span
-                className="flex w-fit shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm font-semibold text-(--color-ink)"
-                style={swimLevelBadgeStyle(viewer.profile.swim_level)}
-              >
-                <WaveIcon
-                  className="size-3.5"
-                  style={{
-                    color: SWIM_LEVEL_COLOR[viewer.profile.swim_level],
-                  }}
-                />
-                {swimLevelLabel(viewer.profile.swim_level)}
-              </span>
-            )}
-            {/* אין כאן מקום בקצה הרחוק כמו בשני העמודים האחרים —
-                הוא כבר תפוס בכפתור העריכה, ולכן הבד'ג' נשאר כאן,
-                מתחת לשם, ולא בקצה הכותרת. */}
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h1 className="truncate font-[family-name:var(--font-display)] text-2xl font-bold">
+                {fullName}
+              </h1>
+              {viewer.profile?.swim_level && (
+                <span
+                  className="flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm font-semibold text-(--color-ink)"
+                  style={swimLevelBadgeStyle(viewer.profile.swim_level)}
+                >
+                  <WaveIcon
+                    className="size-3.5"
+                    style={{
+                      color: SWIM_LEVEL_COLOR[viewer.profile.swim_level],
+                    }}
+                  />
+                  {swimLevelLabel(viewer.profile.swim_level)}
+                </span>
+              )}
+            </div>
             <p className="text-sm text-(--color-ink-soft)">
               {monthStats
                 ? monthAttendanceLine(monthStats.attended, monthStats.total)
