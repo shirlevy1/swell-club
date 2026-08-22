@@ -151,6 +151,15 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           />
         </Field>
 
+        <p className="text-xs leading-relaxed text-(--color-ink-faint)">
+          השם שלכם גלוי לכל חברי הקהילה. התמונה, הטלפון והאינסטגרם שלכם
+          יוצגו רק לחברי קהילה{" "}
+          <strong className="text-(--color-ink-soft)">
+            שנכחו באותו מפגש כמוכם
+          </strong>
+          .
+        </p>
+
         <div className="space-y-3">
           <div className="max-h-40 space-y-2 overflow-y-auto rounded-xl border border-(--color-line) bg-(--color-haze) p-4 text-xs leading-relaxed text-(--color-ink-soft)">
             <p className="font-bold text-(--color-ink)">הצהרת פרטיות</p>

@@ -210,9 +210,12 @@ export default function SignupPage() {
         </Field>
 
         <p className="text-xs leading-relaxed text-(--color-ink-faint)">
-          בהרשמה אתם מסכימים שהשם, התמונה והאינסטגרם שלכם יוצגו לחברי
-          קהילה אחרים <strong className="text-(--color-ink-soft)">שנכחו
-          באותו מפגש כמוכם</strong> — ולא לאף אחד אחר.
+          השם שלכם יהיה גלוי לכל חברי הקהילה. התמונה, הטלפון והאינסטגרם
+          שלכם יוצגו רק לחברי קהילה{" "}
+          <strong className="text-(--color-ink-soft)">
+            שנכחו באותו מפגש כמוכם
+          </strong>
+          .
         </p>
 
         <div className="space-y-3">
