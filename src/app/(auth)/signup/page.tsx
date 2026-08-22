@@ -55,6 +55,23 @@ export default function SignupPage() {
 
     setPending(true);
     const supabase = createClient();
+
+    // בדיקה מוקדמת, לפני יצירת המשתמש בכלל — כך לא נשארת התחלה של
+    // הרשמה תקועה באמצע רק כי הטלפון כבר בשימוש. אימייל כפול כבר
+    // נבדק אוטומטית ע"י Supabase Auth, אין צורך לבדוק אותו ידנית.
+    const { data: phoneAvailable, error: phoneCheckError } =
+      await supabase.rpc("is_phone_available", { p_phone: phone });
+    if (phoneCheckError) {
+      setPending(false);
+      return setError("לא הצלחנו לבדוק את מספר הטלפון. נסו שוב.");
+    }
+    if (!phoneAvailable) {
+      setPending(false);
+      return setError(
+        "מספר הטלפון הזה כבר משויך לחשבון קיים. אם זה החשבון שלכם, אפשר להתחבר במקום להירשם.",
+      );
+    }
+
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,

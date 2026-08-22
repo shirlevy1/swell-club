@@ -64,6 +64,23 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     }
 
     const supabase = createClient();
+
+    // מוציאים את הפרופיל של עצמכם מהבדיקה — אחרת שמירה בלי לשנות את
+    // הטלפון הייתה נכשלת כי הוא "כבר בשימוש" ע"י השורה של עצמכם.
+    const { data: phoneAvailable, error: phoneCheckError } =
+      await supabase.rpc("is_phone_available", {
+        p_phone: phone,
+        p_exclude_profile_id: profile.id,
+      });
+    if (phoneCheckError) {
+      setPending(false);
+      return setError("לא הצלחנו לבדוק את מספר הטלפון. נסו שוב.");
+    }
+    if (!phoneAvailable) {
+      setPending(false);
+      return setError("מספר הטלפון הזה כבר משויך לחשבון אחר.");
+    }
+
     const { error: updateError } = await supabase
       .from("profiles")
       .update(patch)
