@@ -4,8 +4,10 @@ import {
   getMemberProfile,
   getSelfieHistory,
   getEventPhotoCollages,
+  getRecentMonthStats,
 } from "@/lib/data";
-import { instagramUrl, whatsappUrl } from "@/lib/format";
+import { instagramUrl, whatsappUrl, byGender } from "@/lib/format";
+import { monthAttendanceLine } from "@/lib/attendance-text";
 import { BackLink, Card } from "@/components/ui";
 import { SelfieHistory } from "@/components/selfie-history";
 import { facePositionStyle } from "@/lib/face-position";
@@ -31,7 +33,10 @@ export default async function AdminMemberPage({
     getSelfieHistory(id),
   ]);
   if (!profile) notFound();
-  const albumsByEvent = await getEventPhotoCollages(shots.map((s) => s.eventId));
+  const [albumsByEvent, monthStats] = await Promise.all([
+    getEventPhotoCollages(shots.map((s) => s.eventId)),
+    getRecentMonthStats(viewer.club.id, id),
+  ]);
 
   const ig = instagramUrl(profile.instagram);
   const wa = whatsappUrl(profile.phone);
@@ -71,11 +76,11 @@ export default async function AdminMemberPage({
             )}
           </div>
           <p className="text-sm text-(--color-ink-soft)">
-            {shots.length === 0
-              ? "עוד לא נכח במפגש"
-              : shots.length === 1
-                ? "נכח במפגש אחד"
-                : `נכח ב־${shots.length} מפגשים`}
+            {monthAttendanceLine(
+              byGender(profile.gender, "נכח איתנו", "נכחה איתנו"),
+              monthStats.attended,
+              monthStats.total,
+            )}
           </p>
         </div>
       </header>
@@ -110,10 +115,10 @@ export default async function AdminMemberPage({
       <section className="space-y-3">
         <div className="space-y-0.5">
           <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
-            כל הסלפים
+            הרגעים מהסוואל
           </h2>
           <p className="text-xs text-(--color-ink-faint)">
-            כל צ׳ק־אין מוסיף תמונה. ככה מזהים מי זה מי.
+            רגעים מהמפגשים ש{byGender(profile.gender, "נכח", "נכחה")} בהם.
           </p>
         </div>
         <SelfieHistory shots={shots} albumsByEvent={albumsByEvent} />

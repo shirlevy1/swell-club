@@ -17,6 +17,7 @@ import {
   SWIM_LEVEL_COLOR,
   swimLevelBadgeStyle,
 } from "@/lib/swim-level";
+import { monthAttendanceLine } from "@/lib/attendance-text";
 import { Button } from "@/components/ui";
 
 function EditIcon({ className }: { className?: string }) {
@@ -33,32 +34,6 @@ function EditIcon({ className }: { className?: string }) {
     >
       <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
     </svg>
-  );
-}
-
-/**
- * "היית איתנו ב-Y מתוך X מפגשים החודש" — X ו-Y תמיד ספרות, גם כש-Y
- * הוא 0 או 1: זו כאן יחס/סטטיסטיקה ולא ספירה של שם עצם, ולכן לא
- * דורשת את "מפגש אחד" הכתוב במלא כמו במקומות אחרים באפליקציה.
- * "היית" זהה בכתיב לזכר ולנקבה — אין צורך בפיצול מגדרי כאן.
- *
- * "החודש" הוא חלון נגלל של 30 יום אחורה מעכשיו (למשל 17.7–16.8 כולל),
- * לא חודש קלנדרי — ראו getRecentMonthStats ב-lib/data.ts.
- */
-function monthAttendanceLine(attended: number, total: number) {
-  if (total === 0) return "לא היו מפגשים החודש";
-  return (
-    <>
-      היית איתנו ב־<span className="ltr-nums">{attended}</span> מתוך{" "}
-      {total === 1 ? (
-        "מפגש אחד"
-      ) : (
-        <>
-          <span className="ltr-nums">{total}</span> מפגשים
-        </>
-      )}{" "}
-      החודש
-    </>
   );
 }
 
@@ -126,7 +101,11 @@ export default async function ProfilePage() {
             </div>
             <p className="text-sm text-(--color-ink-soft)">
               {monthStats
-                ? monthAttendanceLine(monthStats.attended, monthStats.total)
+                ? monthAttendanceLine(
+                    "היית איתנו",
+                    monthStats.attended,
+                    monthStats.total,
+                  )
                 : count === 0
                   ? "עוד לא היית איתנו באף מפגש"
                   : count === 1
