@@ -96,20 +96,20 @@ export function PendingMemberRow({
         <button
           type="button"
           disabled={pending !== null}
-          onClick={approve}
-          aria-label="אישור"
-          className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-verified) transition hover:border-(--color-verified)/50 hover:bg-(--color-verified)/10 disabled:opacity-50"
-        >
-          <CheckIcon className="size-4" />
-        </button>
-        <button
-          type="button"
-          disabled={pending !== null}
           onClick={reject}
           aria-label="דחייה"
           className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-fail) transition hover:border-(--color-fail)/50 hover:bg-(--color-fail)/10 disabled:opacity-50"
         >
           <XIcon className="size-4" />
+        </button>
+        <button
+          type="button"
+          disabled={pending !== null}
+          onClick={approve}
+          aria-label="אישור"
+          className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-verified) transition hover:border-(--color-verified)/50 hover:bg-(--color-verified)/10 disabled:opacity-50"
+        >
+          <CheckIcon className="size-4" />
         </button>
       </div>
 
