@@ -155,7 +155,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           השם שלכם גלוי לכל חברי הקהילה. התמונה, הטלפון והאינסטגרם שלכם
           יוצגו רק לחברי קהילה{" "}
           <strong className="text-(--color-ink-soft)">
-            שנכחו באותו מפגש כמוכם
+            שהיו איתכם באותו המפגש
           </strong>
           .
         </p>
