@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
 import { updateProfileAction } from "@/lib/demo/actions";
-import { isValidIsraeliPhone, normalizeInstagram } from "@/lib/format";
+import { isHebrewName, isValidIsraeliPhone, normalizeInstagram } from "@/lib/format";
 import { CityAutocomplete } from "@/components/city-autocomplete";
 import { BirthDateInput } from "@/components/birth-date-input";
 import { GenderInput } from "@/components/gender-input";
@@ -32,6 +32,8 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     const waiverAccepted = form.get("waiver_accepted") === "on";
 
     if (fullName.length < 2) return setError("צריך שם מלא.");
+    if (!isHebrewName(fullName))
+      return setError("שם מלא צריך להיות בעברית בלבד.");
     if (!gender) return setError("צריך לבחור מגדר.");
     if (!isValidIsraeliPhone(phone))
       return setError("מספר הפלאפון לא נראה תקין.");

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { isValidIsraeliPhone, normalizeInstagram } from "@/lib/format";
+import { isHebrewName, isValidIsraeliPhone, normalizeInstagram } from "@/lib/format";
 import { demoMode } from "@/lib/config";
 import { CityAutocomplete } from "@/components/city-autocomplete";
 import { BirthDateInput } from "@/components/birth-date-input";
@@ -36,6 +36,8 @@ export default function SignupPage() {
     const waiverAccepted = form.get("waiver_accepted") === "on";
 
     if (fullName.length < 2) return setError("צריך שם מלא.");
+    if (!isHebrewName(fullName))
+      return setError("שם מלא צריך להיות בעברית בלבד.");
     if (!gender) return setError("צריך לבחור מגדר.");
     if (password.length < 8) return setError("הסיסמה צריכה להיות באורך 8 תווים לפחות.");
     if (!isValidIsraeliPhone(phone))
