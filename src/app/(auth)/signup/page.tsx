@@ -12,21 +12,6 @@ import { GenderInput } from "@/components/gender-input";
 import { SwimLevelInput } from "@/components/swim-level-input";
 import { Button, Field, Input, Notice } from "@/components/ui";
 
-const MIN_AGE = 20;
-const MAX_AGE = 40;
-
-/** גיל מלא נכון להיום, לא רק הפרש שנים — 31.12.2005 הוא לא בן 21 ב-1.1.2026. */
-function ageInYears(birthDate: string): number {
-  const b = new Date(birthDate);
-  const today = new Date();
-  let age = today.getFullYear() - b.getFullYear();
-  const hasHadBirthdayThisYear =
-    today.getMonth() > b.getMonth() ||
-    (today.getMonth() === b.getMonth() && today.getDate() >= b.getDate());
-  if (!hasHadBirthdayThisYear) age--;
-  return age;
-}
-
 export default function SignupPage() {
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -56,8 +41,6 @@ export default function SignupPage() {
     if (!isValidIsraeliPhone(phone))
       return setError("מספר הפלאפון לא נראה תקין.");
     if (!birthDate) return setError("צריך תאריך לידה.");
-    if (ageInYears(birthDate) < MIN_AGE || ageInYears(birthDate) > MAX_AGE)
-      return setError(`ההצטרפות לקהילה פתוחה לגילאי ${MIN_AGE}-${MAX_AGE}.`);
     if (!city) return setError("צריך לבחור עיר מגורים.");
     if (!swimLevel) return setError("צריך לבחור מה הכי מתאר אתכם במים.");
     if (!waiverAccepted)
