@@ -1,20 +1,32 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { instagramUrl, whatsappUrl } from "@/lib/format";
+import { InstagramIcon, WhatsAppIcon } from "./social-icons";
 import { Button, Notice } from "./ui";
 
 export function PendingMemberRow({
   profileId,
   fullName,
+  ageYears,
+  phone,
+  instagram,
 }: {
   profileId: string;
   fullName: string;
+  ageYears: number | null;
+  phone: string | null;
+  instagram: string | null;
 }) {
   const router = useRouter();
   const [pending, setPending] = useState<"approve" | "reject" | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const wa = whatsappUrl(phone);
+  const ig = instagramUrl(instagram);
 
   async function approve() {
     setError(null);
@@ -43,8 +55,41 @@ export function PendingMemberRow({
   return (
     <div className="space-y-2 px-4 py-3">
       <div className="flex items-center justify-between gap-3">
-        <p className="truncate text-sm font-semibold">{fullName}</p>
-        <div className="flex shrink-0 gap-2">
+        {/* קישור לפרופיל המלא — טלפון, כל הסלפים, הכל. עוגן נפרד
+            מכפתורי האישור/דחייה, לא עוטף אותם. */}
+        <Link href={`/admin/members/${profileId}`} className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold hover:underline">
+            {fullName}
+            {ageYears !== null && (
+              <span className="ms-1.5 font-normal text-(--color-ink-faint)">
+                · גיל {ageYears}
+              </span>
+            )}
+          </p>
+        </Link>
+        <div className="flex shrink-0 items-center gap-1.5">
+          {wa && (
+            <a
+              href={wa}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`וואטסאפ עם ${fullName}`}
+              className="flex size-9 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-verified) transition hover:border-(--color-verified)/50 hover:bg-(--color-verified)/10"
+            >
+              <WhatsAppIcon className="size-4" />
+            </a>
+          )}
+          {ig && (
+            <a
+              href={ig}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`אינסטגרם של ${fullName}`}
+              className="flex size-9 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
+            >
+              <InstagramIcon className="size-4" />
+            </a>
+          )}
           <Button
             variant="danger"
             disabled={pending !== null}

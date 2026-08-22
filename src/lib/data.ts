@@ -1,5 +1,6 @@
 import { createClient } from "./supabase/server";
 import { demoMode } from "./config";
+import { ageInYears } from "./format";
 import type {
   Attendance,
   Club,
@@ -64,9 +65,18 @@ export type PendingMember = {
   profileId: string;
   fullName: string;
   requestedAt: string;
+  ageYears: number | null;
+  phone: string | null;
+  instagram: string | null;
 };
 
-/** ממתינים לאישור בקהילה. רק המנהלת רואה משהו — RPC חוסם אחרת. */
+/**
+ * ממתינים לאישור בקהילה. רק המנהלת רואה משהו — RPC חוסם אחרת.
+ *
+ * למה גיל וטלפון ואינסטגרם כבר כאן, ולא רק אחרי כניסה לפרופיל: מנהלת
+ * שמחליטה אם לאשר בקשת הצטרפות צריכה מספיק הקשר לזהות מי זה בלי לפתוח
+ * כל בקשה בנפרד — אותו עיקרון של person_card, רק שכאן זו המנהלת שרואה.
+ */
 export async function getPendingMembers(
   clubId: string,
 ): Promise<PendingMember[]> {
@@ -81,12 +91,18 @@ export async function getPendingMembers(
     profile_id: string;
     full_name: string;
     requested_at: string;
+    birth_date: string | null;
+    phone: string | null;
+    instagram: string | null;
   }[];
 
   return rows.map((row) => ({
     profileId: row.profile_id,
     fullName: row.full_name,
     requestedAt: row.requested_at,
+    ageYears: ageInYears(row.birth_date),
+    phone: row.phone,
+    instagram: row.instagram,
   }));
 }
 
@@ -368,6 +384,7 @@ export async function getGoingNamesByEvent(
       push(r.eventId, {
         profileId: profile.id,
         fullName: profile.full_name,
+        swimLevel: profile.swim_level,
         isMe: profile.id === demo.demoMeId,
       });
     }
@@ -383,10 +400,12 @@ export async function getGoingNamesByEvent(
     event_id: string;
     profile_id: string;
     full_name: string;
+    swim_level: SwimLevel | null;
   }[]) {
     push(r.event_id, {
       profileId: r.profile_id,
       fullName: r.full_name,
+      swimLevel: r.swim_level,
       isMe: r.profile_id === userId,
     });
   }
@@ -599,7 +618,7 @@ export async function getMemberProfile(
 /** בדיוק מה שכרטיס משתתף צריך. מה שלא כאן — לא יוצא מהשרת. */
 export type PublicProfile = Pick<
   Profile,
-  "id" | "full_name" | "phone" | "instagram"
+  "id" | "full_name" | "phone" | "instagram" | "swim_level"
 >;
 
 export type AttendeeCard = {
@@ -615,7 +634,12 @@ export type AttendeeCard = {
  * מי הצהיר שיגיע. שם בלי תמונה — הצהרת כוונה מותרת לפרסום, סלפי לא.
  * המטרה שלה היא מוטיבציה: רואים שחברים מתכננים להגיע ומצטרפים.
  */
-export type GoingPerson = { profileId: string; fullName: string; isMe: boolean };
+export type GoingPerson = {
+  profileId: string;
+  fullName: string;
+  swimLevel: SwimLevel | null;
+  isMe: boolean;
+};
 
 export type EventDetail = {
   myGoing: boolean;
@@ -653,6 +677,7 @@ export async function getEventDetail(
                 {
                   profileId: profile.id,
                   fullName: profile.full_name,
+                  swimLevel: profile.swim_level,
                   isMe: profile.id === demo.demoMeId,
                 },
               ]
@@ -715,7 +740,7 @@ export async function getEventDetail(
     const { data } = await supabase
       .from("attendances")
       .select(
-        "event_id, profile_id, selfie_path, checked_in_at, face_x, face_y, profiles(id, full_name, phone, instagram)",
+        "event_id, profile_id, selfie_path, checked_in_at, face_x, face_y, profiles(id, full_name, phone, instagram, swim_level)",
       )
       .eq("event_id", eventId)
       .order("checked_in_at", { ascending: true });
@@ -754,10 +779,15 @@ export async function getEventDetail(
   }
 
   const going = (
-    (goingRows ?? []) as { profile_id: string; full_name: string }[]
+    (goingRows ?? []) as {
+      profile_id: string;
+      full_name: string;
+      swim_level: SwimLevel | null;
+    }[]
   ).map((r) => ({
     profileId: r.profile_id,
     fullName: r.full_name,
+    swimLevel: r.swim_level,
     isMe: r.profile_id === userId,
   }));
 

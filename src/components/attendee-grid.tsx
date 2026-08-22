@@ -2,6 +2,12 @@ import Link from "next/link";
 import type { AttendeeCard } from "@/lib/data";
 import { instagramUrl, whatsappUrl } from "@/lib/format";
 import { facePositionStyle } from "@/lib/face-position";
+import {
+  swimLevelLabel,
+  SWIM_LEVEL_COLOR,
+  swimLevelBadgeStyle,
+} from "@/lib/swim-level";
+import { WaveIcon } from "./streak-card";
 import { InstagramIcon, WhatsAppIcon } from "./social-icons";
 import { cx } from "./ui";
 
@@ -93,6 +99,19 @@ export function AttendeeGrid({
                   </span>
                 )}
               </p>
+
+              {profile.swim_level && (
+                <span
+                  className="flex w-fit items-center gap-1 rounded-full border px-1.5 py-0.5 text-[0.65rem] font-semibold text-(--color-ink)"
+                  style={swimLevelBadgeStyle(profile.swim_level)}
+                >
+                  <WaveIcon
+                    className="size-2.5"
+                    style={{ color: SWIM_LEVEL_COLOR[profile.swim_level] }}
+                  />
+                  {swimLevelLabel(profile.swim_level)}
+                </span>
+              )}
 
               {!isMe && (ig || wa) && (
                 <div className="flex gap-2">

@@ -142,6 +142,9 @@ export default async function AdminPage() {
                 key={m.profileId}
                 profileId={m.profileId}
                 fullName={m.fullName}
+                ageYears={m.ageYears}
+                phone={m.phone}
+                instagram={m.instagram}
               />
             ))}
           </Card>

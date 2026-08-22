@@ -1,5 +1,11 @@
 import Link from "next/link";
 import type { GoingPerson } from "@/lib/data";
+import {
+  swimLevelLabel,
+  SWIM_LEVEL_COLOR,
+  swimLevelBadgeStyle,
+} from "@/lib/swim-level";
+import { WaveIcon } from "./streak-card";
 import { Card } from "./ui";
 
 /**
@@ -18,8 +24,9 @@ function initial(name: string): string {
  * זה מה שמייצר את המוטיבציה: מספר יבש ("6 מתכוונים") לא משכנע אף אחד
  * לקום בשש בבוקר, אבל לראות ששלושה אנשים שאתם מכירים כבר סימנו — כן.
  *
- * ⚠️ שמות בלבד. אין כאן תמונות, בכוונה: סלפי נוצר רק בצ׳ק־אין מאומת,
- * והצגתו למי שלא נכח באותו מפגש שוברת את הכלל המרכזי של המוצר.
+ * ⚠️ שם ורמת שחייה בלבד. אין כאן תמונות, וואטסאפ או אינסטגרם, בכוונה:
+ * אלה נוצרים/נחשפים רק אחרי צ׳ק־אין מאומת, והצגתם למי שלא נכח באותו
+ * מפגש שוברת את הכלל המרכזי של המוצר.
  */
 export function GoingList({
   people,
@@ -72,6 +79,18 @@ export function GoingList({
               <span className="text-sm font-semibold">
                 {person.isMe ? "אתם" : person.fullName}
               </span>
+              {person.swimLevel && (
+                <span
+                  className="flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-[0.65rem] font-semibold text-(--color-ink)"
+                  style={swimLevelBadgeStyle(person.swimLevel)}
+                >
+                  <WaveIcon
+                    className="size-2.5"
+                    style={{ color: SWIM_LEVEL_COLOR[person.swimLevel] }}
+                  />
+                  {swimLevelLabel(person.swimLevel)}
+                </span>
+              )}
               <span aria-hidden className="text-xs text-(--color-ink-faint)">
                 ←
               </span>

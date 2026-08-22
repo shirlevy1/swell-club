@@ -69,6 +69,19 @@ export function formatDateShort(iso: string): string {
   }).format(d);
 }
 
+/** גיל בשנים מלאות, לפי תאריך לידה (YYYY-MM-DD) והתאריך הנוכחי. */
+export function ageInYears(birthDate: string | null): number | null {
+  if (!birthDate) return null;
+  const b = new Date(birthDate);
+  const now = new Date();
+  let age = now.getFullYear() - b.getFullYear();
+  const hadBirthdayThisYear =
+    now.getMonth() > b.getMonth() ||
+    (now.getMonth() === b.getMonth() && now.getDate() >= b.getDate());
+  if (!hadBirthdayThisYear) age -= 1;
+  return age;
+}
+
 export function formatWeekday(iso: string): string {
   return new Intl.DateTimeFormat("he-IL", {
     weekday: "long",
