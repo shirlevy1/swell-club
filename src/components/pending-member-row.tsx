@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { instagramUrl, whatsappUrl } from "@/lib/format";
-import { InstagramIcon, WhatsAppIcon } from "./social-icons";
-import { Button, Notice } from "./ui";
+import { CheckIcon, InstagramIcon, WhatsAppIcon, XIcon } from "./social-icons";
+import { Notice } from "./ui";
 
 export function PendingMemberRow({
   profileId,
@@ -67,7 +67,7 @@ export function PendingMemberRow({
         </p>
       </Link>
 
-      <div className="flex items-center justify-between gap-2">
+      {(wa || ig) && (
         <div className="flex gap-2">
           {wa && (
             <a
@@ -92,24 +92,27 @@ export function PendingMemberRow({
             </a>
           )}
         </div>
+      )}
 
-        <div className="flex gap-2">
-          <Button
-            variant="danger"
-            disabled={pending !== null}
-            onClick={reject}
-            className="min-h-9 px-3 text-xs"
-          >
-            {pending === "reject" ? "רגע…" : "דחייה"}
-          </Button>
-          <Button
-            disabled={pending !== null}
-            onClick={approve}
-            className="min-h-9 px-3 text-xs"
-          >
-            {pending === "approve" ? "רגע…" : "אישור"}
-          </Button>
-        </div>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          disabled={pending !== null}
+          onClick={reject}
+          aria-label="דחייה"
+          className="flex size-9 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-fail) transition hover:border-(--color-fail)/50 hover:bg-(--color-fail)/10 disabled:opacity-50"
+        >
+          <XIcon className="size-4" />
+        </button>
+        <button
+          type="button"
+          disabled={pending !== null}
+          onClick={approve}
+          aria-label="אישור"
+          className="flex size-9 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-verified) transition hover:border-(--color-verified)/50 hover:bg-(--color-verified)/10 disabled:opacity-50"
+        >
+          <CheckIcon className="size-4" />
+        </button>
       </div>
 
       {error && <Notice tone="error">{error}</Notice>}
