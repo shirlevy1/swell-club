@@ -9,6 +9,7 @@ import { demoMode } from "@/lib/config";
 import { CityAutocomplete } from "@/components/city-autocomplete";
 import { BirthDateInput } from "@/components/birth-date-input";
 import { GenderInput } from "@/components/gender-input";
+import { SwimLevelInput } from "@/components/swim-level-input";
 import { Button, Field, Input, Notice } from "@/components/ui";
 
 export default function SignupPage() {
@@ -30,6 +31,7 @@ export default function SignupPage() {
     const phone = String(form.get("phone") ?? "").trim();
     const birthDate = String(form.get("birth_date") ?? "").trim();
     const city = String(form.get("city") ?? "").trim();
+    const swimLevel = String(form.get("swim_level") ?? "").trim();
     const instagram = normalizeInstagram(String(form.get("instagram") ?? ""));
     const waiverAccepted = form.get("waiver_accepted") === "on";
 
@@ -40,6 +42,7 @@ export default function SignupPage() {
       return setError("מספר הפלאפון לא נראה תקין.");
     if (!birthDate) return setError("צריך תאריך לידה.");
     if (!city) return setError("צריך לבחור עיר מגורים.");
+    if (!swimLevel) return setError("צריך לבחור מה הכי מתאר אתכם במים.");
     if (!waiverAccepted)
       return setError("צריך לאשר את כתב הוויתור כדי להצטרף.");
 
@@ -63,6 +66,7 @@ export default function SignupPage() {
           phone,
           birth_date: birthDate,
           city,
+          swim_level: swimLevel,
           instagram,
         },
       },
@@ -177,6 +181,10 @@ export default function SignupPage() {
 
         <Field label="עיר מגורים">
           <CityAutocomplete name="city" />
+        </Field>
+
+        <Field label="מה הכי מתאר אתכם במים?">
+          <SwimLevelInput name="swim_level" />
         </Field>
 
         <p className="text-xs leading-relaxed text-(--color-ink-faint)">

@@ -9,7 +9,8 @@ import { isValidIsraeliPhone, normalizeInstagram } from "@/lib/format";
 import { CityAutocomplete } from "@/components/city-autocomplete";
 import { BirthDateInput } from "@/components/birth-date-input";
 import { GenderInput } from "@/components/gender-input";
-import type { Gender, Profile } from "@/lib/types";
+import { SwimLevelInput } from "@/components/swim-level-input";
+import type { Gender, Profile, SwimLevel } from "@/lib/types";
 import { Button, Card, Field, Input, Notice } from "./ui";
 
 export function ProfileForm({ profile }: { profile: Profile }) {
@@ -27,6 +28,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     const phone = String(form.get("phone") ?? "").trim();
     const birthDate = String(form.get("birth_date") ?? "").trim();
     const city = String(form.get("city") ?? "").trim();
+    const swimLevel = String(form.get("swim_level") ?? "").trim();
     const waiverAccepted = form.get("waiver_accepted") === "on";
 
     if (fullName.length < 2) return setError("צריך שם מלא.");
@@ -35,6 +37,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
       return setError("מספר הפלאפון לא נראה תקין.");
     if (!birthDate) return setError("צריך תאריך לידה.");
     if (!city) return setError("צריך לבחור עיר מגורים.");
+    if (!swimLevel) return setError("צריך לבחור מה הכי מתאר אתכם במים.");
     if (!waiverAccepted)
       return setError("צריך לאשר את כתב הוויתור כדי לשמור.");
 
@@ -46,6 +49,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
       phone,
       birth_date: birthDate,
       city,
+      swim_level: swimLevel as SwimLevel,
       instagram: normalizeInstagram(String(form.get("instagram") ?? "")),
     };
 
@@ -116,6 +120,13 @@ export function ProfileForm({ profile }: { profile: Profile }) {
 
         <Field label="עיר מגורים">
           <CityAutocomplete name="city" defaultValue={profile.city ?? ""} />
+        </Field>
+
+        <Field label="מה הכי מתאר אתכם במים?">
+          <SwimLevelInput
+            name="swim_level"
+            defaultValue={profile.swim_level ?? ""}
+          />
         </Field>
 
         <div className="space-y-3">

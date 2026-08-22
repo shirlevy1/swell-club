@@ -1,6 +1,7 @@
 export type MemberRole = "member" | "organizer";
 export type MemberStatus = "pending" | "approved";
 export type Gender = "female" | "male" | "other";
+export type SwimLevel = "entering" | "flowing" | "deepening";
 
 export type Profile = {
   id: string;
@@ -10,6 +11,7 @@ export type Profile = {
   birth_date: string | null;
   city: string | null;
   gender: Gender | null;
+  swim_level: SwimLevel | null;
   waiver_accepted_at: string | null;
   avatar_path: string | null;
   created_at: string;
