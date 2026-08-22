@@ -35,11 +35,11 @@ export default async function AppLayout({
           <div className="flex flex-1 items-center pt-10">
             <Card className="space-y-4 text-center">
               <h1 className="font-[family-name:var(--font-display)] text-xl font-bold">
-                ההרשמה שלכם התקבלה
+                עוד רגע אתם איתנו במים
               </h1>
               <p className="text-sm leading-relaxed text-(--color-ink-soft)">
-                מנהלת הקהילה מאשרת חברות חדשה לפני כניסה. ברגע שתאושרו,
-                תוכלו להיכנס ולראות את המפגשים הקרובים.
+                ההרשמה שלכם התקבלה. תנו לנו רגע לעבור עליה, וברגע
+                שתאושרו תוכלו להיכנס ולגלות את המפגשים הקרובים.
               </p>
               <form action="/auth/signout" method="post">
                 <Button type="submit" variant="ghost" className="w-full">
