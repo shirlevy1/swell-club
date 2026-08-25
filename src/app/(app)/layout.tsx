@@ -4,6 +4,7 @@ import { demoMode } from "@/lib/config";
 import { AppNav } from "@/components/app-nav";
 import { AppHeader } from "@/components/app-header";
 import { DemoBadge } from "@/components/demo-badge";
+import { VisibilityRefresh } from "@/components/visibility-refresh";
 import { Button, Card } from "@/components/ui";
 
 export default async function AppLayout({
@@ -25,6 +26,8 @@ export default async function AppLayout({
       />
 
       {demoMode && <DemoBadge currentRole={viewer.role ?? "member"} />}
+
+      <VisibilityRefresh />
 
       <AppHeader />
 
