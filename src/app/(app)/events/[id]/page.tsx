@@ -1,7 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getViewer, getEvent, getEventDetail, getEventPhotos } from "@/lib/data";
-import { formatDateTime, formatMinutes, formatTime } from "@/lib/format";
+import {
+  formatDateTime,
+  formatDayMonth,
+  formatMinutes,
+  formatTime,
+  formatWeekday,
+} from "@/lib/format";
 import { checkInWindow, hasEventStarted } from "@/lib/checkin";
 import { getSeaForecastForEvent } from "@/lib/gosurf";
 import { getEventAgendaText } from "@/lib/agenda";
@@ -121,7 +127,12 @@ export default async function EventPage({
 
       {!hasAttended && status === "closed" && (
         <Notice tone="warn">
-          הצ׳ק־אין למפגש הזה כבר נסגר ב־
+          הצ׳ק־אין למפגש הזה כבר נסגר ב
+          {formatWeekday(closesAt.toISOString())} ה-
+          <span className="ltr-nums font-semibold">
+            {formatDayMonth(closesAt.toISOString())}
+          </span>{" "}
+          בשעה{" "}
           <span className="ltr-nums font-semibold">
             {formatTime(closesAt.toISOString())}
           </span>

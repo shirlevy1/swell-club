@@ -16,18 +16,9 @@ export function byGender(
   return gender === "female" ? feminine : masculine;
 }
 
-/**
- * הקהילה בישראל. קיבוע אזור הזמן מונע הפתעות למי שגולש מחו"ל.
- * פורמט קצר בכוונה — "יום חמישי 20.8 06:45" ולא "יום חמישי, 20
- * באוגוסט בשעה 06:45": זה מה שמופיע ככותרת גדולה בעמוד המפגש,
- * וחודש מאויית שם גולש לשתי שורות.
- */
-export function formatDateTime(iso: string): string {
+/** "25.8" — יום.חודש מספרי, בלי שנה. */
+export function formatDayMonth(iso: string): string {
   const date = new Date(iso);
-  const weekday = new Intl.DateTimeFormat("he-IL", {
-    weekday: "long",
-    timeZone: TZ,
-  }).format(date);
   const day = new Intl.DateTimeFormat("he-IL", {
     day: "numeric",
     timeZone: TZ,
@@ -36,8 +27,22 @@ export function formatDateTime(iso: string): string {
     month: "numeric",
     timeZone: TZ,
   }).format(date);
+  return `${day}.${month}`;
+}
 
-  return `${weekday} ${day}.${month} ${formatTime(iso)}`;
+/**
+ * הקהילה בישראל. קיבוע אזור הזמן מונע הפתעות למי שגולש מחו"ל.
+ * פורמט קצר בכוונה — "יום חמישי 20.8 06:45" ולא "יום חמישי, 20
+ * באוגוסט בשעה 06:45": זה מה שמופיע ככותרת גדולה בעמוד המפגש,
+ * וחודש מאויית שם גולש לשתי שורות.
+ */
+export function formatDateTime(iso: string): string {
+  const weekday = new Intl.DateTimeFormat("he-IL", {
+    weekday: "long",
+    timeZone: TZ,
+  }).format(new Date(iso));
+
+  return `${weekday} ${formatDayMonth(iso)} ${formatTime(iso)}`;
 }
 
 export function formatTime(iso: string): string {
