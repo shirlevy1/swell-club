@@ -55,6 +55,7 @@ export default async function EventsPage() {
                     attended={attended.has(event.id)}
                     going={going.has(event.id)}
                     goingPeople={goingNames.get(event.id) ?? []}
+                    gender={viewer.profile?.gender ?? null}
                   />
                 </Link>
               </li>
@@ -75,6 +76,7 @@ export default async function EventsPage() {
                   <EventCard
                     event={event}
                     attended={attended.has(event.id)}
+                    gender={viewer.profile?.gender ?? null}
                     past
                   />
                 </Link>

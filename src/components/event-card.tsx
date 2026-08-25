@@ -1,6 +1,7 @@
 import type { GoingPerson } from "@/lib/data";
-import type { SwellEvent } from "@/lib/types";
+import type { Gender, SwellEvent } from "@/lib/types";
 import {
+  byGender,
   formatWeekday,
   formatTime,
   formatDateShort,
@@ -15,6 +16,7 @@ export function EventCard({
   going = false,
   goingPeople = [],
   past = false,
+  gender,
 }: {
   event: SwellEvent;
   attended: boolean;
@@ -22,6 +24,7 @@ export function EventCard({
   /** מי סימן שיגיע — השמות, לא רק המספר. זה מה שמושך להיכנס למפגש. */
   goingPeople?: GoingPerson[];
   past?: boolean;
+  gender: Gender | null;
 }) {
   const { status } = checkInWindow(event);
 
@@ -62,11 +65,13 @@ export function EventCard({
       </div>
 
       {attended ? (
-        <Badge tone="verified">הייתם איתנו</Badge>
+        <Badge tone="verified">היית איתנו</Badge>
       ) : status === "open" ? (
         <Badge tone="live">פתוח עכשיו</Badge>
       ) : going ? (
-        <Badge tone="going">סימנתם</Badge>
+        <Badge tone="going">
+          {byGender(gender, "מתכנן להגיע", "מתכננת להגיע")}
+        </Badge>
       ) : null}
     </Card>
   );
