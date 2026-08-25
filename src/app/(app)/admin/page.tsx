@@ -226,7 +226,7 @@ export default async function AdminPage() {
                           נשים, גברים" הם נכתבים כאן בסדר הפוך. */}
                       <div className="flex items-center gap-4">
                         <div className="flex flex-1 gap-4">
-                          <div className="flex-1">
+                          <div className="flex-1 text-center">
                             <p className="ltr-nums text-2xl font-bold text-(--color-deep)">
                               {malePercent}%
                             </p>
@@ -234,7 +234,7 @@ export default async function AdminPage() {
                               גברים
                             </p>
                           </div>
-                          <div className="flex-1">
+                          <div className="flex-1 text-center">
                             <p className="ltr-nums text-2xl font-bold text-(--color-sea)">
                               {femalePercent}%
                             </p>
@@ -247,7 +247,7 @@ export default async function AdminPage() {
                         <div className="h-9 w-px shrink-0 bg-(--color-line)" />
 
                         <div className="flex flex-1 gap-4">
-                          <div className="flex-1">
+                          <div className="flex-1 text-center">
                             <p className="ltr-nums text-2xl font-bold text-(--color-ink-soft)">
                               {event.goingCount}
                             </p>
@@ -255,7 +255,7 @@ export default async function AdminPage() {
                               סימנו שיגיעו
                             </p>
                           </div>
-                          <div className="flex-1">
+                          <div className="flex-1 text-center">
                             <p className="ltr-nums text-2xl font-bold text-(--color-verified)">
                               {event.cameCount}
                             </p>
