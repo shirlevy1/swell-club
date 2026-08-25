@@ -27,7 +27,7 @@ export default async function EventPage({
 
   const { myGoing, rsvpCount, going, hasAttended, attendees } =
     await getEventDetail(id, viewer.userId);
-  const { status, opensAt, closesAt } = checkInWindow(event);
+  const { status, closesAt } = checkInWindow(event);
   const minutesBefore = formatMinutes(event.checkin_opens_before_min);
   // אף פעם לא מפיל את העמוד — GoSurf לא זמין נחשב "אין תחזית", לא שגיאה
   const forecast = event.is_sea
@@ -111,14 +111,11 @@ export default async function EventPage({
 
       {!hasAttended && status === "before" && (
         <Notice>
-          הצ׳ק־אין ייפתח{" "}
-          <span className="ltr-nums font-semibold">
-            {formatTime(opensAt.toISOString())}
-          </span>
+          הצ׳ק־אין נפתח{" "}
           {event.checkin_opens_before_min > 0
-            ? `, ${minutesBefore} לפני ההתחלה`
-            : ", בדיוק בזמן ההתחלה"}{" "}
-          — ורק מהמקום עצמו.
+            ? `${minutesBefore} לפני המפגש`
+            : "עם תחילת המפגש"}
+          , ורק מהמקום עצמו.
         </Notice>
       )}
 
