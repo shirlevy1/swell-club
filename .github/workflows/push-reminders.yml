@@ -1,0 +1,20 @@
+name: Push reminders
+
+# מריץ כל 30 דקות את /api/push/send, שבודק אם יש מפגשים קרובים ושולח
+# תזכורות. ה-endpoint עצמו דואג לא לשלוח כפול (event_reminders ב-DB).
+# GitHub Actions לא מבטיח דיוק של 30 דקות בדיוק, וגם מכבה workflows
+# מתוזמנים אוטומטית אחרי 60 יום בלי שום commit לריפו — אם התזכורות
+# מפסיקות לצאת בלי סיבה ברורה, זה המקום הראשון לבדוק.
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger push reminders
+        run: |
+          curl -sf -X POST https://swell-club.vercel.app/api/push/send \
+            -H "x-swell-cron: ${{ secrets.PUSH_CRON_SECRET }}"
