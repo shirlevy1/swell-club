@@ -13,6 +13,7 @@ import {
 } from "@/lib/actions";
 import { DEFAULT_EVENT_LOCATION } from "@/lib/maps";
 import { defaultAgendaText } from "@/lib/agenda";
+import { EventDateTimeInput } from "@/components/event-datetime-input";
 import { Button, Card, Field, Input, Notice, Textarea } from "@/components/ui";
 
 // Leaflet ניגש ל-window בזמן הטעינה — חייב להיטען רק בדפדפן
@@ -44,11 +45,6 @@ function roundedNow(): Date {
   return d;
 }
 
-function toDatetimeLocalValue(d: Date): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
 export default function NewEventPage() {
   const router = useRouter();
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>({
@@ -62,15 +58,15 @@ export default function NewEventPage() {
     DEFAULT_EVENT_LOCATION.mapsUrl,
   );
 
-  // ריק בהתחלה כדי שלא יהיה פער בין מה שהשרת רינדר למה שהדפדפן
+  // null בהתחלה כדי שלא יהיה פער בין מה שהשרת רינדר למה שהדפדפן
   // מחשב (לשעה המקומית) — מתמלא ברגע שהעמוד עולה בדפדפן.
-  const [startsAt, setStartsAt] = useState("");
+  const [startsAtDefault, setStartsAtDefault] = useState<Date | null>(null);
   const [description, setDescription] = useState("");
   const [isSea, setIsSea] = useState(true);
   const [agendaText, setAgendaText] = useState("");
   useEffect(() => {
     const now = roundedNow();
-    setStartsAt(toDatetimeLocalValue(now));
+    setStartsAtDefault(now);
     // ברירת המחדל של הלו״ז נקבעת פעם אחת ביחס לשעה הראשונית — אחרי
     // זה היא נשארת בידי מי שעורכת, גם אם היא משנה את התאריך אחר כך.
     setAgendaText(defaultAgendaText(now.toISOString()));
@@ -276,14 +272,7 @@ export default function NewEventPage() {
           </Field>
 
           <Field label="תאריך ושעה">
-            <Input
-              name="starts_at"
-              type="datetime-local"
-              dir="ltr"
-              required
-              value={startsAt}
-              onChange={(e) => setStartsAt(e.target.value)}
-            />
+            <EventDateTimeInput name="starts_at" defaultValue={startsAtDefault} />
           </Field>
 
           <Field label="תיאור המפגש (אופציונלי)">
