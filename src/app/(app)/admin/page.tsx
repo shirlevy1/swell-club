@@ -126,7 +126,9 @@ export default async function AdminPage() {
       normalizeInstagram(m.profile.instagram) ?? "",
       swimLevelLabel(m.profile.swim_level) ?? "",
       formatDate(m.profile.created_at),
-      `${m.attendedCount}/${heldCount}`,
+      // "X מתוך Y" ולא "X/Y": אקסל וגוגל שיטס קוראים "16/30" כתאריך
+      // (יוני 2030!) ולא כטקסט, למרות שזה בכלל לא תאריך.
+      `${m.attendedCount} מתוך ${heldCount}`,
       `${heldCount ? Math.round((m.attendedCount / heldCount) * 100) : 0}%`,
       m.profile.waiver_accepted_at ? formatDate(m.profile.waiver_accepted_at) : "",
       m.profile.privacy_accepted_at ? formatDate(m.profile.privacy_accepted_at) : "",
