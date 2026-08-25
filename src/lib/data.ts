@@ -976,7 +976,12 @@ export async function getEventPhotoCollages(
 
 // -------------------------------------------------------------- דף ניהול
 
-export type AdminEvent = SwellEvent & { goingCount: number; cameCount: number };
+export type AdminEvent = SwellEvent & {
+  goingCount: number;
+  cameCount: number;
+  femaleCame: number;
+  maleCame: number;
+};
 export type AdminMember = {
   profile: Profile;
   attendedCount: number;
@@ -991,15 +996,25 @@ export async function getAdminData(clubId: string) {
   if (demoMode) {
     const rsvps = demo.demoRsvps();
     const attendances = demo.demoAttendances();
+    const profileById = new Map(demo.demoProfiles().map((p) => [p.id, p]));
 
     const events: AdminEvent[] = demo
       .demoEvents()
       .sort((a, b) => b.starts_at.localeCompare(a.starts_at))
-      .map((e) => ({
-        ...e,
-        goingCount: rsvps.filter((r) => r.eventId === e.id && r.going).length,
-        cameCount: attendances.filter((a) => a.eventId === e.id).length,
-      }));
+      .map((e) => {
+        const eventAttendances = attendances.filter((a) => a.eventId === e.id);
+        return {
+          ...e,
+          goingCount: rsvps.filter((r) => r.eventId === e.id && r.going).length,
+          cameCount: eventAttendances.length,
+          femaleCame: eventAttendances.filter(
+            (a) => profileById.get(a.profileId)?.gender === "female",
+          ).length,
+          maleCame: eventAttendances.filter(
+            (a) => profileById.get(a.profileId)?.gender === "male",
+          ).length,
+        };
+      });
 
     const eventOrder = new Map(
       demo.demoEvents().map((e) => [e.id, e.starts_at]),
@@ -1030,7 +1045,7 @@ export async function getAdminData(clubId: string) {
     supabase
       .from("events")
       .select(
-        "*, rsvps(profile_id, going), attendances(profile_id, selfie_path, checked_in_at, face_x, face_y)",
+        "*, rsvps(profile_id, going), attendances(profile_id, selfie_path, checked_in_at, face_x, face_y, profiles(gender))",
       )
       .eq("club_id", clubId)
       .order("starts_at", { ascending: false }),
@@ -1051,6 +1066,7 @@ export async function getAdminData(clubId: string) {
       checked_in_at: string;
       face_x: number | null;
       face_y: number | null;
+      profiles: { gender: Gender | null } | null;
     }[];
   })[];
 
@@ -1096,6 +1112,10 @@ export async function getAdminData(clubId: string) {
     ...e,
     goingCount: e.rsvps.filter((r) => r.going).length,
     cameCount: e.attendances.length,
+    femaleCame: e.attendances.filter((a) => a.profiles?.gender === "female")
+      .length,
+    maleCame: e.attendances.filter((a) => a.profiles?.gender === "male")
+      .length,
   }));
 
   const members: AdminMember[] = (

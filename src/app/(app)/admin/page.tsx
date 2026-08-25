@@ -197,40 +197,83 @@ export default async function AdminPage() {
           />
         ) : (
           <ul className="space-y-3">
-            {events.map((event) => (
-              <li key={event.id}>
-                <Link href={`/events/${event.id}`}>
-                  <Card className="space-y-3 transition hover:border-(--color-line)">
-                    <div>
-                      <p className="font-[family-name:var(--font-display)] text-lg font-bold">
-                        {event.title}
-                      </p>
-                      <p className="text-xs text-(--color-ink-faint)">
-                        {formatDateTime(event.starts_at)}
-                      </p>
-                    </div>
-                    <div className="flex gap-6">
+            {events.map((event) => {
+              const attendanceRate =
+                event.goingCount > 0
+                  ? Math.round((event.cameCount / event.goingCount) * 100)
+                  : 0;
+              const femalePercent =
+                event.cameCount > 0
+                  ? Math.round((event.femaleCame / event.cameCount) * 100)
+                  : 0;
+              const malePercent =
+                event.cameCount > 0
+                  ? Math.round((event.maleCame / event.cameCount) * 100)
+                  : 0;
+
+              return (
+                <li key={event.id}>
+                  <Link href={`/events/${event.id}`}>
+                    <Card className="space-y-3 transition hover:border-(--color-line)">
                       <div>
-                        <p className="ltr-nums text-2xl font-bold text-(--color-ink-soft)">
-                          {event.goingCount}
+                        <p className="font-[family-name:var(--font-display)] text-lg font-bold">
+                          {event.title}
                         </p>
-                        <p className="text-[0.7rem] text-(--color-ink-faint)">
-                          סימנו שיגיעו
+                        <p className="text-xs text-(--color-ink-faint)">
+                          {formatDateTime(event.starts_at)}
                         </p>
                       </div>
-                      <div>
-                        <p className="ltr-nums text-2xl font-bold text-(--color-verified)">
-                          {event.cameCount}
-                        </p>
-                        <p className="text-[0.7rem] text-(--color-ink-faint)">
-                          הגיעו בפועל
-                        </p>
+                      {/* סדר ה-DOM הפוך מסדר התצוגה במכוון: איבר ראשון
+                          נופל מימין ב-RTL, ולכן כדי לקבל משמאל לימין
+                          "הגיעו בפועל, סימנו שיגיעו, אחוז הגעה, אחוז
+                          נשים, אחוז גברים" — הם נכתבים כאן בסדר הפוך. */}
+                      <div className="flex gap-2">
+                        <div className="flex-1">
+                          <p className="ltr-nums text-lg font-bold text-(--color-ink)">
+                            {malePercent}%
+                          </p>
+                          <p className="text-[0.6rem] leading-tight text-(--color-ink-faint)">
+                            אחוז גברים
+                          </p>
+                        </div>
+                        <div className="flex-1">
+                          <p className="ltr-nums text-lg font-bold text-(--color-ink)">
+                            {femalePercent}%
+                          </p>
+                          <p className="text-[0.6rem] leading-tight text-(--color-ink-faint)">
+                            אחוז נשים
+                          </p>
+                        </div>
+                        <div className="flex-1">
+                          <p className="ltr-nums text-lg font-bold text-(--color-ink)">
+                            {attendanceRate}%
+                          </p>
+                          <p className="text-[0.6rem] leading-tight text-(--color-ink-faint)">
+                            אחוז הגעה
+                          </p>
+                        </div>
+                        <div className="flex-1">
+                          <p className="ltr-nums text-2xl font-bold text-(--color-ink-soft)">
+                            {event.goingCount}
+                          </p>
+                          <p className="text-[0.7rem] text-(--color-ink-faint)">
+                            סימנו שיגיעו
+                          </p>
+                        </div>
+                        <div className="flex-1">
+                          <p className="ltr-nums text-2xl font-bold text-(--color-verified)">
+                            {event.cameCount}
+                          </p>
+                          <p className="text-[0.7rem] text-(--color-ink-faint)">
+                            הגיעו בפועל
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </Card>
-                </Link>
-              </li>
-            ))}
+                    </Card>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>
