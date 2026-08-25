@@ -11,7 +11,9 @@ import {
   ageInYears,
   formatDateTime,
   formatPhone,
+  instagramUrl,
   normalizeInstagram,
+  whatsappUrl,
 } from "@/lib/format";
 import { checkInWindow } from "@/lib/checkin";
 import { facePositionStyle } from "@/lib/face-position";
@@ -21,6 +23,7 @@ import {
   swimLevelBadgeStyle,
 } from "@/lib/swim-level";
 import { WaveIcon } from "@/components/streak-card";
+import { InstagramIcon, WhatsAppIcon } from "@/components/social-icons";
 import { Card, EmptyState, LinkButton, PageHeader } from "@/components/ui";
 import { ExportButton } from "@/components/export-button";
 import { PendingMemberRow } from "@/components/pending-member-row";
@@ -76,23 +79,6 @@ function groupPendingPhotos(photos: PendingEventPhoto[]) {
       })),
     };
   });
-}
-
-function InstagramGlyph() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      className="size-3 shrink-0"
-      aria-hidden
-    >
-      <rect x="2.5" y="2.5" width="19" height="19" rx="5.5" />
-      <circle cx="12" cy="12" r="4" />
-      <circle cx="17.6" cy="6.4" r="1.2" fill="currentColor" />
-    </svg>
-  );
 }
 
 export default async function AdminPage() {
@@ -258,76 +244,93 @@ export default async function AdminPage() {
         </div>
 
         <Card className="divide-y divide-(--color-line)/50 p-0">
-          {members.map((m) => (
-            <Link
-              key={m.profile.id}
-              href={`/admin/members/${m.profile.id}`}
-              className="flex items-center justify-between gap-3 px-4 py-3 transition hover:bg-(--color-haze)/60"
-            >
-              {/* פנים ברשימה — המנהלת מזהה אנשים ככה, לא לפי שם */}
-              <div className="size-11 shrink-0 overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)">
-                {m.latestSelfieUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={m.latestSelfieUrl}
-                    alt={m.profile.full_name}
-                    className="size-full object-cover"
-                    loading="lazy"
-                    style={facePositionStyle(m.latestFaceX, m.latestFaceY)}
-                  />
-                ) : null}
-              </div>
+          {members.map((m) => {
+            const age = ageInYears(m.profile.birth_date);
+            const wa = whatsappUrl(m.profile.phone);
+            const ig = instagramUrl(m.profile.instagram);
 
-              <div className="min-w-0 flex-1 space-y-0.5">
-                <div className="flex items-center gap-1.5">
+            return (
+              <div
+                key={m.profile.id}
+                className="flex items-center gap-3 px-4 py-3 transition hover:bg-(--color-haze)/60"
+              >
+                {/* קישור לפרופיל רק על פנים+שם — כפתורי וואטסאפ/אינסטגרם
+                    בהמשך השורה הם קישורים בפני עצמם, ועוגן בתוך עוגן
+                    שובר את שניהם (כבר קרה פעם, ראו attendee-grid). */}
+                <Link
+                  href={`/admin/members/${m.profile.id}`}
+                  className="flex min-w-0 flex-1 items-center gap-3"
+                >
+                  {/* פנים ברשימה — המנהלת מזהה אנשים ככה, לא לפי שם */}
+                  <div className="size-11 shrink-0 overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)">
+                    {m.latestSelfieUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={m.latestSelfieUrl}
+                        alt={m.profile.full_name}
+                        className="size-full object-cover"
+                        loading="lazy"
+                        style={facePositionStyle(m.latestFaceX, m.latestFaceY)}
+                      />
+                    ) : null}
+                  </div>
                   <p className="min-w-0 flex-1 truncate text-sm font-semibold">
                     {m.profile.full_name}
-                    {ageInYears(m.profile.birth_date) !== null && (
+                    {age !== null && (
                       <span className="ms-1 font-normal text-(--color-ink-faint)">
-                        · גיל {ageInYears(m.profile.birth_date)}
+                        · {age}
                       </span>
                     )}
                   </p>
-                  {m.profile.swim_level && (
-                    <span
-                      className="flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-[0.65rem] font-semibold text-(--color-ink)"
-                      style={swimLevelBadgeStyle(m.profile.swim_level)}
-                    >
-                      <WaveIcon
-                        className="size-2.5"
-                        style={{ color: SWIM_LEVEL_COLOR[m.profile.swim_level] }}
-                      />
-                      {swimLevelLabel(m.profile.swim_level)}
-                    </span>
-                  )}
-                </div>
-                <p
-                  dir="ltr"
-                  className="truncate text-start text-xs text-(--color-ink-faint)"
-                >
-                  {formatPhone(m.profile.phone) ?? "—"}
-                </p>
-                {/* טקסט ולא קישור: השורה כולה כבר עוגן, ועוגן בתוך
-                    עוגן אינו HTML תקין. הקישור עצמו בעמוד החבר. */}
-                {normalizeInstagram(m.profile.instagram) ? (
-                  <p
-                    dir="ltr"
-                    className="flex items-center gap-1 text-start text-xs font-semibold text-(--color-sea)"
+                </Link>
+
+                {m.profile.swim_level && (
+                  <span
+                    className="flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-[0.65rem] font-semibold text-(--color-ink)"
+                    style={swimLevelBadgeStyle(m.profile.swim_level)}
                   >
-                    <InstagramGlyph />@{normalizeInstagram(m.profile.instagram)}
-                  </p>
-                ) : (
-                  <p className="text-xs text-(--color-ink-faint)">
-                    בלי אינסטגרם
-                  </p>
+                    <WaveIcon
+                      className="size-2.5"
+                      style={{ color: SWIM_LEVEL_COLOR[m.profile.swim_level] }}
+                    />
+                    {swimLevelLabel(m.profile.swim_level)}
+                  </span>
                 )}
+
+                {(wa || ig) && (
+                  <div className="flex shrink-0 gap-1">
+                    {wa && (
+                      <a
+                        href={wa}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label={`וואטסאפ עם ${m.profile.full_name}`}
+                        className="flex size-8 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-verified) transition hover:border-(--color-verified)/50 hover:bg-(--color-verified)/10"
+                      >
+                        <WhatsAppIcon className="size-3.5" />
+                      </a>
+                    )}
+                    {ig && (
+                      <a
+                        href={ig}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label={`אינסטגרם של ${m.profile.full_name}`}
+                        className="flex size-8 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
+                      >
+                        <InstagramIcon className="size-3.5" />
+                      </a>
+                    )}
+                  </div>
+                )}
+
+                <span className="ltr-nums shrink-0 text-sm font-bold text-(--color-ink-soft)">
+                  {m.attendedCount}
+                  <span className="text-(--color-ink-faint)">/{heldCount}</span>
+                </span>
               </div>
-              <span className="ltr-nums shrink-0 text-sm font-bold text-(--color-ink-soft)">
-                {m.attendedCount}
-                <span className="text-(--color-ink-faint)">/{heldCount}</span>
-              </span>
-            </Link>
-          ))}
+            );
+          })}
         </Card>
       </section>
     </div>
