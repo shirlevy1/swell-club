@@ -25,7 +25,7 @@ export default async function EventPage({
   const event = await getEvent(id);
   if (!viewer || !event) notFound();
 
-  const { myGoing, rsvpCount, going, hasAttended, attendedCount, attendees } =
+  const { myGoing, rsvpCount, going, hasAttended, attendees } =
     await getEventDetail(id, viewer.userId);
   const { status, opensAt, closesAt } = checkInWindow(event);
   const minutesBefore = formatMinutes(event.checkin_opens_before_min);
@@ -105,7 +105,7 @@ export default async function EventPage({
       )}
 
       {!hasAttended && status === "open" && (
-        <CheckInFlow event={event} attendedCount={attendedCount} />
+        <CheckInFlow event={event} />
       )}
 
       {!hasAttended && status === "before" && (

@@ -45,13 +45,7 @@ function cameraErrorMessage(err: unknown): string {
 const MAX_EDGE = 1080;
 const JPEG_QUALITY = 0.7;
 
-export function CheckInFlow({
-  event,
-  attendedCount,
-}: {
-  event: SwellEvent;
-  attendedCount: number;
-}) {
+export function CheckInFlow({ event }: { event: SwellEvent }) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -342,24 +336,9 @@ export function CheckInFlow({
           אתם כאן?
         </h2>
         <p className="text-sm leading-relaxed text-(--color-ink-soft)">
-          {attendedCount > 0
-            ? `${attendedCount} כבר סימנו הגעה. סמנו גם אתם כדי לראות מי הם.`
-            : "סמנו הגעה כדי לראות מי עוד היה במפגש."}
+          אם כן, סמנו הגעה כדי להיות חלק מהמפגש.
         </p>
       </div>
-
-      {/* שני השלבים מוצגים מראש. קודם זה היה משפט אחד בסוף פסקה, ואנשים
-          לחצו "הגעתי" בלי לדעת שנפתחת מצלמה — הפתעה גרועה בחוף. */}
-      <ol className="space-y-2">
-        <Step n={1} title="מיקום">
-          {demoMode
-            ? "בהדגמה מדולג"
-            : `רק מהחוף עצמו, עד ${event.checkin_radius_m} מ׳`}
-        </Step>
-        <Step n={2} title="סלפי">
-          המצלמה נפתחת מיד אחרי. זו ההוכחה שהייתם שם
-        </Step>
-      </ol>
 
       {demoMode && (
         <Notice tone="warn">
@@ -386,31 +365,5 @@ export function CheckInFlow({
               : "הגעתי — לצילום סלפי"}
       </Button>
     </Card>
-  );
-}
-
-function Step({
-  n,
-  title,
-  children,
-}: {
-  n: number;
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <li className="flex items-center gap-3">
-      <span
-        aria-hidden
-        // deep ולא sea: sea מעל haze הוא 4.3:1, וזה טקסט של 12px
-        className="ltr-nums grid size-6 shrink-0 place-items-center rounded-full bg-(--color-haze) text-xs font-bold text-(--color-deep)"
-      >
-        {n}
-      </span>
-      <span className="text-sm">
-        <span className="font-bold">{title}</span>
-        <span className="text-(--color-ink-faint)"> · {children}</span>
-      </span>
-    </li>
   );
 }
