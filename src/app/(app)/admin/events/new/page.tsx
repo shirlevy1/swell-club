@@ -296,7 +296,7 @@ export default function NewEventPage() {
             האם המפגש בים?
           </label>
           <p className="mt-1 text-xs leading-relaxed text-(--color-ink-faint)">
-            כשמסומן, תוצג תחזית ים ליום המפגש.
+            כשמסומן, תוצג תחזית הים לזמן המפגש.
           </p>
         </Card>
 
