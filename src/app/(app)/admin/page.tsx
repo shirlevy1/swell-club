@@ -130,8 +130,10 @@ export default async function AdminPage() {
       // (יוני 2030!) ולא כטקסט, למרות שזה בכלל לא תאריך.
       `${m.attendedCount} מתוך ${heldCount}`,
       `${heldCount ? Math.round((m.attendedCount / heldCount) * 100) : 0}%`,
-      m.profile.waiver_accepted_at ? formatDate(m.profile.waiver_accepted_at) : "",
-      m.profile.privacy_accepted_at ? formatDate(m.profile.privacy_accepted_at) : "",
+      // התאריך עצמו לא מוסיף מידע — הוא תמיד זהה לתאריך ההצטרפות,
+      // כי אי אפשר ליצור פרופיל בלי לאשר את שניהם. רק אישור/לא.
+      m.profile.waiver_accepted_at ? "כן" : "",
+      m.profile.privacy_accepted_at ? "כן" : "",
     ]),
   ];
 
