@@ -99,7 +99,7 @@ export default async function AdminPage() {
     (e) => checkInWindow(e).status !== "before",
   ).length;
 
-  const csv = [
+  const membersCsv = [
     [
       "שם",
       "מגדר",
@@ -133,6 +133,53 @@ export default async function AdminPage() {
       m.profile.waiver_accepted_at ? formatDate(m.profile.waiver_accepted_at) : "",
       m.profile.privacy_accepted_at ? formatDate(m.profile.privacy_accepted_at) : "",
     ]),
+  ];
+
+  // מהראשון לאחרון — הפוך מסדר הרשימה בעמוד (שם החדש קודם, כי זה מה
+  // שהכי רלוונטי לראות בכניסה לניהול). ליצוא הגיוני יותר סדר כרונולוגי.
+  const eventsChronological = [...events].sort(
+    (a, b) => a.starts_at.localeCompare(b.starts_at),
+  );
+  const eventsCsv = [
+    [
+      "כותרת",
+      "תאריך ושעה",
+      "מיקום",
+      "קישור למפות",
+      "מפגש ים?",
+      "רדיוס צ'ק-אין (מ')",
+      "צ'ק-אין נפתח לפני (דק')",
+      "צ'ק-אין נסגר אחרי (דק')",
+      "תיאור",
+      "לו\"ז",
+      "סימנו שיגיעו",
+      "הגיעו בפועל",
+      "אחוז הגעה",
+      "אחוז נשים",
+      "אחוז גברים",
+    ],
+    ...eventsChronological.map((e) => {
+      const rate = e.goingCount ? Math.round((e.cameCount / e.goingCount) * 100) : 0;
+      const female = e.cameCount ? Math.round((e.femaleCame / e.cameCount) * 100) : 0;
+      const male = e.cameCount ? Math.round((e.maleCame / e.cameCount) * 100) : 0;
+      return [
+        e.title,
+        formatDateTime(e.starts_at),
+        e.location_name,
+        e.maps_url ?? "",
+        e.is_sea ? "כן" : "לא",
+        String(e.checkin_radius_m),
+        String(e.checkin_opens_before_min),
+        String(e.checkin_closes_after_min),
+        e.description ?? "",
+        e.agenda_text ?? "",
+        String(e.goingCount),
+        String(e.cameCount),
+        `${rate}%`,
+        `${female}%`,
+        `${male}%`,
+      ];
+    }),
   ];
 
   return (
@@ -213,9 +260,14 @@ export default async function AdminPage() {
       )}
 
       <section className="space-y-3">
-        <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
-          מפגשים
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
+            מפגשים
+          </h2>
+          {events.length > 0 && (
+            <ExportButton rows={eventsCsv} filename="swell-events.csv" />
+          )}
+        </div>
         {events.length === 0 ? (
           <EmptyState
             title="עוד אין מפגשים"
@@ -305,7 +357,7 @@ export default async function AdminPage() {
           <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-ink-faint)">
             חברי הקהילה
           </h2>
-          <ExportButton rows={csv} filename="swell-members.csv" />
+          <ExportButton rows={membersCsv} filename="swell-members.csv" />
         </div>
 
         <Card className="divide-y divide-(--color-line)/50 p-0">
