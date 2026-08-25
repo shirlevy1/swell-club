@@ -145,6 +145,13 @@ export default async function AdminPage() {
   const eventsChronological = [...events].sort(
     (a, b) => a.starts_at.localeCompare(b.starts_at),
   );
+  // חברי הקהילה (מאושרים) שכבר היו חלק ממנה ביום נתון — פרופיל ותא
+  // חברות נוצרים באותה טרנזקציה בהרשמה (handle_new_user()), ולכן
+  // created_at הוא גם בפועל תאריך ההצטרפות לקהילה, בלי צורך בשאילתה
+  // נפרדת ל-club_members.joined_at.
+  const memberCountAtDate = (iso: string) =>
+    members.filter((m) => m.profile.created_at <= iso).length;
+
   const eventsCsv = [
     [
       "כותרת",
@@ -152,21 +159,23 @@ export default async function AdminPage() {
       "תאריך",
       "שעה",
       "מיקום",
-      "קישור למפות",
-      "מפגש ים?",
-      "רדיוס צ'ק-אין (מ')",
-      "צ'ק-אין נפתח לפני (דק')",
-      "צ'ק-אין נסגר אחרי (דק')",
-      "תיאור",
-      "לו\"ז",
       "סימנו שיגיעו",
       "הגיעו בפועל",
-      "אחוז הגעה",
+      "אחוז הגעה מתוך חברי הקהילה",
+      "אחוז הגעה מתוך מי שסימן הגעה",
       "אחוז נשים",
       "אחוז גברים",
     ],
     ...eventsChronological.map((e) => {
-      const rate = e.goingCount ? Math.round((e.cameCount / e.goingCount) * 100) : 0;
+      // מי שהגיע נספר כאן גם אם לא סימן שהוא מתכוון להגיע — cameCount
+      // הוא סך הנוכחויות בפועל, לא מותנה ב-RSVP קודם.
+      const clubSize = memberCountAtDate(e.starts_at);
+      const rateOfClub = clubSize
+        ? Math.round((e.cameCount / clubSize) * 100)
+        : 0;
+      const rateOfGoing = e.goingCount
+        ? Math.round((e.cameCount / e.goingCount) * 100)
+        : 0;
       const female = e.cameCount ? Math.round((e.femaleCame / e.cameCount) * 100) : 0;
       const male = e.cameCount ? Math.round((e.maleCame / e.cameCount) * 100) : 0;
       return [
@@ -175,16 +184,10 @@ export default async function AdminPage() {
         formatDayMonth(e.starts_at),
         formatTime(e.starts_at),
         e.location_name,
-        e.maps_url ?? "",
-        e.is_sea ? "כן" : "לא",
-        String(e.checkin_radius_m),
-        String(e.checkin_opens_before_min),
-        String(e.checkin_closes_after_min),
-        e.description ?? "",
-        e.agenda_text ?? "",
         String(e.goingCount),
         String(e.cameCount),
-        `${rate}%`,
+        `${rateOfClub}%`,
+        `${rateOfGoing}%`,
         `${female}%`,
         `${male}%`,
       ];
