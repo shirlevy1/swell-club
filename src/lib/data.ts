@@ -381,10 +381,14 @@ export async function getGoingNamesByEvent(
       if (!r.going || !wanted.has(r.eventId)) continue;
       const profile = byId.get(r.profileId);
       if (!profile) continue;
+      // בלי תמונה — כרטיס האירוע מציג רק שמות (goingSummary), לא פנים
       push(r.eventId, {
         profileId: profile.id,
         fullName: profile.full_name,
         swimLevel: profile.swim_level,
+        selfieUrl: null,
+        faceX: null,
+        faceY: null,
         isMe: profile.id === demo.demoMeId,
       });
     }
@@ -402,10 +406,15 @@ export async function getGoingNamesByEvent(
     full_name: string;
     swim_level: SwimLevel | null;
   }[]) {
+    // בלי תמונה כאן — events_going_names() לא מחזירה אותה בכלל
+    // (כרטיס האירוע מציג רק שמות)
     push(r.event_id, {
       profileId: r.profile_id,
       fullName: r.full_name,
       swimLevel: r.swim_level,
+      selfieUrl: null,
+      faceX: null,
+      faceY: null,
       isMe: r.profile_id === userId,
     });
   }
@@ -638,6 +647,11 @@ export type GoingPerson = {
   profileId: string;
   fullName: string;
   swimLevel: SwimLevel | null;
+  // התמונה העדכנית של האדם — null אם עוד לא נכחתם יחד באיזשהו מפגש,
+  // גם אם יש לו סלפי. ראו migration 0018.
+  selfieUrl: string | null;
+  faceX: number | null;
+  faceY: number | null;
   isMe: boolean;
 };
 
@@ -664,6 +678,30 @@ export async function getEventDetail(
     const hasAttended = attendances.some((a) => a.profileId === demo.demoMeId);
     const byId = new Map(demo.demoProfiles().map((p) => [p.id, p]));
 
+    // "נכחתם יחד" בהדגמה — מי שחלק לפחות מפגש אחד עם demoMeId, בכל
+    // מפגש שהוא, לא רק זה הנוכחי. אותו תנאי בדיוק כמו ב-SQL האמיתי.
+    const allAttendances = demo.demoAttendances();
+    const myEventIds = new Set(
+      allAttendances
+        .filter((a) => a.profileId === demo.demoMeId)
+        .map((a) => a.eventId),
+    );
+    const metProfileIds = new Set(
+      allAttendances
+        .filter((a) => myEventIds.has(a.eventId))
+        .map((a) => a.profileId),
+    );
+    function latestDemoSelfie(profileId: string) {
+      const rows = allAttendances.filter((a) => a.profileId === profileId);
+      if (!rows.length) return { selfieUrl: null, faceX: null, faceY: null };
+      const latest = [...rows].sort((a, b) => b.at.localeCompare(a.at))[0];
+      return {
+        selfieUrl: latest.selfie,
+        faceX: latest.faceX,
+        faceY: latest.faceY,
+      };
+    }
+
     return {
       myGoing:
         rsvps.find((r) => r.profileId === demo.demoMeId)?.going ?? false,
@@ -672,16 +710,21 @@ export async function getEventDetail(
         .filter((r) => r.going)
         .flatMap((r) => {
           const profile = byId.get(r.profileId);
-          return profile
-            ? [
-                {
-                  profileId: profile.id,
-                  fullName: profile.full_name,
-                  swimLevel: profile.swim_level,
-                  isMe: profile.id === demo.demoMeId,
-                },
-              ]
-            : [];
+          if (!profile) return [];
+          const isMe = profile.id === demo.demoMeId;
+          const met = isMe || metProfileIds.has(profile.id);
+          const shot = met
+            ? latestDemoSelfie(profile.id)
+            : { selfieUrl: null, faceX: null, faceY: null };
+          return [
+            {
+              profileId: profile.id,
+              fullName: profile.full_name,
+              swimLevel: profile.swim_level,
+              ...shot,
+              isMe,
+            },
+          ];
         }),
       hasAttended,
       attendedCount: attendances.length,
@@ -778,16 +821,39 @@ export async function getEventDetail(
     );
   }
 
-  const going = (
-    (goingRows ?? []) as {
-      profile_id: string;
-      full_name: string;
-      swim_level: SwimLevel | null;
-    }[]
-  ).map((r) => ({
+  const goingRowsTyped = (goingRows ?? []) as {
+    profile_id: string;
+    full_name: string;
+    swim_level: SwimLevel | null;
+    selfie_path: string | null;
+    face_x: number | null;
+    face_y: number | null;
+  }[];
+
+  const goingPaths = goingRowsTyped
+    .map((r) => r.selfie_path)
+    .filter(Boolean) as string[];
+  const goingSigned = goingPaths.length
+    ? ((
+        await supabase.storage
+          .from("selfies")
+          .createSignedUrls(goingPaths, SELFIE_TTL)
+      ).data ?? [])
+    : [];
+  const goingUrlByPath = new Map(
+    goingSigned.map((s) => [s.path ?? "", s.signedUrl] as const),
+  );
+
+  const going = goingRowsTyped.map((r) => ({
     profileId: r.profile_id,
     fullName: r.full_name,
     swimLevel: r.swim_level,
+    // אם הצופה עוד לא נכח יחד עם r, ה-RPC כבר מחזיר null כאן — לא
+    // צריך בדיקה נוספת. אם המדיניות ב-storage תחסום בכל זאת, ה-path
+    // פשוט לא יופיע ב-goingUrlByPath וזה ייפול חזרה ל-null.
+    selfieUrl: r.selfie_path ? (goingUrlByPath.get(r.selfie_path) ?? null) : null,
+    faceX: r.face_x,
+    faceY: r.face_y,
     isMe: r.profile_id === userId,
   }));
 

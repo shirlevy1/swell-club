@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { GoingPerson } from "@/lib/data";
+import { facePositionStyle } from "@/lib/face-position";
 import {
   swimLevelLabel,
   SWIM_LEVEL_COLOR,
@@ -24,9 +25,10 @@ function initial(name: string): string {
  * זה מה שמייצר את המוטיבציה: מספר יבש ("6 מתכוונים") לא משכנע אף אחד
  * לקום בשש בבוקר, אבל לראות ששלושה אנשים שאתם מכירים כבר סימנו — כן.
  *
- * ⚠️ שם ורמת שחייה בלבד. אין כאן תמונות, וואטסאפ או אינסטגרם, בכוונה:
- * אלה נוצרים/נחשפים רק אחרי צ׳ק־אין מאומת, והצגתם למי שלא נכח באותו
- * מפגש שוברת את הכלל המרכזי של המוצר.
+ * ⚠️ תמונה מוצגת רק למי שכבר נכחתם איתו יחד באיזשהו מפגש בעבר —
+ * מי שעוד לא נכחתם יחד מוצג עם אות ראשונית בלבד. אין כאן וואטסאפ או
+ * אינסטגרם בכל מקרה: אלה נחשפים רק אחרי צ׳ק־אין מאומת. ראו migration
+ * 0018 ואת selfies_read_met_before ב-storage.
  */
 export function GoingList({
   people,
@@ -51,7 +53,7 @@ export function GoingList({
         <p className="text-xs text-(--color-ink-faint)">
           {myGoing
             ? "סימנתם גם אתם. נתראה בים."
-            : "הצהרת כוונה, לא נוכחות — את הפנים רואים רק אחרי צ׳ק־אין במקום."}
+            : "הצהרת כוונה, לא נוכחות — מי שעוד לא נכחתם איתם מוצגים בלי תמונה."}
         </p>
       </div>
 
@@ -69,13 +71,26 @@ export function GoingList({
                   : "border-(--color-line)")
               }
             >
-              <span
+              <div
                 aria-hidden
-                // לבן על sky הוא 2.3:1 — sky בהיר מדי לשאת טקסט, גם לבן
-                className="grid size-9 place-items-center rounded-full bg-(--color-sea) text-sm font-bold text-white"
+                // flex ולא grid: grid+place-items-center מתעקש עם
+                // object-position על ה-img (מלכודת שכבר שילמנו עליה
+                // בעיצוב הפרופיל). לבן על sky הוא 2.3:1 — sky בהיר
+                // מדי לשאת טקסט, גם לבן.
+                className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-(--color-sea) text-sm font-bold text-white"
               >
-                {initial(person.fullName)}
-              </span>
+                {person.selfieUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={person.selfieUrl}
+                    alt={person.fullName}
+                    className="size-full object-cover"
+                    style={facePositionStyle(person.faceX, person.faceY)}
+                  />
+                ) : (
+                  initial(person.fullName)
+                )}
+              </div>
               <span className="text-sm font-semibold">
                 {person.isMe ? "אתם" : person.fullName}
               </span>
