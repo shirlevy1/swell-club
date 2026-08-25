@@ -16,6 +16,14 @@ export function byGender(
   return gender === "female" ? feminine : masculine;
 }
 
+/** תווית עברית למגדר, לתצוגה (לא לניסוח פנייה — ראו byGender). */
+export function genderLabel(gender: Gender | null): string {
+  if (gender === "female") return "אישה";
+  if (gender === "male") return "גבר";
+  if (gender === "other") return "אחר";
+  return "";
+}
+
 /** "25.8" — יום.חודש מספרי, בלי שנה. */
 export function formatDayMonth(iso: string): string {
   const date = new Date(iso);

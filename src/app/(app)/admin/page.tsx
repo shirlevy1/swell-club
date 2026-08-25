@@ -9,8 +9,10 @@ import {
 } from "@/lib/data";
 import {
   ageInYears,
+  formatDate,
   formatDateTime,
   formatPhone,
+  genderLabel,
   instagramUrl,
   normalizeInstagram,
   whatsappUrl,
@@ -98,14 +100,36 @@ export default async function AdminPage() {
   ).length;
 
   const csv = [
-    ["שם", "טלפון", "אינסטגרם", "מפגשים", "אחוז הגעה"],
+    [
+      "שם",
+      "מגדר",
+      "גיל",
+      "תאריך לידה",
+      "עיר מגורים",
+      "טלפון",
+      "אינסטגרם",
+      "רמת שחייה",
+      "תאריך הצטרפות",
+      "מפגשים",
+      "אחוז הגעה",
+      "אישר/ה כתב ויתור",
+      "אישר/ה הצהרת פרטיות",
+    ],
     ...members.map((m) => [
       m.profile.full_name,
+      genderLabel(m.profile.gender),
+      ageInYears(m.profile.birth_date)?.toString() ?? "",
+      m.profile.birth_date ?? "",
+      m.profile.city ?? "",
       formatPhone(m.profile.phone) ?? "",
       // מנורמל: בטופס אנשים הכניסו גם קישורים מלאים וגם שמות משתמש
       normalizeInstagram(m.profile.instagram) ?? "",
-      String(m.attendedCount),
+      swimLevelLabel(m.profile.swim_level) ?? "",
+      formatDate(m.profile.created_at),
+      `${m.attendedCount}/${heldCount}`,
       `${heldCount ? Math.round((m.attendedCount / heldCount) * 100) : 0}%`,
+      m.profile.waiver_accepted_at ? formatDate(m.profile.waiver_accepted_at) : "",
+      m.profile.privacy_accepted_at ? formatDate(m.profile.privacy_accepted_at) : "",
     ]),
   ];
 
