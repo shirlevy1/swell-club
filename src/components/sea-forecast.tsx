@@ -26,7 +26,7 @@ export function SeaForecast({ day }: { day: GoSurfDay }) {
   return (
     <div className="space-y-2">
       <div className="flex items-baseline justify-between">
-        <p className="text-sm font-semibold">תחזית ים ליום המפגש</p>
+        <p className="text-sm font-semibold">תחזית ים לזמן המפגש</p>
         <span className="text-xs text-(--color-ink-faint)">
           מקור:{" "}
           <a
