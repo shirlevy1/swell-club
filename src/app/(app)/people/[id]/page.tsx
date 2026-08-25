@@ -6,7 +6,7 @@ import {
   getMyAttendedEventIds,
   getEventPhotoCollages,
 } from "@/lib/data";
-import { instagramUrl, whatsappUrl } from "@/lib/format";
+import { byGender, instagramUrl, whatsappUrl } from "@/lib/format";
 import { facePositionStyle } from "@/lib/face-position";
 import {
   swimLevelLabel,
@@ -21,7 +21,7 @@ import { WaveIcon } from "@/components/streak-card";
 /**
  * עמוד של חבר קהילה אחר, שנפתח מלחיצה על שם ברשימת "מי מתכוון להגיע".
  *
- * ⚠️ **שם זה לא פנים.** מי שעוד לא נכח איתכם באותו מפגש מוצג בשם בלבד —
+ * ⚠️ **שם זה לא פנים.** מי שעוד לא היה איתכם באותו מפגש מוצג בשם בלבד —
  * בלי תמונות, בלי אינסטגרם ובלי וואטסאפ. זה אותו כלל שמחזיק את המוצר,
  * פשוט במקום נוסף בממשק, ונאכף גם ב־`person_card()` וגם ב-RLS על
  * attendances.
@@ -110,10 +110,14 @@ export default async function PersonPage({
           </div>
           <p className="text-sm text-(--color-ink-soft)">
             {person.attendedCount === 0
-              ? "עוד לא נכח במפגש"
+              ? byGender(person.gender, "עוד לא היה איתנו", "עוד לא הייתה איתנו")
               : person.attendedCount === 1
-                ? "נכח במפגש אחד"
-                : `נכח ב־${person.attendedCount} מפגשים`}
+                ? byGender(person.gender, "היה איתנו במפגש אחד", "הייתה איתנו במפגש אחד")
+                : byGender(
+                    person.gender,
+                    `היה איתנו ב־${person.attendedCount} מפגשים`,
+                    `הייתה איתנו ב־${person.attendedCount} מפגשים`,
+                  )}
           </p>
         </div>
       </header>
@@ -154,8 +158,8 @@ export default async function PersonPage({
               </h2>
               <p className="text-xs text-(--color-ink-faint)">
                 {person.sharedCount === 1
-                  ? "נכחתם יחד במפגש אחד."
-                  : `נכחתם יחד ב־${person.sharedCount} מפגשים.`}
+                  ? "הייתם יחד במפגש אחד."
+                  : `הייתם יחד ב־${person.sharedCount} מפגשים.`}
               </p>
             </div>
             <SelfieHistory shots={shots} albumsByEvent={albumsByEvent} />
@@ -163,7 +167,7 @@ export default async function PersonPage({
         </>
       ) : (
         <Notice>
-          עוד לא נכחתם יחד באף מפגש, ולכן אתם רואים רק את השם. סמנו הגעה
+          עוד לא הייתם יחד באף מפגש, ולכן אתם רואים רק את השם. סמנו הגעה
           לאותו מפגש — ואז גם הפנים.
         </Notice>
       )}

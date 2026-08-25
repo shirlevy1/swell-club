@@ -326,7 +326,7 @@ export function CheckInFlow({ event }: { event: SwellEvent }) {
   }
 
   if (step === "done") {
-    return <Notice tone="good">נכחתם. הרשימה נפתחה למטה.</Notice>;
+    return <Notice tone="good">הייתם איתנו. הרשימה נפתחה למטה.</Notice>;
   }
 
   return (

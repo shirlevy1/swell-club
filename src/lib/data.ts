@@ -4,6 +4,7 @@ import { ageInYears } from "./format";
 import type {
   Attendance,
   Club,
+  Gender,
   MemberRole,
   MemberStatus,
   Profile,
@@ -532,13 +533,15 @@ export async function getSelfieHistory(
 export type PersonCard = {
   profileId: string;
   fullName: string;
-  /** null אם לא נכחתם יחד — אז גם אין מה להראות מעבר לשם */
+  /** גלוי תמיד כמו השם — רק לניסוח נכון ("היה/הייתה איתנו"), לא מוצג בפני עצמו */
+  gender: Gender | null;
+  /** null אם עוד לא הייתם יחד — אז גם אין מה להראות מעבר לשם */
   instagram: string | null;
-  /** אותו כלל בדיוק כמו אינסטגרם — נעול עד שנכחתם יחד */
+  /** אותו כלל בדיוק כמו אינסטגרם — נעול עד שהייתם יחד */
   phone: string | null;
-  /** אותו כלל בדיוק כמו אינסטגרם — נעול עד שנכחתם יחד */
+  /** אותו כלל בדיוק כמו אינסטגרם — נעול עד שהייתם יחד */
   swimLevel: SwimLevel | null;
-  /** בכמה מפגשים נכחתם יחד. אפס = עוד לא נפגשתם, והעמוד נעול */
+  /** בכמה מפגשים הייתם יחד. אפס = עוד לא נפגשתם, והעמוד נעול */
   sharedCount: number;
   attendedCount: number;
 };
@@ -546,7 +549,7 @@ export type PersonCard = {
 /**
  * כרטיס של אדם אחר, לעמוד שנפתח מרשימת הכוונות.
  *
- * חבר קהילה רואה שם תמיד, אבל פרטים ופנים — רק אם נכחתם יחד. זה אותו
+ * חבר קהילה רואה שם תמיד, אבל פרטים ופנים — רק אם הייתם יחד. זה אותו
  * כלל שמחזיק את כל המוצר, רק במקום אחר בממשק.
  */
 export async function getPersonCard(
@@ -571,6 +574,7 @@ export async function getPersonCard(
     return {
       profileId,
       fullName: profile.full_name,
+      gender: profile.gender,
       instagram: unlocked ? profile.instagram : null,
       phone: unlocked ? profile.phone : null,
       swimLevel: unlocked ? profile.swim_level : null,
@@ -586,6 +590,7 @@ export async function getPersonCard(
 
   const row = ((data ?? []) as {
     full_name: string;
+    gender: Gender | null;
     instagram: string | null;
     phone: string | null;
     swim_level: SwimLevel | null;
@@ -597,6 +602,7 @@ export async function getPersonCard(
   return {
     profileId,
     fullName: row.full_name,
+    gender: row.gender,
     instagram: row.instagram,
     phone: row.phone,
     swimLevel: row.swim_level,

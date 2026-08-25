@@ -18,7 +18,7 @@ export default async function ProfileEditPage() {
           עריכת פרופיל
         </h1>
         <p className="text-sm text-(--color-ink-soft)">
-          הפרטים שלכם נראים רק לחברי קהילה שנכחו באותו מפגש כמוכם.
+          הפרטים שלכם נראים רק לחברי קהילה שהיו איתכם באותו מפגש.
         </p>
       </div>
 
