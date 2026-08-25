@@ -102,6 +102,11 @@ export function formatWeekday(iso: string): string {
   }).format(new Date(iso));
 }
 
+/** "שני" — יום השבוע בלבד, בלי המילה "יום" (formatWeekday מחזיר "יום שני"). */
+export function formatWeekdayName(iso: string): string {
+  return formatWeekday(iso).replace(/^יום /, "");
+}
+
 /** "עוד 3 ימים" / "לפני שעתיים" */
 export function relativeTime(iso: string): string {
   const diffMs = new Date(iso).getTime() - Date.now();

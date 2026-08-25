@@ -11,7 +11,10 @@ import {
   ageInYears,
   formatDate,
   formatDateTime,
+  formatDayMonth,
   formatPhone,
+  formatTime,
+  formatWeekdayName,
   genderLabel,
   instagramUrl,
   normalizeInstagram,
@@ -145,7 +148,9 @@ export default async function AdminPage() {
   const eventsCsv = [
     [
       "כותרת",
-      "תאריך ושעה",
+      "יום בשבוע",
+      "תאריך",
+      "שעה",
       "מיקום",
       "קישור למפות",
       "מפגש ים?",
@@ -166,7 +171,9 @@ export default async function AdminPage() {
       const male = e.cameCount ? Math.round((e.maleCame / e.cameCount) * 100) : 0;
       return [
         e.title,
-        formatDateTime(e.starts_at),
+        formatWeekdayName(e.starts_at),
+        formatDayMonth(e.starts_at),
+        formatTime(e.starts_at),
         e.location_name,
         e.maps_url ?? "",
         e.is_sea ? "כן" : "לא",
