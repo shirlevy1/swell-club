@@ -6,17 +6,20 @@ import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
 import { toggleRsvpAction } from "@/lib/demo/actions";
 import { downloadIcs } from "@/lib/ics";
-import type { SwellEvent } from "@/lib/types";
+import { byGender } from "@/lib/format";
+import type { Gender, SwellEvent } from "@/lib/types";
 import { Button, Notice } from "./ui";
 
 export function RsvpButton({
   event,
   initialGoing,
   initialCount,
+  gender,
 }: {
   event: SwellEvent;
   initialGoing: boolean;
   initialCount: number;
+  gender: Gender | null;
 }) {
   const router = useRouter();
   const [going, setGoing] = useState(initialGoing);
@@ -65,8 +68,9 @@ export function RsvpButton({
         variant={going ? "secondary" : "primary"}
         className="w-full"
       >
-        {/* גוף ראשון עם סיומת מגדרית ("מגיע/ה"), לא "אני מתכוון" שמניח זכר */}
-        {going ? "✓ אני מגיע/ה" : "אני מגיע/ה"}
+        {/* גוף ראשון עם ניסוח מגדרי — לא "אני מתכוון" שמניח זכר */}
+        {going ? "✓ " : ""}
+        {byGender(gender, "אני מגיע", "אני מגיעה")}
       </Button>
 
       <p className="text-center text-sm text-(--color-ink-soft)">

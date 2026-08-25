@@ -94,6 +94,7 @@ export default async function EventPage({
             event={event}
             initialGoing={myGoing}
             initialCount={rsvpCount}
+            gender={viewer.profile?.gender ?? null}
           />
         </Card>
       )}
