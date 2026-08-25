@@ -492,8 +492,7 @@ export default function NewEventPage() {
             </Field>
           </div>
           <p className="text-xs leading-relaxed text-(--color-ink-faint)">
-            חלון צר מדי נועל אנשים שאיחרו. אפשר תמיד להוסיף מישהו ידנית
-            אחר כך.
+            חלון צר מדי נועל אנשים שאיחרו.
           </p>
         </Card>
 
