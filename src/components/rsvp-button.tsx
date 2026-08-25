@@ -65,8 +65,8 @@ export function RsvpButton({
         variant={going ? "secondary" : "primary"}
         className="w-full"
       >
-        {/* בלשון פנייה ברבים ולא בגוף ראשון — "אני מתכוון" מניח זכר */}
-        {going ? "✓ סימנתם שתגיעו" : "סמנו שתגיעו"}
+        {/* גוף ראשון עם סיומת מגדרית ("מגיע/ה"), לא "אני מתכוון" שמניח זכר */}
+        {going ? "✓ אני מגיע/ה" : "אני מגיע/ה"}
       </Button>
 
       <p className="text-center text-sm text-(--color-ink-soft)">
