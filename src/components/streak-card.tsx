@@ -74,8 +74,8 @@ export function StreakCard({
           {current === 0
             ? byGender(gender, "מתחיל מחדש", "מתחילה מחדש")
             : current === 1
-              ? "שבוע אחד על הגל"
-              : `${current} שבועות על הגל`}
+              ? "שבוע אחד ברצף על הגל"
+              : `${current} שבועות ברצף על הגל`}
         </p>
       </div>
 
@@ -102,7 +102,7 @@ export function StreakCard({
 
       <p className="text-xs leading-relaxed text-(--color-ink-faint)">
         {weeks[weeks.length - 1]
-          ? "השבוע כבר היית איתנו."
+          ? "השבוע היית בסוואל."
           : current > 0
             ? "השבוע עוד פתוח — שחייה אחת שומרת על הרצף."
             : "שחייה אחת מתחילה רצף חדש."}
