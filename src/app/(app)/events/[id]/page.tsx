@@ -137,7 +137,7 @@ export default async function EventPage({
         <section className="space-y-4">
           <div className="flex items-baseline justify-between">
             <h2 className="font-[family-name:var(--font-display)] text-xl font-bold">
-              מי היה איתנו?
+              מי היה חלק מהסוואל?
             </h2>
             <span className="ltr-nums text-sm text-(--color-ink-faint)">
               {attendees.length}
