@@ -198,10 +198,6 @@ export default async function AdminPage() {
         ) : (
           <ul className="space-y-3">
             {events.map((event) => {
-              const attendanceRate =
-                event.goingCount > 0
-                  ? Math.round((event.cameCount / event.goingCount) * 100)
-                  : 0;
               const femalePercent =
                 event.cameCount > 0
                   ? Math.round((event.femaleCame / event.cameCount) * 100)
@@ -214,7 +210,7 @@ export default async function AdminPage() {
               return (
                 <li key={event.id}>
                   <Link href={`/events/${event.id}`}>
-                    <Card className="space-y-3 transition hover:border-(--color-line)">
+                    <Card className="space-y-4 transition hover:border-(--color-line)">
                       <div>
                         <p className="font-[family-name:var(--font-display)] text-lg font-bold">
                           {event.title}
@@ -223,50 +219,50 @@ export default async function AdminPage() {
                           {formatDateTime(event.starts_at)}
                         </p>
                       </div>
-                      {/* סדר ה-DOM הפוך מסדר התצוגה במכוון: איבר ראשון
-                          נופל מימין ב-RTL, ולכן כדי לקבל משמאל לימין
-                          "הגיעו בפועל, סימנו שיגיעו, אחוז הגעה, אחוז
-                          נשים, אחוז גברים" — הם נכתבים כאן בסדר הפוך. */}
-                      <div className="flex gap-2">
-                        <div className="flex-1">
-                          <p className="ltr-nums text-lg font-bold text-(--color-ink)">
-                            {malePercent}%
-                          </p>
-                          <p className="text-[0.6rem] leading-tight text-(--color-ink-faint)">
-                            אחוז גברים
-                          </p>
+                      {/* שתי קבוצות — "כמה" ו"מי" — מופרדות בקו דק, לא
+                          חמש עמודות דחוסות. סדר ה-DOM הפוך מסדר התצוגה
+                          במכוון: איבר ראשון נופל מימין ב-RTL, ולכן כדי
+                          לקבל משמאל לימין "הגיעו בפועל, סימנו שיגיעו,
+                          נשים, גברים" הם נכתבים כאן בסדר הפוך. */}
+                      <div className="flex items-center gap-4">
+                        <div className="flex flex-1 gap-4">
+                          <div className="flex-1">
+                            <p className="ltr-nums text-2xl font-bold text-(--color-deep)">
+                              {malePercent}%
+                            </p>
+                            <p className="text-[0.7rem] text-(--color-ink-faint)">
+                              גברים
+                            </p>
+                          </div>
+                          <div className="flex-1">
+                            <p className="ltr-nums text-2xl font-bold text-(--color-sea)">
+                              {femalePercent}%
+                            </p>
+                            <p className="text-[0.7rem] text-(--color-ink-faint)">
+                              נשים
+                            </p>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <p className="ltr-nums text-lg font-bold text-(--color-ink)">
-                            {femalePercent}%
-                          </p>
-                          <p className="text-[0.6rem] leading-tight text-(--color-ink-faint)">
-                            אחוז נשים
-                          </p>
-                        </div>
-                        <div className="flex-1">
-                          <p className="ltr-nums text-lg font-bold text-(--color-ink)">
-                            {attendanceRate}%
-                          </p>
-                          <p className="text-[0.6rem] leading-tight text-(--color-ink-faint)">
-                            אחוז הגעה
-                          </p>
-                        </div>
-                        <div className="flex-1">
-                          <p className="ltr-nums text-2xl font-bold text-(--color-ink-soft)">
-                            {event.goingCount}
-                          </p>
-                          <p className="text-[0.7rem] text-(--color-ink-faint)">
-                            סימנו שיגיעו
-                          </p>
-                        </div>
-                        <div className="flex-1">
-                          <p className="ltr-nums text-2xl font-bold text-(--color-verified)">
-                            {event.cameCount}
-                          </p>
-                          <p className="text-[0.7rem] text-(--color-ink-faint)">
-                            הגיעו בפועל
-                          </p>
+
+                        <div className="h-9 w-px shrink-0 bg-(--color-line)" />
+
+                        <div className="flex flex-1 gap-4">
+                          <div className="flex-1">
+                            <p className="ltr-nums text-2xl font-bold text-(--color-ink-soft)">
+                              {event.goingCount}
+                            </p>
+                            <p className="text-[0.7rem] text-(--color-ink-faint)">
+                              סימנו שיגיעו
+                            </p>
+                          </div>
+                          <div className="flex-1">
+                            <p className="ltr-nums text-2xl font-bold text-(--color-verified)">
+                              {event.cameCount}
+                            </p>
+                            <p className="text-[0.7rem] text-(--color-ink-faint)">
+                              הגיעו בפועל
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </Card>
