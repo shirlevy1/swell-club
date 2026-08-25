@@ -48,6 +48,13 @@ export function StreakCard({
 }) {
   const { weeks, current, attendedWeeks, windowWeeks } = streak;
 
+  // reversedWeeks[0] = עכשיו, [1] = שבוע שעבר, [2] = לפני שבועיים...
+  const reversedWeeks = [...weeks].reverse();
+  // סדר תצוגה מבוקש: השבוע שעבר (המושלם) בקצה הימני, "עכשיו" (עוד
+  // פתוח) צעד אחד לפניו, ואז שאר השבועות ממשיכים באותה זרימה שמאלה.
+  // בלי dir override: איבר ראשון ב-DOM נופל מימין (RTL טבעי).
+  const displayOrder = [1, 0, ...reversedWeeks.slice(2).map((_, i) => i + 2)];
+
   return (
     <Card className="space-y-3">
       <div className="flex items-baseline justify-between gap-3">
@@ -72,19 +79,15 @@ export function StreakCard({
         </p>
       </div>
 
-      {/* כל קוביה שבוע קלנדרי אמיתי — "עכשיו" בעמדה 0, בלי dir override
-          כדי שתישאר בזרימה הטבעית של העמוד (RTL): איבר ראשון ב-DOM
-          נופל מימין, ולכן "עכשיו" יוצא מימין ושבועות ישנים יותר
-          משתרעים שמאלה — עקבי עם שאר האתר ("אתם" תמיד ראשונים/מימין
-          ברשימת הכוונות). weeks עצמו נשאר מהישן לחדש כמו שהיה — רק
-          ההיפוך קורה כאן בתצוגה. */}
+      {/* כל קוביה שבוע קלנדרי אמיתי, בסדר displayOrder שחושב למעלה. */}
       <div className="flex gap-1.5 py-0.5">
-        {[...weeks].reverse().map((swam, i) => {
-          const isNow = i === 0;
+        {displayOrder.map((weeksAgo) => {
+          const isNow = weeksAgo === 0;
+          const swam = reversedWeeks[weeksAgo];
           return (
             <span
-              key={i}
-              title={isNow ? "השבוע" : `לפני ${i} שבועות`}
+              key={weeksAgo}
+              title={isNow ? "השבוע" : `לפני ${weeksAgo} שבועות`}
               className={
                 "h-2.5 flex-1 rounded-full " +
                 (swam ? "bg-(--color-sea)" : "bg-(--color-line)/60") +
