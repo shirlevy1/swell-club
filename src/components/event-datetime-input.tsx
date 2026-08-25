@@ -108,20 +108,8 @@ export function EventDateTimeInput({
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        <Select
-          aria-label="שעה"
-          required
-          dir="ltr"
-          value={hour}
-          onChange={(e) => setHour(e.target.value ? Number(e.target.value) : "")}
-        >
-          <option value="">שעה</option>
-          {hours.map((h) => (
-            <option key={h} value={h}>
-              {pad(h)}
-            </option>
-          ))}
-        </Select>
+        {/* דקה קודם במקור, שעה אחריה — בעברית (RTL) הראשון ב-DOM
+            נופל מימין, ולכן זה מה שמציב את השעה משמאל ואת הדקה מימין. */}
         <Select
           aria-label="דקה"
           required
@@ -133,6 +121,20 @@ export function EventDateTimeInput({
           {minutes.map((m) => (
             <option key={m} value={m}>
               {pad(m)}
+            </option>
+          ))}
+        </Select>
+        <Select
+          aria-label="שעה"
+          required
+          dir="ltr"
+          value={hour}
+          onChange={(e) => setHour(e.target.value ? Number(e.target.value) : "")}
+        >
+          <option value="">שעה</option>
+          {hours.map((h) => (
+            <option key={h} value={h}>
+              {pad(h)}
             </option>
           ))}
         </Select>
