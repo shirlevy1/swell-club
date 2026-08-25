@@ -7,9 +7,20 @@ import {
   getPendingEventPhotos,
   type PendingEventPhoto,
 } from "@/lib/data";
-import { formatDateTime, formatPhone, normalizeInstagram } from "@/lib/format";
+import {
+  ageInYears,
+  formatDateTime,
+  formatPhone,
+  normalizeInstagram,
+} from "@/lib/format";
 import { checkInWindow } from "@/lib/checkin";
 import { facePositionStyle } from "@/lib/face-position";
+import {
+  swimLevelLabel,
+  SWIM_LEVEL_COLOR,
+  swimLevelBadgeStyle,
+} from "@/lib/swim-level";
+import { WaveIcon } from "@/components/streak-card";
 import { Card, EmptyState, LinkButton, PageHeader } from "@/components/ui";
 import { ExportButton } from "@/components/export-button";
 import { PendingMemberRow } from "@/components/pending-member-row";
@@ -268,9 +279,28 @@ export default async function AdminPage() {
               </div>
 
               <div className="min-w-0 flex-1 space-y-0.5">
-                <p className="truncate text-sm font-semibold">
-                  {m.profile.full_name}
-                </p>
+                <div className="flex items-center gap-1.5">
+                  <p className="min-w-0 flex-1 truncate text-sm font-semibold">
+                    {m.profile.full_name}
+                    {ageInYears(m.profile.birth_date) !== null && (
+                      <span className="ms-1 font-normal text-(--color-ink-faint)">
+                        · גיל {ageInYears(m.profile.birth_date)}
+                      </span>
+                    )}
+                  </p>
+                  {m.profile.swim_level && (
+                    <span
+                      className="flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-[0.65rem] font-semibold text-(--color-ink)"
+                      style={swimLevelBadgeStyle(m.profile.swim_level)}
+                    >
+                      <WaveIcon
+                        className="size-2.5"
+                        style={{ color: SWIM_LEVEL_COLOR[m.profile.swim_level] }}
+                      />
+                      {swimLevelLabel(m.profile.swim_level)}
+                    </span>
+                  )}
+                </div>
                 <p
                   dir="ltr"
                   className="truncate text-start text-xs text-(--color-ink-faint)"
