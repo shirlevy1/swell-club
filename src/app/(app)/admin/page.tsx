@@ -211,11 +211,11 @@ export default async function AdminPage() {
                 <li key={event.id}>
                   <Link href={`/events/${event.id}`}>
                     <Card className="space-y-4 transition hover:border-(--color-line)">
-                      <div>
+                      <div className="flex items-baseline justify-between gap-2">
                         <p className="font-[family-name:var(--font-display)] text-lg font-bold">
                           {event.title}
                         </p>
-                        <p className="text-xs text-(--color-ink-faint)">
+                        <p className="shrink-0 text-xs text-(--color-ink-faint)">
                           {formatDateTime(event.starts_at)}
                         </p>
                       </div>
