@@ -58,6 +58,7 @@ export function NotificationToggle() {
   const [state, setState] = useState<State>("loading");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [testSent, setTestSent] = useState(false);
 
   // המצב ההתחלתי הוא תמיד "loading" — כך הרנדר בשרת ובלקוח זהים
   // ואין אי-התאמה בהידרציה. הזיהוי קורה אחריו.
@@ -137,6 +138,20 @@ export function NotificationToggle() {
     setPending(false);
   }
 
+  async function sendTest() {
+    setError(null);
+    setTestSent(false);
+    setPending(true);
+    try {
+      const res = await fetch("/api/push/test", { method: "POST" });
+      if (!res.ok) throw new Error();
+      setTestSent(true);
+    } catch {
+      setError("לא הצלחנו לשלוח תזכורת לדוגמה. נסו שוב.");
+    }
+    setPending(false);
+  }
+
   if (state === "loading" || state === "unsupported") return null;
 
   return (
@@ -160,6 +175,11 @@ export function NotificationToggle() {
       ) : (
         <>
           {error && <Notice tone="error">{error}</Notice>}
+          {testSent && (
+            <Notice tone="good">
+              נשלחה תזכורת לדוגמה — אמורה להופיע בטלפון תוך כמה שניות.
+            </Notice>
+          )}
           <Button
             onClick={state === "on" ? disable : enable}
             disabled={pending}
@@ -172,6 +192,16 @@ export function NotificationToggle() {
                 ? "כיבוי תזכורות"
                 : "הפעלת תזכורות"}
           </Button>
+          {state === "on" && (
+            <Button
+              onClick={sendTest}
+              disabled={pending}
+              variant="ghost"
+              className="w-full"
+            >
+              שליחת תזכורת לדוגמה
+            </Button>
+          )}
         </>
       )}
     </Card>
