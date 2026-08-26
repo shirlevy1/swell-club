@@ -130,14 +130,14 @@ export function NotificationIconToggle() {
         aria-label={state === "on" ? "כיבוי תזכורות" : "הפעלת תזכורות"}
         aria-pressed={state === "on"}
         className={
-          "flex size-11 shrink-0 items-center justify-center rounded-full border transition " +
+          "flex size-9 shrink-0 items-center justify-center rounded-lg border transition " +
           (state === "on"
             ? "border-(--color-sea) bg-(--color-sea) text-white hover:brightness-110"
-            : "border-(--color-line) bg-(--color-surface) text-(--color-sea) hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10")
+            : "border-(--color-line) bg-(--color-haze) text-(--color-sea) hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10")
         }
       >
         <BellIcon
-          className="size-5"
+          className="size-4"
           filled={state === "on"}
           muted={state !== "on"}
         />
