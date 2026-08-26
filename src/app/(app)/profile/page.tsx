@@ -80,33 +80,17 @@ export default async function ProfilePage() {
             )}
           </div>
           <div className="min-w-0">
-            {/* השם על שורה משלו, ברוחב מלא — עם הסמל של ההתראות שנוסף
-                ליד העריכה כבר אין מספיק מקום לשם+תג+שני אייקונים באותה
-                שורה על אייפון. התג עבר לשורה השנייה, לצד שורת הסטטוס. */}
-            <h1 className="truncate font-[family-name:var(--font-display)] text-2xl font-bold">
-              {fullName}
-            </h1>
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <p className="text-sm text-(--color-ink-soft)">
-                {monthStats
-                  ? monthAttendanceLine(
-                      "היית איתנו",
-                      monthStats.attended,
-                      monthStats.total,
-                    )
-                  : count === 0
-                    ? "עוד לא היית איתנו באף מפגש"
-                    : count === 1
-                      ? "היית איתנו במפגש אחד"
-                      : `היית איתנו ב־${count} מפגשים`}
-              </p>
+            <div className="flex items-center gap-2">
+              <h1 className="truncate font-[family-name:var(--font-display)] text-2xl font-bold">
+                {fullName}
+              </h1>
               {viewer.profile?.swim_level && (
                 <span
-                  className="flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-semibold text-(--color-ink)"
+                  className="flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm font-semibold text-(--color-ink)"
                   style={swimLevelBadgeStyle(viewer.profile.swim_level)}
                 >
                   <WaveIcon
-                    className="size-3"
+                    className="size-3.5"
                     style={{
                       color: SWIM_LEVEL_COLOR[viewer.profile.swim_level],
                     }}
@@ -115,11 +99,26 @@ export default async function ProfilePage() {
                 </span>
               )}
             </div>
+            <p className="text-sm text-(--color-ink-soft)">
+              {monthStats
+                ? monthAttendanceLine(
+                    "היית איתנו",
+                    monthStats.attended,
+                    monthStats.total,
+                  )
+                : count === 0
+                  ? "עוד לא היית איתנו באף מפגש"
+                  : count === 1
+                    ? "היית איתנו במפגש אחד"
+                    : `היית איתנו ב־${count} מפגשים`}
+            </p>
           </div>
         </div>
 
+        {/* שני האייקונים אחד מתחת לשני, לא זה לצד זה — כדי שהשם+התג
+            יקבלו מספיק רוחב על אותה שורה גם על אייפון. */}
         {viewer.profile && (
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 flex-col items-center gap-2">
             <NotificationIconToggle />
             <Link
               href="/profile/edit"
