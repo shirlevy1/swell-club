@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { byGender } from "@/lib/format";
 import { adminDb, getOrganizerIds, sendPushToProfiles } from "@/lib/push-server";
 
 /**
@@ -15,7 +16,7 @@ export async function POST(request: Request) {
   const db = adminDb();
   const { data: profile, error: profileError } = await db
     .from("profiles")
-    .select("full_name")
+    .select("full_name, gender")
     .eq("id", profile_id)
     .maybeSingle();
   if (profileError) {
@@ -37,8 +38,8 @@ export async function POST(request: Request) {
 
   const organizerIds = await getOrganizerIds(db, membership.club_id);
   await sendPushToProfiles(organizerIds, {
-    title: "בקשת הצטרפות חדשה",
-    body: `${profile.full_name} ביקש/ה להצטרף לקהילה`,
+    title: profile.full_name,
+    body: byGender(profile.gender, "ביקש להצטרף לקהילה", "ביקשה להצטרף לקהילה"),
     tag: "new-member-request",
     url: "/admin",
   });

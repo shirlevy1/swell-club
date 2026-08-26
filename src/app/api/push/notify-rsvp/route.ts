@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { formatDateTime } from "@/lib/format";
 import { adminDb, getOrganizerIds, sendPushToProfiles } from "@/lib/push-server";
 
 /**
@@ -23,8 +24,12 @@ export async function POST(request: Request) {
     { data: event, error: eventError },
     { data: profile, error: profileError },
   ] = await Promise.all([
-    db.from("events").select("club_id, title").eq("id", event_id).maybeSingle(),
-    db.from("profiles").select("full_name, gender").eq("id", user.id).maybeSingle(),
+    db
+      .from("events")
+      .select("club_id, title, starts_at")
+      .eq("id", event_id)
+      .maybeSingle(),
+    db.from("profiles").select("full_name").eq("id", user.id).maybeSingle(),
   ]);
   if (eventError) console.error("notify-rsvp: event lookup failed", eventError);
   if (profileError) {
@@ -39,10 +44,11 @@ export async function POST(request: Request) {
     (id) => id !== user.id,
   );
 
-  const verb = profile.gender === "female" ? "סימנה" : "סימן";
+  // השם בכותרת (מוצג מודגש ע"י הדפדפן/מערכת ההפעלה, לא HTML מאיתנו —
+  // התראות דחיפה הן טקסט פשוט בלבד). הפרטים הקטנים יותר בגוף ההודעה.
   await sendPushToProfiles(organizerIds, {
-    title: "מישהו/י בדרך",
-    body: `${profile.full_name} ${verb} שמגיע/ה ל${event.title}`,
+    title: profile.full_name,
+    body: `${event.title} · ${formatDateTime(event.starts_at)}`,
     tag: `rsvp-${event_id}-${user.id}`,
     url: `/events/${event_id}`,
   });

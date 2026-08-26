@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { byGender } from "@/lib/format";
 import { adminDb, getOrganizerIds, sendPushToProfiles } from "@/lib/push-server";
 
 /** נקראת מאלבום המפגש מיד אחרי add_event_photo(), רק כשהתמונה נכנסה ל"ממתין". */
@@ -39,14 +40,16 @@ export async function POST(request: Request) {
 
   const { data: uploader } = await db
     .from("profiles")
-    .select("full_name")
+    .select("full_name, gender")
     .eq("id", user.id)
     .maybeSingle();
 
   const organizerIds = await getOrganizerIds(db, event.club_id);
   await sendPushToProfiles(organizerIds, {
-    title: "תמונה ממתינה לאישור",
-    body: `${uploader?.full_name ?? "מישהו"} העלה/תה תמונה מ${event.title}`,
+    title: uploader?.full_name ?? "מישהו",
+    body:
+      byGender(uploader?.gender ?? null, "העלה תמונה מ", "העלתה תמונה מ") +
+      event.title,
     tag: "new-photo-pending",
     url: "/admin",
   });
