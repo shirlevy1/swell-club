@@ -104,6 +104,16 @@ export default function SignupPage() {
       return;
     }
 
+    // הפרופיל וחברות ה-pending כבר נוצרו ב-handle_new_user() ברגע
+    // הזה, גם אם עוד אין session (אימות אימייל) — לא ממתינים לזה
+    if (data.user) {
+      fetch("/api/push/notify-new-member", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile_id: data.user.id }),
+      }).catch(() => {});
+    }
+
     // אם אימות אימייל פעיל ב-Supabase, אין session עד שמאשרים
     if (!data.session) {
       setNeedsEmailConfirm(true);

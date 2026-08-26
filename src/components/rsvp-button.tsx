@@ -57,6 +57,15 @@ export function RsvpButton({
       setError("לא הצלחנו לשמור. נסו שוב.");
       return;
     }
+
+    // רק כשמסמנים הגעה, לא כשמבטלים — לא ממתינים לזה
+    if (next) {
+      fetch("/api/push/notify-rsvp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event_id: event.id }),
+      }).catch(() => {});
+    }
     startTransition(() => router.refresh());
   }
 

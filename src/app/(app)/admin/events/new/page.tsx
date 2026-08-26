@@ -255,6 +255,14 @@ export default function NewEventPage() {
       return setError("לא הצלחנו ליצור את המפגש. נסו שוב.");
     }
 
+    // לא ממתינים לזה — התראה לחברי הקהילה לא צריכה לעכב את הניווט,
+    // ואם היא נכשלת (למשל אף אחד לא הפעיל תזכורות) המפגש עדיין נוצר
+    fetch("/api/push/notify-new-event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event_id: data.id }),
+    }).catch(() => {});
+
     router.push(`/events/${data.id}`);
     router.refresh();
   }

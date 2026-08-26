@@ -238,11 +238,21 @@ export function EventPhotoAlbum({
 
         // רושמת את התמונה כ"ממתינה לאישור" (או מאושרת מיד, אם מדובר
         // במנהלת) — בלי זה הקובץ קיים ב-storage אבל לא מופיע לאף אחד.
-        const { error: addError } = await supabase.rpc("add_event_photo", {
-          p_event_id: eventId,
-          p_storage_path: path,
-        });
+        const { data: photoRow, error: addError } = await supabase.rpc(
+          "add_event_photo",
+          { p_event_id: eventId, p_storage_path: path },
+        );
         if (addError) throw addError;
+
+        // רק אם באמת נכנסה כ"ממתינה" — העלאת מנהלת מאושרת מיד ולא
+        // צריכה להודיע לעצמה. לא ממתינים לזה, זה לא חוסם את ההעלאה.
+        if (photoRow?.status === "pending") {
+          fetch("/api/push/notify-new-photo", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ photo_id: photoRow.id }),
+          }).catch(() => {});
+        }
       }
       router.refresh();
     } catch {

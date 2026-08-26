@@ -82,16 +82,21 @@ export async function POST(request: NextRequest) {
           .eq("club_id", event.club_id),
       ]);
 
-      const names = (
-        (going ?? []) as unknown as {
-          profiles: { full_name: string } | null;
-        }[]
-      )
+      const goingRows = (going ?? []) as unknown as {
+        profile_id: string;
+        profiles: { full_name: string } | null;
+      }[];
+      const names = goingRows
         .map((r) => r.profiles?.full_name)
         .filter(Boolean) as string[];
 
       const body = reminderBody(kind, event, names);
-      const ids = (members ?? []).map((m) => m.profile_id);
+      // ערב לפני — כולם, גם מי שעוד לא סימן/ה שמגיע/ה (זו הזמנה).
+      // בוקר של המפגש — רק מי שכבר סימן/ה, כתזכורת לסמן הגעה בפועל.
+      const ids =
+        kind === "morning"
+          ? goingRows.map((r) => r.profile_id)
+          : (members ?? []).map((m) => m.profile_id);
       if (ids.length === 0) continue;
 
       const { data: subs } = await db
@@ -151,6 +156,12 @@ function reminderBody(
   else if (names.length === 2) who = ` ${names[0]} ו${names[1]} בדרך.`;
   else if (names.length > 2)
     who = ` ${names[0]}, ${names[1]} ועוד ${names.length - 2} בדרך.`;
+
+  // בבוקר המפגש התזכורת יוצאת רק למי שכבר סימן/ה שמגיע/ה, ולכן
+  // מזכירה במפורש לסמן הגעה בפועל במקום — לא רק מתי ואיפה.
+  if (kind === "morning") {
+    return `${when}, ${where}.${who} אל תשכחו לסמן הגעה כשתגיעו.`;
+  }
 
   return `${when}, ${where}.${who}`;
 }
