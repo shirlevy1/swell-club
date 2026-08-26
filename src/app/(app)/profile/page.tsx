@@ -9,7 +9,6 @@ import {
 import { demoMode } from "@/lib/config";
 import { attendanceStreak } from "@/lib/streak";
 import { StreakCard, WaveIcon } from "@/components/streak-card";
-import { NotificationToggle } from "@/components/notification-toggle";
 import { SelfieHistory } from "@/components/selfie-history";
 import { facePositionStyle } from "@/lib/face-position";
 import {
@@ -129,8 +128,6 @@ export default async function ProfilePage() {
       {count > 0 && (
         <StreakCard streak={streak} gender={viewer.profile?.gender ?? null} />
       )}
-
-      <NotificationToggle />
 
       {count > 0 && (
         <section className="space-y-3">
