@@ -19,11 +19,20 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const db = adminDb();
-  const [{ data: event }, { data: profile }] = await Promise.all([
+  const [
+    { data: event, error: eventError },
+    { data: profile, error: profileError },
+  ] = await Promise.all([
     db.from("events").select("club_id, title").eq("id", event_id).maybeSingle(),
     db.from("profiles").select("full_name, gender").eq("id", user.id).maybeSingle(),
   ]);
-  if (!event || !profile) return NextResponse.json({ ok: true });
+  if (eventError) console.error("notify-rsvp: event lookup failed", eventError);
+  if (profileError) {
+    console.error("notify-rsvp: profile lookup failed", profileError);
+  }
+  if (!event || !profile) {
+    return NextResponse.json({ error: "not_found" }, { status: 404 });
+  }
 
   const organizerIds = (await getOrganizerIds(db, event.club_id)).filter(
     // אם המנהלת עצמה מסמנת הגעה, לא צריך להודיע לה על עצמה

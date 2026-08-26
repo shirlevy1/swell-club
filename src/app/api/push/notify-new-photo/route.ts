@@ -16,16 +16,19 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const db = adminDb();
-  const { data: photo } = await db
+  const { data: photo, error: photoError } = await db
     .from("event_photos")
     .select("status, uploaded_by, events(club_id, title)")
     .eq("id", photo_id)
     .maybeSingle();
+  if (photoError) {
+    console.error("notify-new-photo: photo lookup failed", photoError);
+  }
 
   // מוודאים שהמתקשר/ת הוא/היא באמת מי שהעלה/תה את התמונה הזו, ושהיא
   // עדיין ממתינה — לא מאפשרים "לעורר" התראה על תמונה של מישהו אחר
   if (!photo || photo.status !== "pending" || photo.uploaded_by !== user.id) {
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ error: "not_found_or_not_pending" }, { status: 404 });
   }
 
   const event = photo.events as unknown as {

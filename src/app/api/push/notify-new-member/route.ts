@@ -13,19 +13,25 @@ export async function POST(request: Request) {
   }
 
   const db = adminDb();
-  const { data: profile } = await db
+  const { data: profile, error: profileError } = await db
     .from("profiles")
     .select("full_name")
     .eq("id", profile_id)
     .maybeSingle();
+  if (profileError) {
+    console.error("notify-new-member: profile lookup failed", profileError);
+  }
   if (!profile) return NextResponse.json({ ok: true });
 
-  const { data: membership } = await db
+  const { data: membership, error: membershipError } = await db
     .from("club_members")
     .select("club_id")
     .eq("profile_id", profile_id)
     .eq("status", "pending")
     .maybeSingle();
+  if (membershipError) {
+    console.error("notify-new-member: membership lookup failed", membershipError);
+  }
   // לא ממתין/ה (למשל כבר אושר/ה, או שהיה/ת הראשון/ה בקהילה) — אין למי להודיע
   if (!membership) return NextResponse.json({ ok: true });
 
