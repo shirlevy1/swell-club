@@ -34,12 +34,19 @@ async function detectState(): Promise<State> {
   }
 }
 
+/**
+ * שני צבעים לא מספיקים כדי להבחין בין דלוק לכבוי (זה נראה כמו "יש
+ * התראה חדשה" בהרבה אפליקציות) — פעמון עם קו חוצה למצב כבוי הוא
+ * הסימן הכי מוכר לזה בכל מקום (וואטסאפ, סלאק וכו').
+ */
 function BellIcon({
   className,
   filled,
+  muted,
 }: {
   className?: string;
   filled?: boolean;
+  muted?: boolean;
 }) {
   return (
     <svg
@@ -54,6 +61,7 @@ function BellIcon({
     >
       <path d="M6 9a6 6 0 1 1 12 0c0 4 1.5 5.5 2 6.5H4c.5-1 2-2.5 2-6.5Z" />
       <path d="M9.5 18.5a2.5 2.5 0 0 0 5 0" />
+      {muted && <path d="M3.5 3.5 20 20" />}
     </svg>
   );
 }
@@ -128,7 +136,11 @@ export function NotificationIconToggle() {
             : "border-(--color-line) bg-(--color-surface) text-(--color-sea) hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10")
         }
       >
-        <BellIcon className="size-5" filled={state === "on"} />
+        <BellIcon
+          className="size-5"
+          filled={state === "on"}
+          muted={state !== "on"}
+        />
       </button>
 
       {notice && (
