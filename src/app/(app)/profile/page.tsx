@@ -17,7 +17,6 @@ import {
   swimLevelBadgeStyle,
 } from "@/lib/swim-level";
 import { monthAttendanceLine } from "@/lib/attendance-text";
-import { NotificationIconToggle } from "@/components/notification-icon-toggle";
 import { Button } from "@/components/ui";
 
 function EditIcon({ className }: { className?: string }) {
@@ -115,19 +114,14 @@ export default async function ProfilePage() {
           </div>
         </div>
 
-        {/* שני האייקונים אחד מתחת לשני, לא זה לצד זה — כדי שהשם+התג
-            יקבלו מספיק רוחב על אותה שורה גם על אייפון. */}
         {viewer.profile && (
-          <div className="flex shrink-0 flex-col items-center gap-2">
-            <NotificationIconToggle />
-            <Link
-              href="/profile/edit"
-              aria-label="עריכת פרופיל"
-              className="flex size-11 shrink-0 items-center justify-center rounded-full border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
-            >
-              <EditIcon className="size-5" />
-            </Link>
-          </div>
+          <Link
+            href="/profile/edit"
+            aria-label="עריכת פרופיל"
+            className="flex size-11 shrink-0 items-center justify-center rounded-full border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
+          >
+            <EditIcon className="size-5" />
+          </Link>
         )}
       </header>
 

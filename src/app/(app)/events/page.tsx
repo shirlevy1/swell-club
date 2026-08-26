@@ -9,6 +9,7 @@ import {
 } from "@/lib/data";
 import { EmptyState } from "@/components/ui";
 import { EventCard } from "@/components/event-card";
+import { NotificationIconToggle } from "@/components/notification-icon-toggle";
 
 export default async function EventsPage() {
   const viewer = await getViewer();
@@ -37,9 +38,12 @@ export default async function EventsPage() {
   return (
     <div className="space-y-8">
       <section className="space-y-3">
-        <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
-          מפגשים קרובים
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
+            מפגשים קרובים
+          </h2>
+          <NotificationIconToggle />
+        </div>
         {upcoming.length === 0 ? (
           <EmptyState
             title="אין מפגש מתוכנן"
