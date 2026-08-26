@@ -46,9 +46,12 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     if (!waiverAccepted)
       return setError("צריך לאשר את כתב הוויתור כדי לשמור.");
 
-    // waiver_accepted_at לא משתנה כאן — הוא מתעד מתי אושר לראשונה,
-    // לא מתי נערך הפרופיל. התיבה היא רק שער לשמירה, לא כתיבה מחדש.
-    const patch = {
+    // waiver/privacy_accepted_at לא נדרסים כאן אם כבר יש להם ערך — הם
+    // מתעדים מתי אושר לראשונה, לא מתי נערך הפרופיל. התיבה היא בעיקרה
+    // שער לשמירה, לא כתיבה מחדש. אבל אם עדיין null (חשבון ישן, שאושר
+    // הרגע לראשונה), חייבים כן לכתוב — אחרת האישור הזה אף פעם לא
+    // נשמר בפועל, והתיבה תיראה ריקה בכל עריכה הבאה לנצח.
+    const patch: Partial<Profile> = {
       full_name: fullName,
       gender: gender as Gender,
       phone,
@@ -57,6 +60,12 @@ export function ProfileForm({ profile }: { profile: Profile }) {
       swim_level: swimLevel as SwimLevel,
       instagram: normalizeInstagram(String(form.get("instagram") ?? "")),
     };
+    if (!profile.waiver_accepted_at) {
+      patch.waiver_accepted_at = new Date().toISOString();
+    }
+    if (!profile.privacy_accepted_at) {
+      patch.privacy_accepted_at = new Date().toISOString();
+    }
 
     setPending(true);
 
