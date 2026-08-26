@@ -5,6 +5,7 @@ import { AppNav } from "@/components/app-nav";
 import { AppHeader } from "@/components/app-header";
 import { DemoBadge } from "@/components/demo-badge";
 import { VisibilityRefresh } from "@/components/visibility-refresh";
+import { NotificationPromptBanner } from "@/components/notification-prompt-banner";
 import { Button, Card } from "@/components/ui";
 
 export default async function AppLayout({
@@ -52,7 +53,10 @@ export default async function AppLayout({
             </Card>
           </div>
         ) : (
-          children
+          <>
+            <NotificationPromptBanner />
+            {children}
+          </>
         )}
       </main>
 

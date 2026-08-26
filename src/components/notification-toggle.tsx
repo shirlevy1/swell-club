@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
+import { pushSupported, subscribeToPush } from "@/lib/push-client";
 import { Button, Card, Notice } from "./ui";
 
 /**
@@ -17,28 +18,13 @@ import { Button, Card, Notice } from "./ui";
 
 const VAPID = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
-function urlBase64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
-  const padded = (base64 + "=".repeat((4 - (base64.length % 4)) % 4))
-    .replace(/-/g, "+")
-    .replace(/_/g, "/");
-  const raw = atob(padded);
-  const bytes = new Uint8Array(raw.length);
-  for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
-  return bytes;
-}
-
 type State = "loading" | "unsupported" | "needs-install" | "off" | "on";
 
 /** מה המצב ההתחלתי. אסינכרוני, כי צריך לשאול את ה-service worker. */
 async function detectState(): Promise<State> {
   if (demoMode || !VAPID) return "unsupported";
 
-  const supported =
-    "serviceWorker" in navigator &&
-    "PushManager" in window &&
-    "Notification" in window;
-
-  if (!supported) {
+  if (!pushSupported()) {
     // אייפון בספארי רגיל: ה-API קיים רק באפליקציה מותקנת
     return /iPhone|iPad|iPod/.test(navigator.userAgent)
       ? "needs-install"
@@ -84,34 +70,7 @@ export function NotificationToggle() {
         );
       }
 
-      const reg = await navigator.serviceWorker.register("/sw.js");
-      await navigator.serviceWorker.ready;
-
-      const sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID!),
-      });
-
-      const json = sub.toJSON();
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("no session");
-
-      const { error: dbError } = await supabase
-        .from("push_subscriptions")
-        .upsert(
-          {
-            endpoint: sub.endpoint,
-            profile_id: user.id,
-            p256dh: json.keys?.p256dh ?? "",
-            auth: json.keys?.auth ?? "",
-          },
-          { onConflict: "endpoint" },
-        );
-      if (dbError) throw dbError;
-
+      await subscribeToPush(VAPID!);
       setState("on");
     } catch {
       setError("לא הצלחנו להפעיל תזכורות. נסו שוב.");
