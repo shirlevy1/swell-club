@@ -48,8 +48,8 @@ export async function POST(request: Request) {
   await sendPushToProfiles(
     (members ?? []).map((m) => m.profile_id),
     {
-      title: "מפגש חדש של Swell Club",
-      body: `${event.title} · ${formatDateTime(event.starts_at)} · ${event.location_name}`,
+      title: "עדכון על מפגש חדש",
+      body: `${event.title} · ${formatDateTime(event.starts_at)}\n${event.location_name}`,
       tag: `new-event-${event.id}`,
       url: `/events/${event.id}`,
     },
