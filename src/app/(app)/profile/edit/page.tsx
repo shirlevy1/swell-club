@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { getViewer } from "@/lib/data";
 import { BackLink } from "@/components/ui";
 import { ProfileForm } from "@/components/profile-form";
-import { NotificationToggle } from "@/components/notification-toggle";
 
 export default async function ProfileEditPage() {
   const viewer = await getViewer();
@@ -24,8 +23,6 @@ export default async function ProfileEditPage() {
       </div>
 
       <ProfileForm profile={viewer.profile} />
-
-      <NotificationToggle />
     </div>
   );
 }
