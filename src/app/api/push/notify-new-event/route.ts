@@ -17,11 +17,14 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const db = adminDb();
-  const { data: event } = await db
+  const { data: event, error: eventError } = await db
     .from("events")
     .select("id, club_id, title, starts_at, location_name")
     .eq("id", event_id)
     .maybeSingle();
+  if (eventError) {
+    console.error("notify-new-event: event lookup failed", eventError);
+  }
   if (!event) return NextResponse.json({ error: "not_found" }, { status: 404 });
 
   // רק חבר/ה באותה קהילה יכול/ה להפעיל את זה — לא כל משתמש מחובר

@@ -55,10 +55,13 @@ export async function sendPushToProfiles(
   );
 
   const db = adminDb();
-  const { data: subs } = await db
+  const { data: subs, error: subsError } = await db
     .from("push_subscriptions")
     .select("endpoint, p256dh, auth")
     .in("profile_id", profileIds);
+  if (subsError) {
+    console.error("sendPushToProfiles: subscriptions lookup failed", subsError);
+  }
 
   const json = JSON.stringify(payload);
   const dead: string[] = [];
@@ -85,11 +88,12 @@ export async function getOrganizerIds(
   db: ReturnType<typeof adminDb>,
   clubId: string,
 ): Promise<string[]> {
-  const { data } = await db
+  const { data, error } = await db
     .from("club_members")
     .select("profile_id")
     .eq("club_id", clubId)
     .eq("role", "organizer")
     .eq("status", "approved");
+  if (error) console.error("getOrganizerIds failed", error);
   return (data ?? []).map((r) => r.profile_id);
 }
