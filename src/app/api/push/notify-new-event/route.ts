@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     (members ?? []).map((m) => m.profile_id),
     {
       title: "עדכון על מפגש חדש",
-      body: `${event.title} · ${formatDateTime(event.starts_at)}\n${event.location_name}`,
+      body: `${event.title} · ${formatDateTime(event.starts_at)} ·\n${event.location_name}`,
       tag: `new-event-${event.id}`,
       url: `/events/${event.id}`,
     },
