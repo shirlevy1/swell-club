@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import webpush from "web-push";
-import { formatTime } from "@/lib/format";
-import { adminDb } from "@/lib/push-server";
+import { adminDb, buildReminderPayload } from "@/lib/push-server";
 
 /**
  * שולח תזכורות למפגשים קרובים. נועד להיקרא מתזמן חיצוני (cron) כל 30 דק'.
@@ -12,9 +11,9 @@ import { adminDb } from "@/lib/push-server";
  *   evening — 20:00, לכל מפגש שקורה למחרת.
  *   morning — 05:30, לכל מפגש שקורה היום.
  *
- * הניסוח הוא **כוונת יישום**: מתי, איפה, ומי כבר בדרך. תזכורת גנרית
- * ("יש מפגש מחר") מזיזה הרבה פחות מאשר תוכנית קונקרטית עם נורמה
- * חברתית — מה שאנשים אחרים בקהילה באמת עושים.
+ * ניסוח ה-payload עצמו (כותרת יום|שעה|מקום מודגשת, גוף עם משפט קצר
+ * קבוע לפי הסוג) מוגדר פעם אחת ב-buildReminderPayload, ומשותף גם
+ * ל-preview העצמי ולשידור לחבר/ה נבחר/ת — ראו lib/push-server.ts.
  */
 
 export const dynamic = "force-dynamic";
@@ -26,7 +25,6 @@ type Kind = "evening" | "morning";
 type EventRow = {
   id: string;
   club_id: string;
-  title: string;
   starts_at: string;
   location_name: string;
 };
@@ -85,7 +83,7 @@ export async function POST(request: NextRequest) {
     );
     const { data: candidates } = await db
       .from("events")
-      .select("id, club_id, title, starts_at, location_name")
+      .select("id, club_id, starts_at, location_name")
       .gte("starts_at", now.toISOString())
       .lte("starts_at", new Date(now.getTime() + 48 * 3600_000).toISOString());
     const tomorrowEvents = (candidates ?? []).filter(
@@ -101,7 +99,7 @@ export async function POST(request: NextRequest) {
     const { dateStr: todayStr } = israelParts(now);
     const { data: candidates } = await db
       .from("events")
-      .select("id, club_id, title, starts_at, location_name")
+      .select("id, club_id, starts_at, location_name")
       .gte("starts_at", now.toISOString())
       .lte("starts_at", new Date(now.getTime() + 24 * 3600_000).toISOString());
     const todayEvents = (candidates ?? []).filter(
@@ -132,26 +130,17 @@ async function sendReminder(
   const [{ data: going }, { data: members }] = await Promise.all([
     db
       .from("rsvps")
-      .select("profile_id, profiles(full_name)")
+      .select("profile_id")
       .eq("event_id", event.id)
       .eq("going", true),
     db.from("club_members").select("profile_id").eq("club_id", event.club_id),
   ]);
 
-  const goingRows = (going ?? []) as unknown as {
-    profile_id: string;
-    profiles: { full_name: string } | null;
-  }[];
-  const names = goingRows
-    .map((r) => r.profiles?.full_name)
-    .filter(Boolean) as string[];
-
-  const body = reminderBody(kind, event, names);
   // ערב לפני — כולם, גם מי שעוד לא סימן/ה שמגיע/ה (זו הזמנה).
   // בוקר של המפגש — רק מי שכבר סימן/ה, כתזכורת לסמן הגעה בפועל.
   const ids =
     kind === "morning"
-      ? goingRows.map((r) => r.profile_id)
+      ? (going ?? []).map((r) => r.profile_id)
       : (members ?? []).map((m) => m.profile_id);
   if (ids.length === 0) return;
 
@@ -160,12 +149,7 @@ async function sendReminder(
     .select("endpoint, p256dh, auth")
     .in("profile_id", ids);
 
-  const payload = JSON.stringify({
-    title: event.title,
-    body,
-    tag: `event-${event.id}`,
-    url: `/events/${event.id}`,
-  });
+  const payload = JSON.stringify(buildReminderPayload(kind, event));
 
   const dead: string[] = [];
   await Promise.all(
@@ -188,32 +172,4 @@ async function sendReminder(
   if (dead.length) {
     await db.from("push_subscriptions").delete().in("endpoint", dead);
   }
-}
-
-function reminderBody(
-  kind: Kind,
-  event: { starts_at: string; location_name: string },
-  names: string[],
-): string {
-  const when =
-    kind === "evening"
-      ? `מחר ${formatTime(event.starts_at)}`
-      : `היום ${formatTime(event.starts_at)}`;
-  const where = event.location_name;
-
-  // נורמה תיאורית: שמות אמיתיים של אנשים שכבר סימנו, לא מספר יבש.
-  // "בדרך" ולא "סימן/סימנה" — כל פועל כאן מניח מגדר של אדם אחר.
-  let who = "";
-  if (names.length === 1) who = ` ${names[0]} בדרך.`;
-  else if (names.length === 2) who = ` ${names[0]} ו${names[1]} בדרך.`;
-  else if (names.length > 2)
-    who = ` ${names[0]}, ${names[1]} ועוד ${names.length - 2} בדרך.`;
-
-  // בבוקר המפגש התזכורת יוצאת רק למי שכבר סימן/ה שמגיע/ה, ולכן
-  // מזכירה במפורש לסמן הגעה בפועל במקום — לא רק מתי ואיפה.
-  if (kind === "morning") {
-    return `${when}, ${where}.${who} אל תשכחו לסמן הגעה כשתגיעו.`;
-  }
-
-  return `${when}, ${where}.${who}`;
 }

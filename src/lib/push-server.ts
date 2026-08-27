@@ -85,26 +85,27 @@ export async function sendPushToProfiles(
 }
 
 /**
- * בונה payload שנראה בדיוק כמו תזכורת ערב/בוקר אמיתית (אותה סמנטיקה
- * כמו reminderBody ב-api/push/send/route.ts), לשימוש בשני מסלולי
- * הבדיקה: preview עצמי (api/push/test) ושידור אמיתי לחבר/ה ספציפי/ת
- * (api/push/notify-test-member). "מי בדרך" תמיד דוגמה בדויה — שני
- * המסלולים האלה לא עוברים דרך security definer שיודע מי באמת סימן.
+ * בונה את ה-payload של תזכורת ערב/בוקר — כותרת מודגשת עם יום|שעה|מקום,
+ * וגוף עם משפט קצר וקבוע לפי הסוג. משותפת לשלושה מסלולים: השליחה
+ * האמיתית מה-cron (api/push/send), ה-preview העצמי (api/push/test),
+ * והשידור האמיתי לחבר/ה נבחר/ת (api/push/notify-test-member) — כדי
+ * שכולם יפיקו בדיוק אותו ניסוח. event.id אופציונלי: כשיש, מקשר
+ * לעמוד המפגש עצמו; כשאין (preview בלי מפגש אמיתי), נופל ל-/events.
  */
-export function buildReminderPreview(
+export function buildReminderPayload(
   kind: "evening" | "morning",
-  event: { title: string; starts_at: string; location_name: string },
+  event: { id?: string; starts_at: string; location_name: string },
 ): PushPayload {
-  const when =
-    kind === "evening"
-      ? `מחר ${formatTime(event.starts_at)}`
-      : `היום ${formatTime(event.starts_at)}`;
-  const who = " דנה ויוסי בדרך.";
+  const when = kind === "evening" ? "מחר" : "היום";
+  const title = `${when} | ${formatTime(event.starts_at)} | ${event.location_name}`;
   const body =
-    kind === "morning"
-      ? `${when}, ${event.location_name}.${who} אל תשכחו לסמן הגעה כשתגיעו.`
-      : `${when}, ${event.location_name}.${who}`;
-  return { title: event.title, body, tag: "swell-test", url: "/events" };
+    kind === "evening" ? "נתראה במים" : "הגעתם? סמנו הגעה ותהיו חלק מהגל";
+  return {
+    title,
+    body,
+    tag: event.id ? `event-${event.id}` : "swell-test",
+    url: event.id ? `/events/${event.id}` : "/events",
+  };
 }
 
 /** כל ה-profile_id של מנהלות/י הקהילה של club_id נתון. */

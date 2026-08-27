@@ -3,7 +3,7 @@ import { demoMode } from "@/lib/config";
 import { createClient } from "@/lib/supabase/server";
 import {
   adminDb,
-  buildReminderPreview,
+  buildReminderPayload,
   sendPushToProfiles,
 } from "@/lib/push-server";
 
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
 
   const { data: upcoming } = await db
     .from("events")
-    .select("title, starts_at, location_name")
+    .select("id, starts_at, location_name")
     .eq("club_id", membership.club_id)
     .gte("starts_at", new Date().toISOString())
     .order("starts_at", { ascending: true })
@@ -74,7 +74,6 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   const event = upcoming ?? {
-    title: "שחיית בוקר",
     starts_at: new Date(
       Date.now() + (reminderKind === "evening" ? 12 : 1) * 3600_000,
     ).toISOString(),
@@ -83,7 +82,7 @@ export async function POST(request: Request) {
 
   await sendPushToProfiles(
     [match.profile_id],
-    buildReminderPreview(reminderKind, event),
+    buildReminderPayload(reminderKind, event),
   );
 
   return NextResponse.json({ ok: true });
