@@ -21,6 +21,7 @@ import { EventAgendaView } from "@/components/event-agenda";
 import { EventPhotoAlbum } from "@/components/event-photo-album";
 import { EditSelfieButton } from "@/components/edit-selfie-button";
 import { DeleteEventButton } from "@/components/delete-event-button";
+import { EventLiveRefresh } from "@/components/event-live-refresh";
 
 export default async function EventPage({
   params,
@@ -50,6 +51,7 @@ export default async function EventPage({
 
   return (
     <div className="space-y-7">
+      {status === "open" && <EventLiveRefresh />}
       <BackLink href="/events">לכל המפגשים</BackLink>
 
       <header className="space-y-2">
