@@ -38,10 +38,13 @@ self.addEventListener("notificationclick", (event) => {
     clients
       .matchAll({ type: "window", includeUncontrolled: true })
       .then((list) => {
-        // אם האפליקציה כבר פתוחה — לעבור אליה במקום לפתוח עוד חלון
+        // אם האפליקציה כבר פתוחה — מעבירים לה הודעה שתנווט בעצמה.
+        // client.navigate() לא אמין בכל דפדפן/PWA (בעיקר iOS Safari
+        // בשמור-למסך-הבית) — בלי זה הלחיצה רק מביאה לחזית את המסך
+        // האחרון שהיה פתוח, לא את המפגש שההתראה מדברת עליו.
         for (const client of list) {
           if ("focus" in client) {
-            client.navigate(target);
+            client.postMessage({ type: "swell-navigate", url: target });
             return client.focus();
           }
         }
