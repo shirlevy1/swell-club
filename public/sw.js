@@ -47,21 +47,12 @@ self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const target = event.notification.data?.url || "/events";
 
-  event.waitUntil(
-    clients
-      .matchAll({ type: "window", includeUncontrolled: true })
-      .then((list) => {
-        // אם האפליקציה כבר פתוחה — מעבירים לה הודעה שתנווט בעצמה.
-        // client.navigate() לא אמין בכל דפדפן/PWA (בעיקר iOS Safari
-        // בשמור-למסך-הבית) — בלי זה הלחיצה רק מביאה לחזית את המסך
-        // האחרון שהיה פתוח, לא את המפגש שההתראה מדברת עליו.
-        for (const client of list) {
-          if ("focus" in client) {
-            client.postMessage({ type: "swell-navigate", url: target });
-            return client.focus();
-          }
-        }
-        return clients.openWindow(target);
-      }),
-  );
+  // תמיד openWindow, בלי לנסות לתפוס חלון קיים ולנווט/להעביר לו
+  // הודעה: ב-PWA שמור-למסך-הבית (בעיקר iOS) חלון "פתוח" הוא לרוב
+  // מוקפא ברקע, לא JS חי — אז גם client.navigate() וגם postMessage
+  // אליו פשוט לא נקלטים, וכל מה שקורה בפועל הוא focus() על המסך
+  // הקפוא. openWindow מכריח ניווט אמיתי; רוב הדפדפנים ממילא מזהים
+  // שהאפליקציה כבר פתוחה ומביאים אותה לחזית עם היעד הזה, במקום
+  // לפתוח עוד עותק.
+  event.waitUntil(clients.openWindow(target));
 });

@@ -6,7 +6,6 @@ import { AppHeader } from "@/components/app-header";
 import { DemoBadge } from "@/components/demo-badge";
 import { VisibilityRefresh } from "@/components/visibility-refresh";
 import { PullToRefresh } from "@/components/pull-to-refresh";
-import { ServiceWorkerNavigateListener } from "@/components/sw-navigate-listener";
 import { NotificationPromptBanner } from "@/components/notification-prompt-banner";
 import { Button, Card } from "@/components/ui";
 
@@ -31,7 +30,6 @@ export default async function AppLayout({
       {demoMode && <DemoBadge currentRole={viewer.role ?? "member"} />}
 
       <VisibilityRefresh />
-      <ServiceWorkerNavigateListener />
 
       <AppHeader />
 
