@@ -238,13 +238,13 @@ export async function getUpcomingEvents(clubId: string) {
   return (data ?? []) as SwellEvent[];
 }
 
-export async function getPastEvents(clubId: string, limit = 20) {
+/** בלי limit בכוונה — קהילה קטנה, ואין סיבה שמפגש ייעלם משם רק כי עוד נוצרו אחריו. */
+export async function getPastEvents(clubId: string) {
   if (demoMode) {
     return demo
       .demoEvents()
       .filter((e) => new Date(e.starts_at).getTime() < Date.now() - RECENT_MS)
-      .sort((a, b) => b.starts_at.localeCompare(a.starts_at))
-      .slice(0, limit);
+      .sort((a, b) => b.starts_at.localeCompare(a.starts_at));
   }
 
   const supabase = await createClient();
@@ -253,8 +253,7 @@ export async function getPastEvents(clubId: string, limit = 20) {
     .select("*")
     .eq("club_id", clubId)
     .lt("starts_at", new Date(Date.now() - RECENT_MS).toISOString())
-    .order("starts_at", { ascending: false })
-    .limit(limit);
+    .order("starts_at", { ascending: false });
   return (data ?? []) as SwellEvent[];
 }
 
