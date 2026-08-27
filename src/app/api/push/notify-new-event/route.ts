@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { formatDateTime } from "@/lib/format";
+import { formatDayMonth, formatTime, formatWeekday } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { adminDb, sendPushToProfiles } from "@/lib/push-server";
 
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   const db = adminDb();
   const { data: event, error: eventError } = await db
     .from("events")
-    .select("id, club_id, title, starts_at, location_name")
+    .select("id, club_id, starts_at, location_name")
     .eq("id", event_id)
     .maybeSingle();
   if (eventError) {
@@ -48,8 +48,8 @@ export async function POST(request: Request) {
   await sendPushToProfiles(
     (members ?? []).map((m) => m.profile_id),
     {
-      title: "עדכון על מפגש חדש",
-      body: `${event.title} · ${formatDateTime(event.starts_at)} ·\n${event.location_name}`,
+      title: `${formatWeekday(event.starts_at)} | ${formatDayMonth(event.starts_at)} | ${formatTime(event.starts_at)} | ${event.location_name}`,
+      body: "יש סוואל. אתם באים?",
       tag: `new-event-${event.id}`,
       url: `/events/${event.id}`,
     },
