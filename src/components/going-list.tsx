@@ -48,11 +48,11 @@ export function GoingList({
     <Card className="space-y-3">
       <div className="space-y-0.5">
         <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
-          מי מגיע
+          מי מגיע?
         </h2>
         <p className="text-xs text-(--color-ink-faint)">
           {myGoing
-            ? "סימנתם גם אתם. נתראה בים."
+            ? "אתם בפנים. נתראה במים."
             : "הצהרת כוונה, לא נוכחות — מי שעוד לא הייתם איתם מוצגים בלי תמונה."}
         </p>
       </div>
