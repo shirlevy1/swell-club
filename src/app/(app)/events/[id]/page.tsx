@@ -20,6 +20,7 @@ import { SeaForecast } from "@/components/sea-forecast";
 import { EventAgendaView } from "@/components/event-agenda";
 import { EventPhotoAlbum } from "@/components/event-photo-album";
 import { EditSelfieButton } from "@/components/edit-selfie-button";
+import { DeleteEventButton } from "@/components/delete-event-button";
 
 export default async function EventPage({
   params,
@@ -168,6 +169,8 @@ export default async function EventPage({
           canUpload={canSeeAlbum && eventHasStarted}
         />
       )}
+
+      {isOrganizer && <DeleteEventButton eventId={id} />}
     </div>
   );
 }
