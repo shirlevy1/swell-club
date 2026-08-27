@@ -6,13 +6,11 @@ import { adminDb } from "@/lib/push-server";
 /**
  * שולח תזכורות למפגשים קרובים. נועד להיקרא מתזמן חיצוני (cron) כל 30 דק'.
  *
- * שתי תזכורות לכל מפגש, בשתי סמנטיקות שונות בכוונה:
- *   evening — שעה קבועה, 20:00 שעון ישראל, לכל מפגש שקורה למחרת. זו
- *             לא תזכורת "יחסית לשעת המפגש" — היא זמן נוח קבוע לבדוק
- *             מה קורה מחר, בלי קשר אם המפגש עצמו ב-6:00 או ב-21:00.
- *   morning — יחסית לשעת המפגש עצמו: כשעה לפניו. יש כאן חלון בטיחות
- *             של 45-75 דק' כדי לא לפספס בין שתי בדיקות ה-cron (כל 30
- *             דק'); בפועל היא תישלח בטיק הקרוב ביותר ל-60 דק' לפני.
+ * שתי תזכורות לכל מפגש, שתיהן בשעה קבועה בשעון ישראל ולא יחסית לשעת
+ * המפגש עצמו — כדי שהתזכורת תמיד תצא בול על השעה שנקבעה, בלי תלות
+ * בדקה שבה המפגש מתחיל (למשל 6:45, שלא נופלת על טיק cron של :00/:30):
+ *   evening — 20:00, לכל מפגש שקורה למחרת.
+ *   morning — 05:30, לכל מפגש שקורה היום.
  *
  * הניסוח הוא **כוונת יישום**: מתי, איפה, ומי כבר בדרך. תזכורת גנרית
  * ("יש מפגש מחר") מזיזה הרבה פחות מאשר תוכנית קונקרטית עם נורמה
@@ -98,15 +96,20 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // בוקר המפגש — כשעה לפני, עם חלון בטיחות שתופס כל מפגש בין שני
-  // טיקים גם אם שעת ההתחלה לא נופלת בול על :00/:30.
-  const { data: morningCandidates } = await db
-    .from("events")
-    .select("id, club_id, title, starts_at, location_name")
-    .gte("starts_at", new Date(now.getTime() + 45 * 60_000).toISOString())
-    .lte("starts_at", new Date(now.getTime() + 75 * 60_000).toISOString());
-  for (const event of morningCandidates ?? []) {
-    await sendReminder(db, event, "morning", sent);
+  // בוקר המפגש — רק בטיק שנופל ב-05:30-05:59 שעון ישראל.
+  if (nowHour === 5 && nowMinute >= 30) {
+    const { dateStr: todayStr } = israelParts(now);
+    const { data: candidates } = await db
+      .from("events")
+      .select("id, club_id, title, starts_at, location_name")
+      .gte("starts_at", now.toISOString())
+      .lte("starts_at", new Date(now.getTime() + 24 * 3600_000).toISOString());
+    const todayEvents = (candidates ?? []).filter(
+      (e) => israelParts(new Date(e.starts_at)).dateStr === todayStr,
+    );
+    for (const event of todayEvents) {
+      await sendReminder(db, event, "morning", sent);
+    }
   }
 
   return NextResponse.json({ ok: true, sent });
