@@ -56,7 +56,7 @@ export function checkInErrorMessage(
       : "הצ׳ק־אין למפגש הזה נסגר.";
   }
   if (raw.includes("TOO_FAR")) {
-    return "אתם רחוקים מדי מהמפגש. אפשר לסמן הגעה רק מהמקום עצמו.";
+    return "אתם עדיין לא במפגש. הצ׳ק־אין מחכה לכם במקום עצמו.";
   }
   if (raw.includes("ALREADY_CHECKED_IN")) {
     return "כבר סימנתם הגעה למפגש הזה.";

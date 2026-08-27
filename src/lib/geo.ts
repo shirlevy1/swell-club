@@ -18,11 +18,6 @@ export function distanceMeters(a: Coords, b: Coords): number {
   return EARTH_RADIUS_M * 2 * Math.asin(Math.sqrt(h));
 }
 
-export function formatDistance(m: number): string {
-  if (m < 1000) return `${Math.round(m)} מטר`;
-  return `${(m / 1000).toFixed(1)} ק״מ`;
-}
-
 /**
  * קריאת מיקום מהדפדפן.
  * enableHighAccuracy חיוני — בלעדיו iOS מחזיר מיקום סלולרי ברמת שכונה,

@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   distanceMeters,
-  formatDistance,
   geolocationErrorMessage,
   getCurrentPosition,
   type Coords,
@@ -92,9 +91,7 @@ export function CheckInFlow({ event }: { event: SwellEvent }) {
       const dist = distanceMeters(here, event);
       if (dist > event.checkin_radius_m + here.accuracy) {
         setStep("idle");
-        setError(
-          `אתם במרחק ${formatDistance(dist)} מהמפגש. אפשר לסמן הגעה רק מהמקום עצמו.`,
-        );
+        setError("אתם עדיין לא במפגש. הצ׳ק־אין מחכה לכם במקום עצמו.");
         return;
       }
 
@@ -336,7 +333,7 @@ export function CheckInFlow({ event }: { event: SwellEvent }) {
           אתם כאן?
         </h2>
         <p className="text-sm leading-relaxed text-(--color-ink-soft)">
-          אם כן, סמנו הגעה כדי להיות חלק מהמפגש.
+          סמנו הגעה ותהיו חלק מהמפגש.
         </p>
       </div>
 
