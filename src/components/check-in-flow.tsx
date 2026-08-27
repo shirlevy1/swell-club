@@ -205,7 +205,7 @@ export function CheckInFlow({ event }: { event: SwellEvent }) {
     const detection = await detectFace(canvas);
     setCheckingFace(false);
     if (!detection.hasFace) {
-      setError("לא זיהינו פנים בתמונה. ודאו שהפנים שלכם נראות בבירור ונסו שוב.");
+      setError("איפה הפנים? נסו שוב, הפעם עם הפנים מול המצלמה.");
       return;
     }
 
@@ -305,7 +305,7 @@ export function CheckInFlow({ event }: { event: SwellEvent }) {
           />
         </div>
         <p className="text-center text-sm text-(--color-ink-soft)">
-          זו התמונה שחברי הקהילה יראו לצד השם שלכם.
+          זו התמונה שחברי Swell Club שהיו במפגש יראו לצד השם שלכם.
         </p>
 
         {error && <Notice tone="error">{error}</Notice>}
