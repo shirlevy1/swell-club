@@ -7,11 +7,37 @@ import { demoMode } from "@/lib/config";
 // לא לרענן פעמיים ברצף כשכמה אירועים יורים על אותה חזרה לאפליקציה
 const MIN_GAP_MS = 2000;
 
+// אותם שמות בדיוק כמו ב-public/sw.js — זה הערוץ המשותף היחיד בין
+// ה-service worker לעמוד, כי Cache Storage (בניגוד ל-localStorage)
+// נגיש משני הצדדים.
+const NAV_CACHE = "swell-pending-nav";
+const NAV_KEY = "/pending-nav";
+
+/**
+ * קוראת יעד-ניווט ממתין שה-SW השאיר (ראו sw.js), ומוחקת אותו כדי
+ * שלא ינווט שוב בפעם הבאה שהאפליקציה חוזרת להיות גלויה.
+ */
+async function consumePendingNav(): Promise<string | null> {
+  if (!("caches" in window)) return null;
+  const cache = await caches.open(NAV_CACHE);
+  const res = await cache.match(NAV_KEY);
+  if (!res) return null;
+  await cache.delete(NAV_KEY);
+  return await res.text();
+}
+
 /**
  * לא מרנדרת כלום — רק מרעננת את העמוד כשהאפליקציה חוזרת להיות גלויה
  * (חוזרים אליה מאפליקציה אחרת, או מהמסך הראשי). ב-PWA שנשמר למסך
  * הבית אין סרגל דפדפן ואין pull-to-refresh — בלי זה הדרך היחידה
  * לרענן היא לסגור ולפתוח מחדש.
+ *
+ * גם בודקת יעד-ניווט ממתין בכל חזרה: לחיצה על התראה כשהאפליקציה
+ * כבר הייתה פתוחה ברקע לא מצליחה לנווט אותה ישירות מה-service
+ * worker (חלון "פתוח" ב-PWA שמור-למסך-הבית הוא בפועל מוקפא, ה-JS
+ * שלו לא רץ, אז שום קריאה אליו מה-SW לא נקלטת) — אז ה-SW משאיר
+ * יעד ב-Cache Storage, וברגע שהאפליקציה קמה לתחייה (אותם 3 אירועים
+ * שכבר משמשים לרענון) זה מה שבפועל מבצע את הניווט.
  *
  * ⚠️ `visibilitychange` לבדו לא מספיק: יש לו באג ידוע ב-iOS Safari
  * ב-PWA שנשמר למסך הבית (WebKit #202399) — לפעמים הוא פשוט לא יורה
@@ -38,21 +64,37 @@ export function VisibilityRefresh() {
       router.refresh();
     }
 
+    async function onResume() {
+      const pending = await consumePendingNav();
+      if (pending) {
+        router.push(pending);
+        return;
+      }
+      refresh();
+    }
+
     function handleVisibilityChange() {
-      if (document.visibilityState === "visible") refresh();
+      if (document.visibilityState === "visible") onResume();
     }
     function handlePageShow(e: PageTransitionEvent) {
-      if (e.persisted) refresh();
+      if (e.persisted) onResume();
     }
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("pageshow", handlePageShow);
-    window.addEventListener("focus", refresh);
+    window.addEventListener("focus", onResume);
+
+    // גם בעליית הרכיב עצמו, בלי רענון נלווה: מכסה מצב שה-SW פתח
+    // את כל האפליקציה מחדש (openWindow) ואין כאן "חזרה" נפרדת
+    // שתפעיל את onResume.
+    consumePendingNav().then((pending) => {
+      if (pending) router.push(pending);
+    });
 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("pageshow", handlePageShow);
-      window.removeEventListener("focus", refresh);
+      window.removeEventListener("focus", onResume);
     };
   }, [router]);
 

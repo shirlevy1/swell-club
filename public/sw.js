@@ -43,16 +43,26 @@ self.addEventListener("push", (event) => {
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
+// אותם שמות בדיוק כמו ב-visibility-refresh.tsx — הערוץ המשותף היחיד
+// בין ה-service worker לעמוד (Cache Storage, בניגוד ל-localStorage,
+// נגיש משני הצדדים).
+const NAV_CACHE = "swell-pending-nav";
+const NAV_KEY = "/pending-nav";
+
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const target = event.notification.data?.url || "/events";
 
-  // תמיד openWindow, בלי לנסות לתפוס חלון קיים ולנווט/להעביר לו
-  // הודעה: ב-PWA שמור-למסך-הבית (בעיקר iOS) חלון "פתוח" הוא לרוב
-  // מוקפא ברקע, לא JS חי — אז גם client.navigate() וגם postMessage
-  // אליו פשוט לא נקלטים, וכל מה שקורה בפועל הוא focus() על המסך
-  // הקפוא. openWindow מכריח ניווט אמיתי; רוב הדפדפנים ממילא מזהים
-  // שהאפליקציה כבר פתוחה ומביאים אותה לחזית עם היעד הזה, במקום
-  // לפתוח עוד עותק.
-  event.waitUntil(clients.openWindow(target));
+  // openWindow/navigate/postMessage לחלון קיים כולם נכשלים בפועל
+  // ב-PWA שמור-למסך-הבית (בעיקר iOS): חלון "פתוח" ברקע הוא לרוב
+  // מוקפא, ה-JS שלו לא רץ, ושום קריאה מה-SW אליו לא נקלטת — נבדק
+  // ונכשל שלוש פעמים. הפתרון: משאירים כאן יעד ממתין ב-Cache Storage,
+  // וברגע שהאפליקציה קמה לתחייה (visibility-refresh.tsx כבר מקשיב
+  // בדיוק לרגע הזה) היא בעצמה קוראת אותו ומנווטת.
+  event.waitUntil(
+    caches
+      .open(NAV_CACHE)
+      .then((cache) => cache.put(NAV_KEY, new Response(target)))
+      .then(() => clients.openWindow(target)),
+  );
 });
