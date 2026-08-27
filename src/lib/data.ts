@@ -1122,22 +1122,26 @@ export async function getAdminData(clubId: string) {
       profile_id: string;
       profiles: Profile | null;
     }[]
-  ).flatMap((m) =>
-    m.profiles
-      ? [
-          {
-            profile: m.profiles,
-            attendedCount: attendedByProfile.get(m.profile_id) ?? 0,
-            latestSelfieUrl: (() => {
-              const path = latestPathByProfile.get(m.profile_id);
-              return path ? (urlByLatestPath.get(path) ?? null) : null;
-            })(),
-            latestFaceX: latestFaceByProfile.get(m.profile_id)?.x ?? null,
-            latestFaceY: latestFaceByProfile.get(m.profile_id)?.y ?? null,
-          },
-        ]
-      : [],
-  );
+  )
+    .flatMap((m) =>
+      m.profiles
+        ? [
+            {
+              profile: m.profiles,
+              attendedCount: attendedByProfile.get(m.profile_id) ?? 0,
+              latestSelfieUrl: (() => {
+                const path = latestPathByProfile.get(m.profile_id);
+                return path ? (urlByLatestPath.get(path) ?? null) : null;
+              })(),
+              latestFaceX: latestFaceByProfile.get(m.profile_id)?.x ?? null,
+              latestFaceY: latestFaceByProfile.get(m.profile_id)?.y ?? null,
+            },
+          ]
+        : [],
+    )
+    // club_members לא מגיעה עם order() — בלי מיון מפורש הסדר תלוי
+    // בהתנהגות פנימית של Postgres, לא בהצטרפות בפועל. הוותיקים קודם.
+    .sort((a, b) => a.profile.created_at.localeCompare(b.profile.created_at));
 
   return { events, members };
 }

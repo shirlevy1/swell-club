@@ -102,12 +102,6 @@ export default async function AdminPage() {
     (e) => checkInWindow(e).status !== "before",
   ).length;
 
-  // סדר הצטרפות, לא סדר הרשימה בעמוד (שם אין ערבות לסדר קבוע) — ליצוא
-  // הגיוני שהוותיקים יופיעו קודם.
-  const membersChronological = [...members].sort((a, b) =>
-    a.profile.created_at.localeCompare(b.profile.created_at),
-  );
-
   const membersCsv = [
     [
       "שם",
@@ -124,7 +118,8 @@ export default async function AdminPage() {
       "אישר/ה כתב ויתור",
       "אישר/ה הצהרת פרטיות",
     ],
-    ...membersChronological.map((m) => [
+    // members כבר ממוין לפי תאריך הצטרפות ב-getAdminData
+    ...members.map((m) => [
       m.profile.full_name,
       genderLabel(m.profile.gender),
       ageInYears(m.profile.birth_date)?.toString() ?? "",
