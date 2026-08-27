@@ -64,7 +64,17 @@ export function VisibilityRefresh() {
       router.refresh();
     }
 
+    // הבדיקה האוטומטית של הדפדפן לעדכון service worker לא אמינה
+    // ב-PWA שמור-למסך-הבית (אותה משפחת באגים כמו visibilitychange) —
+    // בלעדי דחיפה מפורשת כאן, תיקונים ב-sw.js עלולים לא לתפוס לאורך
+    // זמן רב אצל מי שכבר הפעיל תזכורות לפני העדכון.
+    function checkForSwUpdate() {
+      if (!("serviceWorker" in navigator)) return;
+      navigator.serviceWorker.getRegistration().then((reg) => reg?.update());
+    }
+
     async function onResume() {
+      checkForSwUpdate();
       const pending = await consumePendingNav();
       if (pending) {
         router.push(pending);
@@ -87,6 +97,7 @@ export function VisibilityRefresh() {
     // גם בעליית הרכיב עצמו, בלי רענון נלווה: מכסה מצב שה-SW פתח
     // את כל האפליקציה מחדש (openWindow) ואין כאן "חזרה" נפרדת
     // שתפעיל את onResume.
+    checkForSwUpdate();
     consumePendingNav().then((pending) => {
       if (pending) router.push(pending);
     });
