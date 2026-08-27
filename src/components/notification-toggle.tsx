@@ -44,7 +44,9 @@ export function NotificationToggle() {
   const [state, setState] = useState<State>("loading");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [testSent, setTestSent] = useState(false);
+  const [testSent, setTestSent] = useState<"evening" | "morning" | null>(
+    null,
+  );
 
   // המצב ההתחלתי הוא תמיד "loading" — כך הרנדר בשרת ובלקוח זהים
   // ואין אי-התאמה בהידרציה. הזיהוי קורה אחריו.
@@ -97,14 +99,18 @@ export function NotificationToggle() {
     setPending(false);
   }
 
-  async function sendTest() {
+  async function sendTest(kind: "evening" | "morning") {
     setError(null);
-    setTestSent(false);
+    setTestSent(null);
     setPending(true);
     try {
-      const res = await fetch("/api/push/test", { method: "POST" });
+      const res = await fetch("/api/push/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind }),
+      });
       if (!res.ok) throw new Error();
-      setTestSent(true);
+      setTestSent(kind);
     } catch {
       setError("לא הצלחנו לשלוח תזכורת לדוגמה. נסו שוב.");
     }
@@ -136,7 +142,8 @@ export function NotificationToggle() {
           {error && <Notice tone="error">{error}</Notice>}
           {testSent && (
             <Notice tone="good">
-              נשלחה תזכורת לדוגמה — אמורה להופיע בטלפון תוך כמה שניות.
+              נשלחה תזכורת {testSent === "evening" ? "ערב" : "בוקר"} לדוגמה —
+              אמורה להופיע בטלפון תוך כמה שניות.
             </Notice>
           )}
           <Button
@@ -152,14 +159,24 @@ export function NotificationToggle() {
                 : "הפעלת תזכורות"}
           </Button>
           {state === "on" && (
-            <Button
-              onClick={sendTest}
-              disabled={pending}
-              variant="ghost"
-              className="w-full"
-            >
-              שליחת תזכורת לדוגמה
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => sendTest("evening")}
+                disabled={pending}
+                variant="ghost"
+                className="w-full"
+              >
+                תזכורת ערב לדוגמה
+              </Button>
+              <Button
+                onClick={() => sendTest("morning")}
+                disabled={pending}
+                variant="ghost"
+                className="w-full"
+              >
+                תזכורת בוקר לדוגמה
+              </Button>
+            </div>
           )}
         </>
       )}

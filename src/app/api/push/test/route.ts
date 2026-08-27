@@ -2,19 +2,29 @@ import { NextResponse } from "next/server";
 import webpush from "web-push";
 import { demoMode } from "@/lib/config";
 import { createClient } from "@/lib/supabase/server";
+import { formatTime } from "@/lib/format";
 
 /**
  * שולחת תזכורת-דוגמה למי שכבר הפעיל התראות, כדי שיראו איך זה נראה
  * לפני שסומכים על זה שהתזכורות האמיתיות (send/route.ts) יעבדו.
+ * מקבלת kind ("evening"/"morning") ובונה גוף בדיוק כמו reminderBody()
+ * ב-send/route.ts, כדי שהדוגמה תשקף את הניסוח האמיתי ולא רק טקסט כללי.
+ * אם יש מפגש עתידי אמיתי בקהילה — משתמשת בפרטים שלו (שם/שעה/מקום);
+ * אחרת נופלת לדוגמה בדויה. "מי בדרך" תמיד בדוי, כי rsvps של אחרים
+ * נעולה ב-RLS ואין כאן security definer לקרוא אותה.
  *
  * בניגוד ל-send/route.ts (שרץ מ-cron בלי משתמש מחובר, ולכן צריך
  * service_role) — כאן יש session אמיתי, אז מספיק הלקוח הרגיל ו-RLS
  * כבר דואג שכל אחד רואה רק את המנוי של עצמו.
  */
-export async function POST() {
+export async function POST(request: Request) {
   if (demoMode) {
     return NextResponse.json({ error: "not_configured" }, { status: 503 });
   }
+
+  const { kind } = await request.json().catch(() => ({}));
+  const reminderKind: "evening" | "morning" =
+    kind === "morning" ? "morning" : "evening";
 
   const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const vapidPrivate = process.env.VAPID_PRIVATE_KEY;
@@ -40,11 +50,50 @@ export async function POST() {
     return NextResponse.json({ error: "no_subscription" }, { status: 404 });
   }
 
+  const { data: membership } = await supabase
+    .from("club_members")
+    .select("club_id")
+    .eq("profile_id", user.id)
+    .eq("status", "approved")
+    .maybeSingle();
+
+  let title = "שחיית בוקר";
+  let starts_at = new Date(
+    Date.now() + (reminderKind === "evening" ? 12 : 1) * 3600_000,
+  ).toISOString();
+  let location_name = "חוף הצוק הדרומי";
+
+  if (membership) {
+    const { data: event } = await supabase
+      .from("events")
+      .select("title, starts_at, location_name")
+      .eq("club_id", membership.club_id)
+      .gte("starts_at", new Date().toISOString())
+      .order("starts_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (event) {
+      title = event.title;
+      starts_at = event.starts_at;
+      location_name = event.location_name;
+    }
+  }
+
+  const when =
+    reminderKind === "evening"
+      ? `מחר ${formatTime(starts_at)}`
+      : `היום ${formatTime(starts_at)}`;
+  const who = " דנה ויוסי בדרך.";
+  const body =
+    reminderKind === "morning"
+      ? `${when}, ${location_name}.${who} אל תשכחו לסמן הגעה כשתגיעו.`
+      : `${when}, ${location_name}.${who}`;
+
   webpush.setVapidDetails(contact, vapidPublic, vapidPrivate);
 
   const payload = JSON.stringify({
-    title: "תזכורת לדוגמה",
-    body: "ככה תיראה תזכורת אמיתית — עם שעה, מקום, ומי כבר בדרך למפגש.",
+    title,
+    body,
     tag: "swell-test",
     url: "/events",
   });
