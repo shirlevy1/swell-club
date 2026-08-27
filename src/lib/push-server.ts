@@ -86,11 +86,8 @@ export async function sendPushToProfiles(
 
 /**
  * בונה את ה-payload של תזכורת ערב/בוקר — כותרת מודגשת עם יום|שעה|מקום,
- * וגוף עם משפט קצר וקבוע לפי הסוג. משותפת לשלושה מסלולים: השליחה
- * האמיתית מה-cron (api/push/send), ה-preview העצמי (api/push/test),
- * והשידור האמיתי לחבר/ה נבחר/ת (api/push/notify-test-member) — כדי
- * שכולם יפיקו בדיוק אותו ניסוח. event.id אופציונלי: כשיש, מקשר
- * לעמוד המפגש עצמו; כשאין (preview בלי מפגש אמיתי), נופל ל-/events.
+ * וגוף עם משפט קצר וקבוע לפי הסוג. משמשת את api/push/send (ה-cron
+ * התקופתי). event.id אופציונלי: כשיש, מקשר לעמוד המפגש עצמו.
  */
 export function buildReminderPayload(
   kind: "evening" | "morning",
