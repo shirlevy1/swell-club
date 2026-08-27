@@ -1140,8 +1140,8 @@ export async function getAdminData(clubId: string) {
         : [],
     )
     // club_members לא מגיעה עם order() — בלי מיון מפורש הסדר תלוי
-    // בהתנהגות פנימית של Postgres, לא בהצטרפות בפועל. הוותיקים קודם.
-    .sort((a, b) => a.profile.created_at.localeCompare(b.profile.created_at));
+    // בהתנהגות פנימית של Postgres, לא בהצטרפות בפועל. החדשים קודם.
+    .sort((a, b) => b.profile.created_at.localeCompare(a.profile.created_at));
 
   return { events, members };
 }
