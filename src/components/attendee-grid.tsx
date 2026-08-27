@@ -91,27 +91,29 @@ export function AttendeeGrid({
             )}
 
             <div className="space-y-2 p-3">
-              <p className="truncate text-sm font-bold">
-                {profile.full_name}
-                {isMe && (
-                  <span className="ms-1 text-[0.7rem] font-semibold text-(--color-sea)">
-                    (אתם)
+              <div className="flex items-center gap-2">
+                <p className="min-w-0 flex-1 truncate text-sm font-bold">
+                  {profile.full_name}
+                  {isMe && (
+                    <span className="ms-1 text-[0.7rem] font-semibold text-(--color-sea)">
+                      (אתם)
+                    </span>
+                  )}
+                </p>
+
+                {profile.swim_level && (
+                  <span
+                    className="flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-[0.65rem] font-semibold text-(--color-ink)"
+                    style={swimLevelBadgeStyle(profile.swim_level)}
+                  >
+                    <WaveIcon
+                      className="size-2.5"
+                      style={{ color: SWIM_LEVEL_COLOR[profile.swim_level] }}
+                    />
+                    {swimLevelLabel(profile.swim_level)}
                   </span>
                 )}
-              </p>
-
-              {profile.swim_level && (
-                <span
-                  className="flex w-fit items-center gap-1 rounded-full border px-1.5 py-0.5 text-[0.65rem] font-semibold text-(--color-ink)"
-                  style={swimLevelBadgeStyle(profile.swim_level)}
-                >
-                  <WaveIcon
-                    className="size-2.5"
-                    style={{ color: SWIM_LEVEL_COLOR[profile.swim_level] }}
-                  />
-                  {swimLevelLabel(profile.swim_level)}
-                </span>
-              )}
+              </div>
 
               {!isMe && (ig || wa) && (
                 <div className="flex gap-2">
