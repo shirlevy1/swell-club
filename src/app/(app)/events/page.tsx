@@ -46,8 +46,8 @@ export default async function EventsPage() {
         </div>
         {upcoming.length === 0 ? (
           <EmptyState
-            title="אין כרגע מפגש מתוכנן."
-            body="כשהבא ייפתח, הוא יופיע כאן."
+            title="מחכים לגל הבא"
+            body="כשהמפגש הבא ייפתח, תראו אותו כאן."
           />
         ) : (
           <ul className="space-y-3">
