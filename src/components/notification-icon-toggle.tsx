@@ -6,10 +6,9 @@ import { createClient } from "@/lib/supabase/client";
 import { pushSupported, subscribeToPush } from "@/lib/push-client";
 
 /**
- * גרסה מצומצמת של notification-toggle.tsx — אייקון פעמון בגודל
- * אייקון העריכה ליד השם, לא כרטיס עם טקסט הסבר. הכרטיס המלא (עם
- * הסבר ושליחת תזכורת לדוגמה) עדיין קיים בעריכת הפרופיל — זה כאן
- * הוא קיצור דרך מהיר, לא תחליף.
+ * אייקון פעמון קומפקטי (בגודל אייקון עריכה), לא כרטיס עם טקסט הסבר —
+ * כדי לא לתפוס מקום בשורת הכותרת של /events. "בדיקה" ליד הפעמון
+ * פותחת פאנל קטן לשליחת תזכורת-דוגמה, רק כשההתראות דלוקות.
  */
 
 const VAPID = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
@@ -70,6 +69,10 @@ export function NotificationIconToggle() {
   const [state, setState] = useState<State>("loading");
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [showTests, setShowTests] = useState(false);
+  const [testSent, setTestSent] = useState<"evening" | "morning" | null>(
+    null,
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -119,10 +122,27 @@ export function NotificationIconToggle() {
     setPending(false);
   }
 
+  async function sendTest(kind: "evening" | "morning") {
+    setTestSent(null);
+    setPending(true);
+    try {
+      const res = await fetch("/api/push/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind }),
+      });
+      if (!res.ok) throw new Error();
+      setTestSent(kind);
+    } catch {
+      setNotice("לא הצלחנו לשלוח תזכורת לדוגמה. נסו שוב.");
+    }
+    setPending(false);
+  }
+
   if (state === "loading" || state === "unsupported") return null;
 
   return (
-    <div className="relative">
+    <div className="relative flex items-center gap-1">
       <button
         type="button"
         onClick={toggle}
@@ -143,9 +163,51 @@ export function NotificationIconToggle() {
         />
       </button>
 
+      {state === "on" && (
+        <button
+          type="button"
+          onClick={() => setShowTests((v) => !v)}
+          className="text-xs text-(--color-sea) underline decoration-dotted underline-offset-2"
+        >
+          בדיקה
+        </button>
+      )}
+
       {notice && (
         <div className="absolute start-0 top-full z-10 mt-2 w-56 rounded-xl border border-(--color-line) bg-(--color-surface) p-3 text-xs leading-relaxed text-(--color-ink-soft) shadow-lg">
           {notice}
+        </div>
+      )}
+
+      {showTests && (
+        <div className="absolute start-0 top-full z-10 mt-2 w-64 space-y-2 rounded-xl border border-(--color-line) bg-(--color-surface) p-3 shadow-lg">
+          <p className="text-xs leading-relaxed text-(--color-ink-soft)">
+            שולח תזכורת-דוגמה לטלפון הזה, בניסוח האמיתי שישמש בפועל.
+          </p>
+          {testSent && (
+            <p className="text-xs font-semibold text-(--color-sea)">
+              נשלחה תזכורת {testSent === "evening" ? "ערב" : "בוקר"} — אמורה
+              להופיע תוך כמה שניות.
+            </p>
+          )}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => sendTest("evening")}
+              disabled={pending}
+              className="flex-1 rounded-lg border border-(--color-line) px-2 py-1.5 text-xs text-(--color-ink) hover:border-(--color-sea)/50"
+            >
+              תזכורת ערב
+            </button>
+            <button
+              type="button"
+              onClick={() => sendTest("morning")}
+              disabled={pending}
+              className="flex-1 rounded-lg border border-(--color-line) px-2 py-1.5 text-xs text-(--color-ink) hover:border-(--color-sea)/50"
+            >
+              תזכורת בוקר
+            </button>
+          </div>
         </div>
       )}
     </div>
