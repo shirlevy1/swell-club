@@ -2,20 +2,20 @@ import { NextResponse } from "next/server";
 import webpush from "web-push";
 import { demoMode } from "@/lib/config";
 import { createClient } from "@/lib/supabase/server";
-import { formatTime } from "@/lib/format";
+import { buildReminderPreview } from "@/lib/push-server";
 
 /**
  * שולחת תזכורת-דוגמה למי שכבר הפעיל התראות, כדי שיראו איך זה נראה
  * לפני שסומכים על זה שהתזכורות האמיתיות (send/route.ts) יעבדו.
- * מקבלת kind ("evening"/"morning") ובונה גוף בדיוק כמו reminderBody()
- * ב-send/route.ts, כדי שהדוגמה תשקף את הניסוח האמיתי ולא רק טקסט כללי.
- * אם יש מפגש עתידי אמיתי בקהילה — משתמשת בפרטים שלו (שם/שעה/מקום);
- * אחרת נופלת לדוגמה בדויה. "מי בדרך" תמיד בדוי, כי rsvps של אחרים
- * נעולה ב-RLS ואין כאן security definer לקרוא אותה.
+ * מקבלת kind ("evening"/"morning") ובונה payload עם buildReminderPreview,
+ * כדי שהדוגמה תשקף את הניסוח האמיתי ולא רק טקסט כללי. אם יש מפגש
+ * עתידי אמיתי בקהילה — משתמשת בפרטים שלו (שם/שעה/מקום); אחרת נופלת
+ * לדוגמה בדויה.
  *
  * בניגוד ל-send/route.ts (שרץ מ-cron בלי משתמש מחובר, ולכן צריך
  * service_role) — כאן יש session אמיתי, אז מספיק הלקוח הרגיל ו-RLS
- * כבר דואג שכל אחד רואה רק את המנוי של עצמו.
+ * כבר דואג שכל אחד רואה רק את המנוי של עצמו. שולחת רק למי שקורא/ת
+ * לה — לא לשידור אמיתי לחבר/ה אחר/ת, ראו notify-test-member לזה.
  */
 export async function POST(request: Request) {
   if (demoMode) {
@@ -57,14 +57,16 @@ export async function POST(request: Request) {
     .eq("status", "approved")
     .maybeSingle();
 
-  let title = "שחיית בוקר";
-  let starts_at = new Date(
-    Date.now() + (reminderKind === "evening" ? 12 : 1) * 3600_000,
-  ).toISOString();
-  let location_name = "חוף הצוק הדרומי";
+  let event = {
+    title: "שחיית בוקר",
+    starts_at: new Date(
+      Date.now() + (reminderKind === "evening" ? 12 : 1) * 3600_000,
+    ).toISOString(),
+    location_name: "חוף הצוק הדרומי",
+  };
 
   if (membership) {
-    const { data: event } = await supabase
+    const { data: upcoming } = await supabase
       .from("events")
       .select("title, starts_at, location_name")
       .eq("club_id", membership.club_id)
@@ -72,31 +74,11 @@ export async function POST(request: Request) {
       .order("starts_at", { ascending: true })
       .limit(1)
       .maybeSingle();
-    if (event) {
-      title = event.title;
-      starts_at = event.starts_at;
-      location_name = event.location_name;
-    }
+    if (upcoming) event = upcoming;
   }
 
-  const when =
-    reminderKind === "evening"
-      ? `מחר ${formatTime(starts_at)}`
-      : `היום ${formatTime(starts_at)}`;
-  const who = " דנה ויוסי בדרך.";
-  const body =
-    reminderKind === "morning"
-      ? `${when}, ${location_name}.${who} אל תשכחו לסמן הגעה כשתגיעו.`
-      : `${when}, ${location_name}.${who}`;
-
   webpush.setVapidDetails(contact, vapidPublic, vapidPrivate);
-
-  const payload = JSON.stringify({
-    title,
-    body,
-    tag: "swell-test",
-    url: "/events",
-  });
+  const payload = JSON.stringify(buildReminderPreview(reminderKind, event));
 
   await Promise.all(
     subs.map((s) =>

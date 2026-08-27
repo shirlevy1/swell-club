@@ -65,7 +65,11 @@ function BellIcon({
   );
 }
 
-export function NotificationIconToggle() {
+export function NotificationIconToggle({
+  isOrganizer = false,
+}: {
+  isOrganizer?: boolean;
+}) {
   const [state, setState] = useState<State>("loading");
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -73,6 +77,11 @@ export function NotificationIconToggle() {
   const [testSent, setTestSent] = useState<"evening" | "morning" | null>(
     null,
   );
+  const [memberName, setMemberName] = useState("מיסוואל");
+  const [memberSent, setMemberSent] = useState<"evening" | "morning" | null>(
+    null,
+  );
+  const [memberError, setMemberError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -139,6 +148,34 @@ export function NotificationIconToggle() {
     setPending(false);
   }
 
+  async function sendToMember(kind: "evening" | "morning") {
+    setMemberSent(null);
+    setMemberError(null);
+    setPending(true);
+    try {
+      const res = await fetch("/api/push/notify-test-member", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind, member_name: memberName }),
+      });
+      if (!res.ok) {
+        const { error } = await res.json().catch(() => ({ error: "" }));
+        setMemberError(
+          error === "member_not_found"
+            ? "לא נמצא/ת חבר/ת קהילה בשם הזה."
+            : error === "forbidden"
+              ? "רק מנהלת קהילה יכולה לשלוח."
+              : "לא הצלחנו לשלוח. נסו שוב.",
+        );
+        return;
+      }
+      setMemberSent(kind);
+    } catch {
+      setMemberError("לא הצלחנו לשלוח. נסו שוב.");
+    }
+    setPending(false);
+  }
+
   if (state === "loading" || state === "unsupported") return null;
 
   return (
@@ -180,34 +217,81 @@ export function NotificationIconToggle() {
       )}
 
       {showTests && (
-        <div className="absolute start-0 top-full z-10 mt-2 w-64 space-y-2 rounded-xl border border-(--color-line) bg-(--color-surface) p-3 shadow-lg">
-          <p className="text-xs leading-relaxed text-(--color-ink-soft)">
-            שולח תזכורת-דוגמה לטלפון הזה, בניסוח האמיתי שישמש בפועל.
-          </p>
-          {testSent && (
-            <p className="text-xs font-semibold text-(--color-sea)">
-              נשלחה תזכורת {testSent === "evening" ? "ערב" : "בוקר"} — אמורה
-              להופיע תוך כמה שניות.
+        <div className="absolute start-0 top-full z-10 mt-2 w-72 space-y-3 rounded-xl border border-(--color-line) bg-(--color-surface) p-3 shadow-lg">
+          <div className="space-y-2">
+            <p className="text-xs leading-relaxed text-(--color-ink-soft)">
+              שולח תזכורת-דוגמה לטלפון הזה, בניסוח האמיתי שישמש בפועל.
             </p>
-          )}
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => sendTest("evening")}
-              disabled={pending}
-              className="flex-1 rounded-lg border border-(--color-line) px-2 py-1.5 text-xs text-(--color-ink) hover:border-(--color-sea)/50"
-            >
-              תזכורת ערב
-            </button>
-            <button
-              type="button"
-              onClick={() => sendTest("morning")}
-              disabled={pending}
-              className="flex-1 rounded-lg border border-(--color-line) px-2 py-1.5 text-xs text-(--color-ink) hover:border-(--color-sea)/50"
-            >
-              תזכורת בוקר
-            </button>
+            {testSent && (
+              <p className="text-xs font-semibold text-(--color-sea)">
+                נשלחה תזכורת {testSent === "evening" ? "ערב" : "בוקר"} —
+                אמורה להופיע תוך כמה שניות.
+              </p>
+            )}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => sendTest("evening")}
+                disabled={pending}
+                className="flex-1 rounded-lg border border-(--color-line) px-2 py-1.5 text-xs text-(--color-ink) hover:border-(--color-sea)/50"
+              >
+                תזכורת ערב
+              </button>
+              <button
+                type="button"
+                onClick={() => sendTest("morning")}
+                disabled={pending}
+                className="flex-1 rounded-lg border border-(--color-line) px-2 py-1.5 text-xs text-(--color-ink) hover:border-(--color-sea)/50"
+              >
+                תזכורת בוקר
+              </button>
+            </div>
           </div>
+
+          {isOrganizer && (
+            <div className="space-y-2 border-t border-(--color-line) pt-3">
+              <p className="text-xs leading-relaxed text-(--color-ink-soft)">
+                שידור אמיתי לחבר/ת קהילה — כדי לבדוק איך זה נראה אצלה/ו,
+                לא רק אצלך.
+              </p>
+              <input
+                type="text"
+                value={memberName}
+                onChange={(e) => setMemberName(e.target.value)}
+                placeholder="שם חבר/ת קהילה"
+                className="w-full rounded-lg border border-(--color-line) bg-(--color-page) px-2 py-1.5 text-xs text-(--color-ink)"
+              />
+              {memberSent && (
+                <p className="text-xs font-semibold text-(--color-sea)">
+                  נשלחה תזכורת {memberSent === "evening" ? "ערב" : "בוקר"}{" "}
+                  ל{memberName}.
+                </p>
+              )}
+              {memberError && (
+                <p className="text-xs font-semibold text-(--color-fail)">
+                  {memberError}
+                </p>
+              )}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => sendToMember("evening")}
+                  disabled={pending}
+                  className="flex-1 rounded-lg border border-(--color-sea)/40 px-2 py-1.5 text-xs text-(--color-sea) hover:bg-(--color-sea)/10"
+                >
+                  שדר ערב
+                </button>
+                <button
+                  type="button"
+                  onClick={() => sendToMember("morning")}
+                  disabled={pending}
+                  className="flex-1 rounded-lg border border-(--color-sea)/40 px-2 py-1.5 text-xs text-(--color-sea) hover:bg-(--color-sea)/10"
+                >
+                  שדר בוקר
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

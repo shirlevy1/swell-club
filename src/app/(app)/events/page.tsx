@@ -42,7 +42,7 @@ export default async function EventsPage() {
           <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
             מפגשים קרובים
           </h2>
-          <NotificationIconToggle />
+          <NotificationIconToggle isOrganizer={viewer.role === "organizer"} />
         </div>
         {upcoming.length === 0 ? (
           <EmptyState

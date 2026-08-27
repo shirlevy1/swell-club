@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import webpush from "web-push";
+import { formatTime } from "./format";
 
 /**
  * שליחת Push מיידית (לא מ-cron) — לכל האירועים שקורים בפעולה אחת:
@@ -81,6 +82,29 @@ export async function sendPushToProfiles(
   if (dead.length) {
     await db.from("push_subscriptions").delete().in("endpoint", dead);
   }
+}
+
+/**
+ * בונה payload שנראה בדיוק כמו תזכורת ערב/בוקר אמיתית (אותה סמנטיקה
+ * כמו reminderBody ב-api/push/send/route.ts), לשימוש בשני מסלולי
+ * הבדיקה: preview עצמי (api/push/test) ושידור אמיתי לחבר/ה ספציפי/ת
+ * (api/push/notify-test-member). "מי בדרך" תמיד דוגמה בדויה — שני
+ * המסלולים האלה לא עוברים דרך security definer שיודע מי באמת סימן.
+ */
+export function buildReminderPreview(
+  kind: "evening" | "morning",
+  event: { title: string; starts_at: string; location_name: string },
+): PushPayload {
+  const when =
+    kind === "evening"
+      ? `מחר ${formatTime(event.starts_at)}`
+      : `היום ${formatTime(event.starts_at)}`;
+  const who = " דנה ויוסי בדרך.";
+  const body =
+    kind === "morning"
+      ? `${when}, ${event.location_name}.${who} אל תשכחו לסמן הגעה כשתגיעו.`
+      : `${when}, ${event.location_name}.${who}`;
+  return { title: event.title, body, tag: "swell-test", url: "/events" };
 }
 
 /** כל ה-profile_id של מנהלות/י הקהילה של club_id נתון. */
