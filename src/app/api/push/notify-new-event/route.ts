@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { formatDayMonth, formatTime, formatWeekday } from "@/lib/format";
+import { formatDayMonth, formatTime, formatWeekdayName } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { adminDb, sendPushToProfiles } from "@/lib/push-server";
 
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
   await sendPushToProfiles(
     (members ?? []).map((m) => m.profile_id),
     {
-      title: `${formatWeekday(event.starts_at)} | ${formatDayMonth(event.starts_at)} | ${formatTime(event.starts_at)} | ${event.location_name}`,
+      title: `${formatWeekdayName(event.starts_at)} | ${formatDayMonth(event.starts_at)} | ${formatTime(event.starts_at)} | ${event.location_name}`,
       body: "יש סוואל. אתם באים?",
       tag: `new-event-${event.id}`,
       url: `/events/${event.id}`,
