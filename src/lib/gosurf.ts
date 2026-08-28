@@ -108,8 +108,15 @@ async function fetchGoSurfDays(): Promise<GoSurfDay[]> {
  * GoSurf מפרסם שורה כל 3 שעות (00, 03, 06 ... 21). "רלוונטי למפגש"
  * הוא השורה שהכי קרובה לתחילתו (מעוגלת למטה) והשורה שאחריה — כדי
  * שיראו גם איך זה בהתחלה וגם איך זה מתפתח תוך כדי המפגש.
+ *
+ * מפגש ב-22:00: השורה הראשונה היא 21, והשנייה היא 00 — אבל ה-00
+ * הזו היא חצות ה**יום שאחרי**, לא חצות של אותו יום (שכבר עבר לפני
+ * שעות רבות). nextDay מסמן בדיוק את זה, כדי ש-getSeaForecastForEvent
+ * ישלוף אותה מהיום הנכון ולא בטעות מתחילת אותו יום.
  */
-function forecastHoursFor(startsAtISO: string): [string, string] {
+function forecastSlotsFor(
+  startsAtISO: string,
+): { hour: string; nextDay: boolean }[] {
   const hour = Number(
     new Intl.DateTimeFormat("en-US", {
       hour: "numeric",
@@ -118,9 +125,12 @@ function forecastHoursFor(startsAtISO: string): [string, string] {
     }).format(new Date(startsAtISO)),
   );
   const slot = Math.floor(hour / 3) * 3;
-  const nextSlot = (slot + 3) % 24;
+  const nextSlotRaw = slot + 3;
   const pad = (n: number) => String(n).padStart(2, "0");
-  return [pad(slot), pad(nextSlot)];
+  return [
+    { hour: pad(slot), nextDay: false },
+    { hour: pad(nextSlotRaw % 24), nextDay: nextSlotRaw >= 24 },
+  ];
 }
 
 /**
@@ -139,13 +149,23 @@ export async function getSeaForecastForEvent(
     const eventDateISO = new Date(startsAtISO).toLocaleDateString("en-CA", {
       timeZone: "Asia/Jerusalem",
     });
-    const hours = forecastHoursFor(startsAtISO);
+    // יום אחרי, timezone-aware — לא slice על המחרוזת, מאותה סיבה
+    // שה-JSDoc למעלה כבר מסביר לגבי eventDateISO עצמו.
+    const nextDateISO = new Date(
+      new Date(startsAtISO).getTime() + 24 * 3600_000,
+    ).toLocaleDateString("en-CA", { timeZone: "Asia/Jerusalem" });
 
+    const slots = forecastSlotsFor(startsAtISO);
     const days = await fetchGoSurfDays();
     const day = days.find((d) => d.dateISO === eventDateISO);
+    const nextDay = days.find((d) => d.dateISO === nextDateISO);
     if (!day) return null;
 
-    const rows = day.rows.filter((r) => hours.includes(r.hour));
+    const rows = slots.flatMap(({ hour, nextDay: wraps }) => {
+      const source = wraps ? nextDay : day;
+      const row = source?.rows.find((r) => r.hour === hour);
+      return row ? [row] : [];
+    });
     if (!rows.length) return null;
 
     return { ...day, rows };
