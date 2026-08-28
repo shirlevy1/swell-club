@@ -24,6 +24,7 @@ import { DeleteEventButton } from "@/components/delete-event-button";
 import { EventLiveRefresh } from "@/components/event-live-refresh";
 import { AddAttendanceButton } from "@/components/add-attendance-button";
 import { WhatToBring } from "@/components/what-to-bring";
+import { EditIcon } from "@/components/social-icons";
 
 export default async function EventPage({
   params,
@@ -58,13 +59,24 @@ export default async function EventPage({
       <BackLink href="/events">לכל המפגשים</BackLink>
 
       <header className="space-y-2">
-        <div className="space-y-0.5">
-          <p className="text-sm font-semibold text-(--color-sea)">
-            {event.title}
-          </p>
-          <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold leading-tight text-balance">
-            {formatDateTime(event.starts_at)}
-          </h1>
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 space-y-0.5">
+            <p className="text-sm font-semibold text-(--color-sea)">
+              {event.title}
+            </p>
+            <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold leading-tight text-balance">
+              {formatDateTime(event.starts_at)}
+            </h1>
+          </div>
+          {isOrganizer && (
+            <Link
+              href={`/admin/events/${id}/edit`}
+              aria-label="עריכת תיאור ולו״ז"
+              className="flex size-11 shrink-0 items-center justify-center rounded-full border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
+            >
+              <EditIcon className="size-5" />
+            </Link>
+          )}
         </div>
         <a
           href={
@@ -86,17 +98,7 @@ export default async function EventPage({
         </p>
       )}
 
-      <div className="space-y-2">
-        {event.agenda_visible && <EventAgendaView text={agendaText} />}
-        {isOrganizer && (
-          <Link
-            href={`/admin/events/${id}/edit`}
-            className="inline-flex min-h-11 items-center text-sm font-semibold text-(--color-sea)"
-          >
-            עריכת תיאור ולו״ז
-          </Link>
-        )}
-      </div>
+      {event.agenda_visible && <EventAgendaView text={agendaText} />}
 
       {event.equipment_visible && (
         <WhatToBring
