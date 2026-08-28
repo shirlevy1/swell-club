@@ -700,10 +700,16 @@ export async function getEventDetail(
         .filter((a) => myEventIds.has(a.eventId))
         .map((a) => a.profileId),
     );
+    // הסלפי האחרון שיש לו בפועל — לא הנוכחות האחרונה כשלעצמה. נוכחות
+    // שנוספה ידנית (בלי מצלמה) לא אמורה "לדרוס" סלפי אמיתי ממפגש קודם
+    // בתור "העדכני ביותר". אותו תיקון בדיוק כמו ב-event_going_list()
+    // האמיתית, ראו migration 0024.
     function latestDemoSelfie(profileId: string) {
-      const rows = allAttendances.filter((a) => a.profileId === profileId);
+      const rows = allAttendances
+        .filter((a) => a.profileId === profileId && a.selfie)
+        .sort((a, b) => b.at.localeCompare(a.at));
       if (!rows.length) return { selfieUrl: null, faceX: null, faceY: null };
-      const latest = [...rows].sort((a, b) => b.at.localeCompare(a.at))[0];
+      const latest = rows[0];
       return {
         selfieUrl: latest.selfie,
         faceX: latest.faceX,
