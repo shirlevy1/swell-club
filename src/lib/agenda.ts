@@ -34,7 +34,7 @@ export function getEventAgendaText(
 /** ברירת המחדל של "מה להביא למים?" — אותו טקסט קבוע כל עוד לא הוחלף. */
 export function defaultEquipmentText(): string {
   return [
-    "בגד ים · כובע · משקפת · מצוף ים",
+    "בגד ים · כובע · משקפת · מצוף בטיחות מים פתוחים",
     "",
     "חסר לכם ציוד?",
     "אפשר להשלים באתר או בחנויות של Speedo עם 15% הנחה בקוד SWELLCLUB.",
