@@ -163,13 +163,21 @@ export default async function EventPage({
           לא נכחת) בנפרד מתנאי הראות של הסקשן כולו. */}
       {(hasAttended || isOrganizer) && (
         <section className="space-y-4">
-          <div className="flex items-baseline justify-between">
+          <div className="flex items-center justify-between">
             <h2 className="font-[family-name:var(--font-display)] text-xl font-bold">
               מי היה חלק מהסוואל?
             </h2>
-            <span className="ltr-nums text-sm text-(--color-ink-faint)">
-              {attendees.length}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="ltr-nums text-sm text-(--color-ink-faint)">
+                {attendees.length}
+              </span>
+              {isOrganizer && (
+                <AddAttendanceButton
+                  eventId={id}
+                  excludeProfileIds={attendees.map((a) => a.profile.id)}
+                />
+              )}
+            </div>
           </div>
           <AttendeeGrid attendees={attendees} eventId={id} />
           {/* אותו חלון זמן בדיוק כמו הצ'ק־אין עצמו — לא נפרד וגם לא
@@ -177,12 +185,6 @@ export default async function EventPage({
               שוב בשרת, לא רק כאן. */}
           {hasAttended && status === "open" && (
             <EditSelfieButton eventId={id} />
-          )}
-          {isOrganizer && (
-            <AddAttendanceButton
-              eventId={id}
-              excludeProfileIds={attendees.map((a) => a.profile.id)}
-            />
           )}
         </section>
       )}

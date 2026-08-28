@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getMembersForAttendanceAction } from "@/lib/actions";
 import type { MemberPickerRow } from "@/lib/data";
-import { SwimmerIcon } from "./social-icons";
+import { EditIcon, SwimmerIcon } from "./social-icons";
 import { Card } from "./ui";
 
 /**
@@ -71,17 +71,18 @@ export function AddAttendanceButton({
   );
 
   return (
-    <div className="space-y-3">
+    <div className="relative">
       <button
         type="button"
         onClick={toggleOpen}
-        className="min-h-11 text-sm font-semibold text-(--color-sea)"
+        aria-label="הוספת נוכחות ידנית"
+        className="flex size-6 shrink-0 items-center justify-center rounded-full border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
       >
-        {open ? "סגירה" : "הוספת נוכחות ידנית"}
+        <EditIcon className="size-3.5" />
       </button>
 
       {open && (
-        <Card className="space-y-3">
+        <Card className="absolute start-0 top-full z-10 mt-2 w-72 space-y-3 shadow-lg">
           <input
             type="text"
             value={query}
