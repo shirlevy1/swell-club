@@ -69,6 +69,7 @@ export default function NewEventPage() {
   const [agendaTouched, setAgendaTouched] = useState(false);
   // בלי תלות בשעה כמו הלו"ז, אז אין צורך ב-useEffect נפרד
   const [equipmentText, setEquipmentText] = useState(defaultEquipmentText());
+  const [equipmentLinkVisible, setEquipmentLinkVisible] = useState(true);
   useEffect(() => {
     const now = roundedNow();
     setStartsAtDefault(now);
@@ -210,6 +211,7 @@ export default function NewEventPage() {
       description: description.trim() || null,
       agenda_text: agendaText.trim() || null,
       equipment_text: equipmentText.trim() || null,
+      equipment_link_visible: equipmentLinkVisible,
       is_sea: isSea,
     };
 
@@ -347,6 +349,22 @@ export default function NewEventPage() {
               dir="auto"
             />
           </Field>
+        </Card>
+
+        <Card>
+          <label className="flex min-h-11 items-center gap-2.5 text-sm font-semibold text-(--color-ink)">
+            <input
+              type="checkbox"
+              checked={equipmentLinkVisible}
+              onChange={(e) => setEquipmentLinkVisible(e.target.checked)}
+              className="size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
+            />
+            להציג קישור לציוד של Speedo?
+          </label>
+          <p className="mt-1 text-xs leading-relaxed text-(--color-ink-faint)">
+            כשמסומן, קישור עם 15% הנחה בקוד SWELLCLUB מופיע מתחת ל“מה
+            להביא למים?” במפגש הזה.
+          </p>
         </Card>
 
         <Card className="space-y-4">

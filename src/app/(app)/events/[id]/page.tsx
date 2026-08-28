@@ -98,7 +98,10 @@ export default async function EventPage({
         )}
       </div>
 
-      <WhatToBring text={equipmentText} />
+      <WhatToBring
+        text={equipmentText}
+        showLink={event.equipment_link_visible}
+      />
 
       {forecast && <SeaForecast day={forecast} />}
 

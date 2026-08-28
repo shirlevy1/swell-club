@@ -16,6 +16,9 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
   const [equipmentText, setEquipmentText] = useState(
     getEventEquipmentText(event),
   );
+  const [equipmentLinkVisible, setEquipmentLinkVisible] = useState(
+    event.equipment_link_visible,
+  );
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,6 +31,7 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
       description: description.trim() || null,
       agenda_text: agendaText.trim() || null,
       equipment_text: equipmentText.trim() || null,
+      equipment_link_visible: equipmentLinkVisible,
     };
 
     if (demoMode) {
@@ -83,6 +87,22 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
             dir="auto"
           />
         </Field>
+      </Card>
+
+      <Card>
+        <label className="flex min-h-11 items-center gap-2.5 text-sm font-semibold text-(--color-ink)">
+          <input
+            type="checkbox"
+            checked={equipmentLinkVisible}
+            onChange={(e) => setEquipmentLinkVisible(e.target.checked)}
+            className="size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
+          />
+          להציג קישור לציוד של Speedo?
+        </label>
+        <p className="mt-1 text-xs leading-relaxed text-(--color-ink-faint)">
+          כשמסומן, קישור עם 15% הנחה בקוד SWELLCLUB מופיע מתחת ל“מה
+          להביא למים?” במפגש הזה.
+        </p>
       </Card>
 
       {error && <Notice tone="error">{error}</Notice>}

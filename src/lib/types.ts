@@ -52,6 +52,8 @@ export type SwellEvent = {
   agenda_text: string | null;
   // אותו רעיון בדיוק בשביל "מה להביא למים?" — ריק נופל על ברירת המחדל.
   equipment_text: string | null;
+  // האם קישור הספידו יופיע מתחת לטקסט "מה להביא למים?" למפגש הזה.
+  equipment_link_visible: boolean;
   is_sea: boolean;
 };
 

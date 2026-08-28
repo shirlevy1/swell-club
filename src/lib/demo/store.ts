@@ -115,6 +115,7 @@ const EVENT_SEEDS: EventSeed[] = [
     description: null,
     agenda_text: null,
     equipment_text: null,
+    equipment_link_visible: true,
     is_sea: true,
   },
   {
@@ -134,6 +135,7 @@ const EVENT_SEEDS: EventSeed[] = [
     description: null,
     agenda_text: null,
     equipment_text: null,
+    equipment_link_visible: true,
     is_sea: true,
   },
   {
@@ -155,6 +157,7 @@ const EVENT_SEEDS: EventSeed[] = [
     description: null,
     agenda_text: null,
     equipment_text: null,
+    equipment_link_visible: true,
     is_sea: true,
   },
   {
@@ -174,6 +177,7 @@ const EVENT_SEEDS: EventSeed[] = [
     description: null,
     agenda_text: null,
     equipment_text: null,
+    equipment_link_visible: true,
     is_sea: true,
   },
   {
@@ -195,6 +199,7 @@ const EVENT_SEEDS: EventSeed[] = [
     description: null,
     agenda_text: null,
     equipment_text: null,
+    equipment_link_visible: true,
     is_sea: true,
   },
   {
@@ -214,6 +219,7 @@ const EVENT_SEEDS: EventSeed[] = [
     description: null,
     agenda_text: null,
     equipment_text: null,
+    equipment_link_visible: true,
     is_sea: true,
   },
 ];
@@ -481,6 +487,7 @@ export function demoUpdateEventSchedule(
     description: string | null;
     agenda_text: string | null;
     equipment_text: string | null;
+    equipment_link_visible: boolean;
   },
 ) {
   const seed = EVENT_SEEDS.find((e) => e.id === eventId);

@@ -58,6 +58,7 @@ export async function updateEventScheduleAction(
     description: string | null;
     agenda_text: string | null;
     equipment_text: string | null;
+    equipment_link_visible: boolean;
   },
 ) {
   guard();
