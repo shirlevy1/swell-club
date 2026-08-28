@@ -36,9 +36,11 @@ export function WhatToBring({
         <div className="space-y-3 pt-1">
           {BRAND_DEALS.map((brand) => (
             <div key={brand.name} className="space-y-1">
-              <p className="text-sm font-semibold">{brand.name}</p>
               <p className="text-sm leading-relaxed text-(--color-ink-soft)">
-                {brand.discount}
+                <span className="font-semibold text-(--color-ink)">
+                  {brand.name}
+                </span>{" "}
+                - {brand.discount}
               </p>
               <a
                 href={brand.url}
