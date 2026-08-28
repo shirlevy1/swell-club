@@ -5,7 +5,12 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
 import { updateEventScheduleAction } from "@/lib/demo/actions";
-import { getEventAgendaText, getEventEquipmentText } from "@/lib/agenda";
+import {
+  defaultAgendaText,
+  defaultEquipmentText,
+  getEventAgendaText,
+  getEventEquipmentText,
+} from "@/lib/agenda";
 import type { SwellEvent } from "@/lib/types";
 import { Button, Card, Notice, Textarea } from "./ui";
 
@@ -34,11 +39,19 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
     setError(null);
     setPending(true);
 
+    // אם הטקסט זהה לברירת המחדל הנוכחית (כלומר לא נערך בפועל), שומרים
+    // null ולא את המחרוזת הקפואה — כדי שהמפגש ימשיך לעקוב אחרי ברירת
+    // המחדל גם כשהיא תשתנה בעתיד, ולא יינעל על הניסוח שהיה כשנפתח הטופס.
+    const agendaIsDefault =
+      agendaText.trim() === defaultAgendaText(event.starts_at).trim();
+    const equipmentIsDefault =
+      equipmentText.trim() === defaultEquipmentText().trim();
+
     const patch = {
       description: description.trim() || null,
-      agenda_text: agendaText.trim() || null,
+      agenda_text: agendaIsDefault ? null : agendaText.trim() || null,
       agenda_visible: agendaVisible,
-      equipment_text: equipmentText.trim() || null,
+      equipment_text: equipmentIsDefault ? null : equipmentText.trim() || null,
       equipment_visible: equipmentVisible,
       equipment_link_visible: equipmentLinkVisible,
     };

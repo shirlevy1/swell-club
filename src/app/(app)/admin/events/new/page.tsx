@@ -196,11 +196,19 @@ export default function NewEventPage() {
 
     setPending(true);
 
+    // datetime-local נקרא כשעון מקומי של הדפדפן — נכון כל עוד המארגנת
+    // בישראל, וזה המקרה.
+    const startsAtISO = new Date(startsAtLocal).toISOString();
+
+    // אם הטקסט זהה לברירת המחדל הנוכחית (כלומר לא נערך בפועל), שומרים
+    // null ולא את המחרוזת הקפואה — כדי שהמפגש ימשיך לעקוב אחרי ברירת
+    // המחדל גם כשהיא תשתנה בעתיד, ולא יינעל על הניסוח שהיה בזמן היצירה.
+    const agendaIsDefault = agendaText.trim() === defaultAgendaText(startsAtISO).trim();
+    const equipmentIsDefault = equipmentText.trim() === defaultEquipmentText().trim();
+
     const draft = {
       title: String(form.get("title") ?? "").trim(),
-      // datetime-local נקרא כשעון מקומי של הדפדפן — נכון כל עוד
-      // המארגנת בישראל, וזה המקרה.
-      starts_at: new Date(startsAtLocal).toISOString(),
+      starts_at: startsAtISO,
       location_name: locationName.trim(),
       lat: coords.lat,
       lng: coords.lng,
@@ -212,9 +220,9 @@ export default function NewEventPage() {
       checkin_opens_before_min: minutesField(form.get("opens_before")),
       checkin_closes_after_min: minutesField(form.get("closes_after")),
       description: description.trim() || null,
-      agenda_text: agendaText.trim() || null,
+      agenda_text: agendaIsDefault ? null : agendaText.trim() || null,
       agenda_visible: agendaVisible,
-      equipment_text: equipmentText.trim() || null,
+      equipment_text: equipmentIsDefault ? null : equipmentText.trim() || null,
       equipment_visible: equipmentVisible,
       equipment_link_visible: equipmentLinkVisible,
       is_sea: isSea,
