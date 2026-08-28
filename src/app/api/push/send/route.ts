@@ -3,13 +3,19 @@ import webpush from "web-push";
 import { adminDb, buildReminderPayload } from "@/lib/push-server";
 
 /**
- * שולח תזכורות למפגשים קרובים. נועד להיקרא מתזמן חיצוני (cron) כל 30 דק'.
+ * שולח תזכורות למפגשים קרובים. נועד להיקרא מתזמן חיצוני (cron) כל 15 דק'.
  *
- * שתי תזכורות לכל מפגש, שתיהן בשעה קבועה בשעון ישראל ולא יחסית לשעת
- * המפגש עצמו — כדי שהתזכורת תמיד תצא בול על השעה שנקבעה, בלי תלות
- * בדקה שבה המפגש מתחיל (למשל 6:45, שלא נופלת על טיק cron של :00/:30):
- *   evening — 20:00, לכל מפגש שקורה למחרת.
- *   morning — 05:30, לכל מפגש שקורה היום.
+ * שתי תזכורות לכל מפגש, בעלות היגיון שונה בכוונה:
+ *   evening — שעה קבועה בשעון ישראל (20:00), לכל מפגש שקורה למחרת,
+ *     לכל חברי הקהילה (גם מי שעוד לא סימן/ה הגעה) — זו הזמנה.
+ *   morning — **שעה בדיוק לפני תחילת המפגש עצמו** (לא שעה קבועה), רק
+ *     למי שכבר סימן/ה "מגיע/ה" — זו תזכורת לצ'ק־אין, לא הזמנה. נבדק
+ *     בכל טיק אילו מפגשים נכנסים לחלון "בעוד שעה" ביחס לרזולוציית
+ *     ה-cron (15 דק'), כדי לתפוס גם שעות לא עגולות (מפגש ב-6:45 →
+ *     תזכורת ב-5:45), ולא רק שעות עגולות.
+ *
+ * kind נשאר 'morning' בקוד ובמסד (constraint קיים ב-event_reminders)
+ * גם אחרי השינוי הזה — רק המשמעות/הטריגר שלו השתנו, לא הערך עצמו.
  *
  * ניסוח ה-payload עצמו (כותרת יום|שעה|מקום מודגשת, גוף עם משפט קצר
  * קבוע לפי הסוג) מוגדר פעם אחת ב-buildReminderPayload, ומשותף גם
@@ -94,20 +100,22 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // בוקר המפגש — רק בטיק שנופל ב-05:30-05:59 שעון ישראל.
-  if (nowHour === 5 && nowMinute >= 30) {
-    const { dateStr: todayStr } = israelParts(now);
-    const { data: candidates } = await db
-      .from("events")
-      .select("id, club_id, starts_at, location_name")
-      .gte("starts_at", now.toISOString())
-      .lte("starts_at", new Date(now.getTime() + 24 * 3600_000).toISOString());
-    const todayEvents = (candidates ?? []).filter(
-      (e) => israelParts(new Date(e.starts_at)).dateStr === todayStr,
-    );
-    for (const event of todayEvents) {
-      await sendReminder(db, event, "morning", sent);
-    }
+  // שעה לפני המפגש — מפגשים שנכנסים עכשיו לחלון "בעוד שעה", ביחס
+  // לרזולוציית ה-cron (15 דק'): כל מפגש ש-(שעת ההתחלה שלו - שעה)
+  // נופל בין הטיק הקודם לטיק הזה מקבל את התזכורת עכשיו. כך גם מפגש
+  // ב-6:45 מקבל תזכורת ב-5:45 בדיוק, לא רק שעות עגולות.
+  const REMINDER_LEAD_MS = 60 * 60_000;
+  const TICK_MS = 15 * 60_000;
+  const { data: soonCandidates } = await db
+    .from("events")
+    .select("id, club_id, starts_at, location_name")
+    .gt(
+      "starts_at",
+      new Date(now.getTime() + REMINDER_LEAD_MS - TICK_MS).toISOString(),
+    )
+    .lte("starts_at", new Date(now.getTime() + REMINDER_LEAD_MS).toISOString());
+  for (const event of soonCandidates ?? []) {
+    await sendReminder(db, event, "morning", sent);
   }
 
   return NextResponse.json({ ok: true, sent });
