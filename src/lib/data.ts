@@ -674,6 +674,10 @@ export type EventDetail = {
 export async function getEventDetail(
   eventId: string,
   userId: string,
+  /** מנהלת רואה את רשימת הנוכחים תמיד, גם אם היא עצמה לא נכחה —
+   *  כמו שכבר קורה באלבום התמונות. `hasAttended` בהחזרה נשאר "האם
+   *  אני עצמי נכחתי" בלבד (קובע RSVP/צ׳ק־אין/עריכת סלפי משלה). */
+  isOrganizer = false,
 ): Promise<EventDetail> {
   if (demoMode) {
     const rsvps = demo.demoRsvps().filter((r) => r.eventId === eventId);
@@ -733,7 +737,7 @@ export async function getEventDetail(
         }),
       hasAttended,
       attendedCount: attendances.length,
-      attendees: hasAttended
+      attendees: hasAttended || isOrganizer
         ? attendances.flatMap((a) => {
             const profile = byId.get(a.profileId);
             return profile
@@ -780,7 +784,7 @@ export async function getEventDetail(
   const hasAttended = !!myAttendance;
   let attendees: AttendeeCard[] = [];
 
-  if (hasAttended) {
+  if (hasAttended || isOrganizer) {
     // עמודות מפורשות ולא `profiles(*)`. RLS עובד ברמת השורה בלבד, ולכן
     // כוכבית כאן שולחת לדפדפן של כל משתתף כל שדה שיתווסף לטבלה בעתיד,
     // גם אם אף מסך לא מציג אותו. הטלפון כן נשלח, במכוון: כפתור
@@ -870,6 +874,95 @@ export async function getEventDetail(
     attendedCount: attendedCount ?? 0,
     attendees,
   };
+}
+
+export type MemberPickerRow = {
+  profileId: string;
+  fullName: string;
+  selfieUrl: string | null;
+};
+
+/**
+ * חברי הקהילה עם התמונה העדכנית שלהם (מכל מפגש, לא רק זה הנוכחי) —
+ * לרשימת הבחירה בהוספת נוכחות ידנית. אותה לוגיקה בדיוק כמו "התמונה
+ * העדכנית" ב-getAdminData (מפגשים מהחדש לישן, הסלפי הראשון שנתקלים
+ * בו לכל אדם הוא העדכני ביותר), אבל בלי שאר הנתונים הכבדים שהיא
+ * מביאה — זו נטענת לפי דרישה מכל עמוד מפגש, לא רק מהניהול.
+ */
+export async function getClubMembersWithLatestSelfie(
+  clubId: string,
+): Promise<MemberPickerRow[]> {
+  if (demoMode) {
+    const attendances = demo.demoAttendances();
+    return demo.demoProfiles().map((profile) => {
+      const mine = attendances
+        .filter((a) => a.profileId === profile.id)
+        .sort((a, b) => b.at.localeCompare(a.at));
+      const latest = mine.find((a) => a.selfie);
+      return {
+        profileId: profile.id,
+        fullName: profile.full_name,
+        selfieUrl: latest?.selfie ?? null,
+      };
+    });
+  }
+
+  const supabase = await createClient();
+  const [{ data: memberRows }, { data: eventRows }] = await Promise.all([
+    supabase
+      .from("club_members")
+      .select("profile_id, profiles(id, full_name)")
+      .eq("club_id", clubId)
+      .eq("status", "approved"),
+    supabase
+      .from("events")
+      .select("attendances(profile_id, selfie_path)")
+      .eq("club_id", clubId)
+      .order("starts_at", { ascending: false }),
+  ]);
+
+  const latestPathByProfile = new Map<string, string>();
+  for (const event of (eventRows ?? []) as unknown as {
+    attendances: { profile_id: string; selfie_path: string | null }[];
+  }[]) {
+    for (const a of event.attendances) {
+      if (a.selfie_path && !latestPathByProfile.has(a.profile_id)) {
+        latestPathByProfile.set(a.profile_id, a.selfie_path);
+      }
+    }
+  }
+
+  const paths = [...latestPathByProfile.values()];
+  const signed = paths.length
+    ? ((
+        await supabase.storage
+          .from("selfies")
+          .createSignedUrls(paths, SELFIE_TTL)
+      ).data ?? [])
+    : [];
+  const urlByPath = new Map(
+    signed.map((s) => [s.path ?? "", s.signedUrl] as const),
+  );
+
+  return (
+    (memberRows ?? []) as unknown as {
+      profile_id: string;
+      profiles: { id: string; full_name: string } | null;
+    }[]
+  ).flatMap((m) =>
+    m.profiles
+      ? [
+          {
+            profileId: m.profiles.id,
+            fullName: m.profiles.full_name,
+            selfieUrl: (() => {
+              const path = latestPathByProfile.get(m.profile_id);
+              return path ? (urlByPath.get(path) ?? null) : null;
+            })(),
+          },
+        ]
+      : [],
+  );
 }
 
 export type EventPhoto = {

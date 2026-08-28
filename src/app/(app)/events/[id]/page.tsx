@@ -22,6 +22,7 @@ import { EventPhotoAlbum } from "@/components/event-photo-album";
 import { EditSelfieButton } from "@/components/edit-selfie-button";
 import { DeleteEventButton } from "@/components/delete-event-button";
 import { EventLiveRefresh } from "@/components/event-live-refresh";
+import { AddAttendanceButton } from "@/components/add-attendance-button";
 
 export default async function EventPage({
   params,
@@ -33,8 +34,9 @@ export default async function EventPage({
   const event = await getEvent(id);
   if (!viewer || !event) notFound();
 
+  const isOrganizer = viewer.role === "organizer";
   const { myGoing, rsvpCount, going, hasAttended, attendees } =
-    await getEventDetail(id, viewer.userId);
+    await getEventDetail(id, viewer.userId, isOrganizer);
   const { status, closesAt } = checkInWindow(event);
   const minutesBefore = formatMinutes(event.checkin_opens_before_min);
   // אף פעם לא מפיל את העמוד — GoSurf לא זמין נחשב "אין תחזית", לא שגיאה
@@ -43,7 +45,6 @@ export default async function EventPage({
     : null;
   const agendaText = getEventAgendaText(event);
 
-  const isOrganizer = viewer.role === "organizer";
   const eventHasStarted = hasEventStarted(event);
   // מנהלת רואה ומנהלת את האלבום גם בלי שנכחה — כמו בסלפים
   const canSeeAlbum = hasAttended || isOrganizer;
@@ -145,7 +146,11 @@ export default async function EventPage({
         </Notice>
       )}
 
-      {hasAttended && (
+      {/* מנהלת רואה את הרשימה הזו תמיד, גם בלי שנכחה בעצמה — כמו
+          באלבום התמונות. hasAttended נשאר "האם אני עצמי נכחתי",
+          ולכן עדיין קובע את כפתור עריכת הסלפי (אין מה לערוך אם
+          לא נכחת) בנפרד מתנאי הראות של הסקשן כולו. */}
+      {(hasAttended || isOrganizer) && (
         <section className="space-y-4">
           <div className="flex items-baseline justify-between">
             <h2 className="font-[family-name:var(--font-display)] text-xl font-bold">
@@ -159,7 +164,15 @@ export default async function EventPage({
           {/* אותו חלון זמן בדיוק כמו הצ'ק־אין עצמו — לא נפרד וגם לא
               פתוח לצמיתות. selfies_update_own ב-storage אוכפת את זה
               שוב בשרת, לא רק כאן. */}
-          {status === "open" && <EditSelfieButton eventId={id} />}
+          {hasAttended && status === "open" && (
+            <EditSelfieButton eventId={id} />
+          )}
+          {isOrganizer && (
+            <AddAttendanceButton
+              eventId={id}
+              excludeProfileIds={attendees.map((a) => a.profile.id)}
+            />
+          )}
         </section>
       )}
 

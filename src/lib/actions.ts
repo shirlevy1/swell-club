@@ -1,6 +1,6 @@
 "use server";
 
-import { getViewer } from "./data";
+import { getViewer, getClubMembersWithLatestSelfie, type MemberPickerRow } from "./data";
 import { isGoogleMapsUrl, parseGoogleMapsUrl } from "./maps";
 
 export type ResolveMapsLinkResult =
@@ -49,6 +49,26 @@ export async function resolveMapsLinkAction(
   }
 
   return { ok: true, ...parsed, url };
+}
+
+export type MembersForAttendanceResult =
+  | { ok: true; members: MemberPickerRow[] }
+  | { ok: false; error: string };
+
+/**
+ * חברי הקהילה לבחירה בהוספת נוכחות ידנית — נטענת רק כשמנהלת פותחת
+ * את הפאנל, לא כחלק מטעינת עמוד המפגש עצמו. מוגבלת למנהלת הקהילה
+ * הזו בלבד; admin_add_attendance() (שנקראת בנפרד מהלקוח) בודקת את
+ * זה שוב בעצמה בשרת, זו לא ההגנה היחידה.
+ */
+export async function getMembersForAttendanceAction(): Promise<MembersForAttendanceResult> {
+  const viewer = await getViewer();
+  if (!viewer?.club || viewer.role !== "organizer") {
+    return { ok: false, error: "רק מנהלת קהילה יכולה להוסיף נוכחות." };
+  }
+
+  const members = await getClubMembersWithLatestSelfie(viewer.club.id);
+  return { ok: true, members };
 }
 
 export type LocationSuggestion = {
