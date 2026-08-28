@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getMembersForAttendanceAction } from "@/lib/actions";
 import type { MemberPickerRow } from "@/lib/data";
+import { SwimmerIcon } from "./social-icons";
 import { Card } from "./ui";
 
 /**
@@ -109,7 +110,7 @@ export function AddAttendanceButton({
                     disabled={addingId === m.profileId}
                     className="flex min-h-11 w-full items-center gap-3 rounded-lg px-2 py-2 text-start transition hover:bg-(--color-haze) disabled:opacity-50"
                   >
-                    <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-(--color-line)/40 text-sm font-bold text-(--color-ink-faint)">
+                    <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-(--color-line)/40">
                       {m.selfieUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -118,7 +119,7 @@ export function AddAttendanceButton({
                           className="size-full object-cover"
                         />
                       ) : (
-                        m.fullName.trim()[0] ?? ""
+                        <SwimmerIcon className="size-5 text-(--color-ink-faint)" />
                       )}
                     </span>
                     <span className="min-w-0 flex-1 truncate text-sm font-semibold">

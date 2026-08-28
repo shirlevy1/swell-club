@@ -40,6 +40,37 @@ export function XIcon({ className }: { className?: string }) {
   );
 }
 
+/**
+ * שחיין פונה ימינה: ראש, זרוע זיגזג באמצע משיכה, ושני גלים — אותו
+ * אייקון בדיוק כמו לשונית "פרופיל" בסרגל הניווט (ICONS.profile
+ * ב-app-nav.tsx). מוגדר כאן בנפרד כי app-nav מרנדר את שלושת
+ * האייקונים שלו (מפגשים/פרופיל/ניהול) דרך אותו NavIcon גנרי — לא
+ * שווה לפרק את זה רק כדי לחסוך כפילות של path אחד וקבוע.
+ */
+export function SwimmerIcon({ className }: { className?: string }) {
+  const d =
+    "M18 8.6a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM15.8 7.6L11 2.5L14.5 7L2.5 10.5M2 16q3-2.1 6 0t6 0t6 0t4.5 0M3 19.5q2.5-1.7 5 0t5 0t5 0";
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      {d
+        .split("M")
+        .filter(Boolean)
+        .map((seg, i) => (
+          <path key={i} d={"M" + seg} />
+        ))}
+    </svg>
+  );
+}
+
 export function InstagramIcon({ className }: { className?: string }) {
   return (
     <svg

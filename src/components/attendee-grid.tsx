@@ -8,20 +8,14 @@ import {
   swimLevelBadgeStyle,
 } from "@/lib/swim-level";
 import { WaveIcon } from "./streak-card";
-import { InstagramIcon, WhatsAppIcon } from "./social-icons";
+import { InstagramIcon, SwimmerIcon, WhatsAppIcon } from "./social-icons";
 import { cx } from "./ui";
 
-function Initials({ name }: { name: string }) {
-  const initials = name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join("");
+/** נוכחות שנוספה ידנית (הוספת נוכחות ידנית) — אין לה סלפי בכלל. */
+function NoSelfieFallback() {
   return (
     <div className="flex size-full items-center justify-center bg-(--color-line)/40">
-      <span className="font-[family-name:var(--font-display)] text-3xl font-bold text-(--color-ink-faint)">
-        {initials}
-      </span>
+      <SwimmerIcon className="size-10 text-(--color-ink-faint)" />
     </div>
   );
 }
@@ -63,7 +57,7 @@ export function AttendeeGrid({
                 style={facePositionStyle(faceX, faceY)}
               />
             ) : (
-              <Initials name={profile.full_name} />
+              <NoSelfieFallback />
             )}
           </div>
         );
