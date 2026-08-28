@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { getEventAttendanceReportAction } from "@/lib/actions";
 import { downloadCsv } from "@/lib/csv";
-import { formatDateTime, formatDayMonth } from "@/lib/format";
+import { formatDayMonth } from "@/lib/format";
 
 /**
  * דוח RSVP/הגעה/תמונות למפגש ספציפי, שורה לכל חבר/ת קהילה — נשלף
@@ -36,16 +36,12 @@ export function EventReportButton({
         "שם",
         "סימן/ה שמתכנן/ת להגיע?",
         "הגיע/ה בפועל?",
-        "מתי סימן/ה הגעה",
-        "יש סלפי צ׳ק־אין?",
         "נוכחות נוספה ידנית ע״י המנהלת?",
       ],
       ...result.rows.map((r) => [
         r.fullName,
         r.going === null ? "לא סימן/ה" : r.going ? "כן" : "לא",
         r.attended ? "כן" : "לא",
-        r.checkedInAt ? formatDateTime(r.checkedInAt) : "",
-        r.hasSelfie ? "כן" : "לא",
         r.addedManually ? "כן" : "לא",
       ]),
     ];

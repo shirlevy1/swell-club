@@ -1244,12 +1244,7 @@ export type EventAttendanceReportRow = {
   /** null = לא נגע/ה בכלל בכפתור ה-RSVP למפגש הזה */
   going: boolean | null;
   attended: boolean;
-  checkedInAt: string | null;
-  /** יש סלפי צ׳ק־אין אמיתי — לא event_photos (אלבום המפגש, פיצ'ר
-   *  נפרד לגמרי). נוכחות שנוספה ידנית אף פעם לא תהיה עם סלפי. */
-  hasSelfie: boolean;
-  /** נוספה ע"י המנהלת (admin_add_attendance), לא צ׳ק־אין אמיתי —
-   *  אז checkedInAt הוא זמן ההוספה, לא זמן ההגעה בפועל. */
+  /** נוספה ע"י המנהלת (admin_add_attendance), לא צ׳ק־אין אמיתי. */
   addedManually: boolean;
 };
 
@@ -1273,8 +1268,6 @@ export async function getEventAttendanceReport(
         fullName: p.full_name,
         going: rsvp ? rsvp.going : null,
         attended: !!attendance,
-        checkedInAt: attendance?.at ?? null,
-        hasSelfie: !!attendance?.selfie,
         // אין added_manually בהדגמה — כל הנוכחויות שם "אמיתיות"
         addedManually: false,
       };
@@ -1295,7 +1288,7 @@ export async function getEventAttendanceReport(
         .eq("event_id", eventId),
       supabase
         .from("attendances")
-        .select("profile_id, checked_in_at, selfie_path, added_manually")
+        .select("profile_id, added_manually")
         .eq("event_id", eventId),
     ]);
 
@@ -1321,8 +1314,6 @@ export async function getEventAttendanceReport(
               ? (goingByProfile.get(m.profile_id) ?? null)
               : null,
             attended: !!attendance,
-            checkedInAt: attendance?.checked_in_at ?? null,
-            hasSelfie: !!attendance?.selfie_path,
             addedManually: attendance?.added_manually ?? false,
           },
         ]
