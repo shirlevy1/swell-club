@@ -60,7 +60,7 @@ export function EventReportButton({
         onClick={download}
         disabled={pending}
         aria-label="ייצוא נוכחות"
-        className="flex size-8 shrink-0 items-center justify-center rounded-full border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10 disabled:opacity-50"
+        className="flex size-8 shrink-0 items-center justify-center rounded-xl border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10 disabled:opacity-50"
       >
         <DownloadIcon className="size-4" />
       </button>
