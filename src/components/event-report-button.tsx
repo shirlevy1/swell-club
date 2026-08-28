@@ -40,7 +40,7 @@ export function EventReportButton({
       ],
       ...result.rows.map((r) => [
         r.fullName,
-        r.going === null ? "לא סימן/ה" : r.going ? "כן" : "לא",
+        r.going ? "כן" : "לא",
         r.attended ? "כן" : "לא",
         r.addedManually ? "כן" : "לא",
       ]),
