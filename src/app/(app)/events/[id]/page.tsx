@@ -55,7 +55,7 @@ export default async function EventPage({
 
   return (
     <div className="space-y-7">
-      {status === "open" && <EventLiveRefresh />}
+      {status !== "closed" && <EventLiveRefresh />}
       <BackLink href="/events">לכל המפגשים</BackLink>
 
       <header className="space-y-2">
