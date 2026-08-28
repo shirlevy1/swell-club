@@ -1,5 +1,4 @@
-const SPEEDO_URL =
-  "https://speedo.co.il/?srsltid=AfmBOorW9ylQQUacNxdLh0RptoRXaz0tx-HY0O2EOR1WHGBd7oZ89uN1";
+const SPEEDO_URL = "https://speedo.co.il/";
 
 /**
  * הטקסט עצמו חופשי ונערך למפגש (ראו lib/agenda.ts), אבל קישור
