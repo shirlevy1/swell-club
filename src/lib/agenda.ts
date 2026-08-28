@@ -30,3 +30,19 @@ export function getEventAgendaText(
 ): string {
   return event.agenda_text?.trim() || defaultAgendaText(event.starts_at);
 }
+
+/** ברירת המחדל של "מה להביא למים?" — אותו טקסט קבוע כל עוד לא הוחלף. */
+export function defaultEquipmentText(): string {
+  return [
+    "בגד ים · כובע · משקפת · מצוף ים",
+    "",
+    "חסר לכם ציוד?",
+    "אפשר להשלים באתר או בחנויות של Speedo עם 15% הנחה בקוד SWELLCLUB.",
+  ].join("\n");
+}
+
+export function getEventEquipmentText(
+  event: Pick<SwellEvent, "equipment_text">,
+): string {
+  return event.equipment_text?.trim() || defaultEquipmentText();
+}

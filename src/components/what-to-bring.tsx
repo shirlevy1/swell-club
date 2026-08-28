@@ -1,17 +1,16 @@
 const SPEEDO_URL =
   "https://speedo.co.il/?srsltid=AfmBOorW9ylQQUacNxdLh0RptoRXaz0tx-HY0O2EOR1WHGBd7oZ89uN1";
 
-export function WhatToBring() {
+/**
+ * הטקסט עצמו חופשי ונערך למפגש (ראו lib/agenda.ts), אבל קישור
+ * הספידו קבוע — אי אפשר להפוך קישור אמיתי לחלק מ-textarea חופשי.
+ */
+export function WhatToBring({ text }: { text: string }) {
   return (
     <div className="space-y-2">
-      <p className="text-sm font-semibold">מה להביא למים</p>
-      <p className="text-sm leading-relaxed text-(--color-ink-soft)">
-        בגד ים · כובע · משקפת · מצוף ים
-      </p>
-      <p className="text-sm leading-relaxed text-(--color-ink-soft)">
-        חסר לכם ציוד?
-        <br />
-        אפשר להשלים באתר או בחנויות של Speedo עם 15% הנחה בקוד SWELLCLUB.
+      <p className="text-sm font-semibold">מה להביא למים?</p>
+      <p className="whitespace-pre-line text-sm leading-relaxed text-(--color-ink-soft)">
+        {text}
       </p>
       <a
         href={SPEEDO_URL}

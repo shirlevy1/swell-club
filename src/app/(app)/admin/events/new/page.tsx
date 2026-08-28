@@ -12,7 +12,7 @@ import {
   type LocationSuggestion,
 } from "@/lib/actions";
 import { DEFAULT_EVENT_LOCATION } from "@/lib/maps";
-import { defaultAgendaText } from "@/lib/agenda";
+import { defaultAgendaText, defaultEquipmentText } from "@/lib/agenda";
 import { EventDateTimeInput } from "@/components/event-datetime-input";
 import { Button, Card, Field, Input, Notice, Textarea } from "@/components/ui";
 
@@ -67,6 +67,8 @@ export default function NewEventPage() {
   // עולה ברגע שמישהי נוגעת בלו״ז בעצמה — מאותה נקודה שינוי שעה כבר
   // לא דורס את מה שהיא כתבה.
   const [agendaTouched, setAgendaTouched] = useState(false);
+  // בלי תלות בשעה כמו הלו"ז, אז אין צורך ב-useEffect נפרד
+  const [equipmentText, setEquipmentText] = useState(defaultEquipmentText());
   useEffect(() => {
     const now = roundedNow();
     setStartsAtDefault(now);
@@ -207,6 +209,7 @@ export default function NewEventPage() {
       checkin_closes_after_min: minutesField(form.get("closes_after")),
       description: description.trim() || null,
       agenda_text: agendaText.trim() || null,
+      equipment_text: equipmentText.trim() || null,
       is_sea: isSea,
     };
 
@@ -330,6 +333,17 @@ export default function NewEventPage() {
                 setAgendaText(e.target.value);
               }}
               rows={7}
+              dir="auto"
+            />
+          </Field>
+        </Card>
+
+        <Card className="space-y-4">
+          <Field label="מה להביא למים?">
+            <Textarea
+              value={equipmentText}
+              onChange={(e) => setEquipmentText(e.target.value)}
+              rows={5}
               dir="auto"
             />
           </Field>

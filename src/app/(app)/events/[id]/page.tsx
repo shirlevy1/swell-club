@@ -10,7 +10,7 @@ import {
 } from "@/lib/format";
 import { checkInWindow, hasEventStarted } from "@/lib/checkin";
 import { getSeaForecastForEvent } from "@/lib/gosurf";
-import { getEventAgendaText } from "@/lib/agenda";
+import { getEventAgendaText, getEventEquipmentText } from "@/lib/agenda";
 import { BackLink, Card, Notice } from "@/components/ui";
 import { RsvpButton } from "@/components/rsvp-button";
 import { CheckInFlow } from "@/components/check-in-flow";
@@ -45,6 +45,7 @@ export default async function EventPage({
     ? await getSeaForecastForEvent(event.starts_at)
     : null;
   const agendaText = getEventAgendaText(event);
+  const equipmentText = getEventEquipmentText(event);
 
   const eventHasStarted = hasEventStarted(event);
   // מנהלת רואה ומנהלת את האלבום גם בלי שנכחה — כמו בסלפים
@@ -85,8 +86,6 @@ export default async function EventPage({
         </p>
       )}
 
-      <WhatToBring />
-
       <div className="space-y-2">
         <EventAgendaView text={agendaText} />
         {isOrganizer && (
@@ -98,6 +97,8 @@ export default async function EventPage({
           </Link>
         )}
       </div>
+
+      <WhatToBring text={equipmentText} />
 
       {forecast && <SeaForecast day={forecast} />}
 

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
 import { updateEventScheduleAction } from "@/lib/demo/actions";
-import { getEventAgendaText } from "@/lib/agenda";
+import { getEventAgendaText, getEventEquipmentText } from "@/lib/agenda";
 import type { SwellEvent } from "@/lib/types";
 import { Button, Card, Field, Notice, Textarea } from "./ui";
 
@@ -13,6 +13,9 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
   const router = useRouter();
   const [description, setDescription] = useState(event.description ?? "");
   const [agendaText, setAgendaText] = useState(getEventAgendaText(event));
+  const [equipmentText, setEquipmentText] = useState(
+    getEventEquipmentText(event),
+  );
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,6 +27,7 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
     const patch = {
       description: description.trim() || null,
       agenda_text: agendaText.trim() || null,
+      equipment_text: equipmentText.trim() || null,
     };
 
     if (demoMode) {
@@ -65,6 +69,17 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
             value={agendaText}
             onChange={(e) => setAgendaText(e.target.value)}
             rows={7}
+            dir="auto"
+          />
+        </Field>
+      </Card>
+
+      <Card className="space-y-4">
+        <Field label="מה להביא למים?">
+          <Textarea
+            value={equipmentText}
+            onChange={(e) => setEquipmentText(e.target.value)}
+            rows={5}
             dir="auto"
           />
         </Field>

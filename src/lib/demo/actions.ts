@@ -54,7 +54,11 @@ export async function createEventAction(event: SwellEvent) {
 
 export async function updateEventScheduleAction(
   eventId: string,
-  patch: { description: string | null; agenda_text: string | null },
+  patch: {
+    description: string | null;
+    agenda_text: string | null;
+    equipment_text: string | null;
+  },
 ) {
   guard();
   demoUpdateEventSchedule(eventId, patch);

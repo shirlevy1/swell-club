@@ -114,6 +114,7 @@ const EVENT_SEEDS: EventSeed[] = [
     created_at: new Date().toISOString(),
     description: null,
     agenda_text: null,
+    equipment_text: null,
     is_sea: true,
   },
   {
@@ -132,6 +133,7 @@ const EVENT_SEEDS: EventSeed[] = [
     created_at: new Date().toISOString(),
     description: null,
     agenda_text: null,
+    equipment_text: null,
     is_sea: true,
   },
   {
@@ -152,6 +154,7 @@ const EVENT_SEEDS: EventSeed[] = [
     created_at: new Date().toISOString(),
     description: null,
     agenda_text: null,
+    equipment_text: null,
     is_sea: true,
   },
   {
@@ -170,6 +173,7 @@ const EVENT_SEEDS: EventSeed[] = [
     created_at: new Date().toISOString(),
     description: null,
     agenda_text: null,
+    equipment_text: null,
     is_sea: true,
   },
   {
@@ -190,6 +194,7 @@ const EVENT_SEEDS: EventSeed[] = [
     created_at: new Date().toISOString(),
     description: null,
     agenda_text: null,
+    equipment_text: null,
     is_sea: true,
   },
   {
@@ -208,6 +213,7 @@ const EVENT_SEEDS: EventSeed[] = [
     created_at: new Date().toISOString(),
     description: null,
     agenda_text: null,
+    equipment_text: null,
     is_sea: true,
   },
 ];
@@ -471,7 +477,11 @@ export function demoCreateEvent(event: SwellEvent) {
 
 export function demoUpdateEventSchedule(
   eventId: string,
-  patch: { description: string | null; agenda_text: string | null },
+  patch: {
+    description: string | null;
+    agenda_text: string | null;
+    equipment_text: string | null;
+  },
 ) {
   const seed = EVENT_SEEDS.find((e) => e.id === eventId);
   if (seed) Object.assign(seed, patch);
