@@ -78,17 +78,23 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
           <input
             type="checkbox"
             checked={agendaVisible}
-            onChange={(e) => setAgendaVisible(e.target.checked)}
+            onChange={(e) => {
+              const checked = e.target.checked;
+              setAgendaVisible(checked);
+              if (!checked) setAgendaText("");
+            }}
             className="size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
           />
           לו״ז המפגש
         </label>
-        <Textarea
-          value={agendaText}
-          onChange={(e) => setAgendaText(e.target.value)}
-          rows={7}
-          dir="auto"
-        />
+        {agendaVisible && (
+          <Textarea
+            value={agendaText}
+            onChange={(e) => setAgendaText(e.target.value)}
+            rows={7}
+            dir="auto"
+          />
+        )}
       </Card>
 
       <Card className="space-y-4">
@@ -96,17 +102,23 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
           <input
             type="checkbox"
             checked={equipmentVisible}
-            onChange={(e) => setEquipmentVisible(e.target.checked)}
+            onChange={(e) => {
+              const checked = e.target.checked;
+              setEquipmentVisible(checked);
+              if (!checked) setEquipmentText("");
+            }}
             className="size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
           />
           מה להביא למים?
         </label>
-        <Textarea
-          value={equipmentText}
-          onChange={(e) => setEquipmentText(e.target.value)}
-          rows={5}
-          dir="auto"
-        />
+        {equipmentVisible && (
+          <Textarea
+            value={equipmentText}
+            onChange={(e) => setEquipmentText(e.target.value)}
+            rows={5}
+            dir="auto"
+          />
+        )}
       </Card>
 
       <Card>
