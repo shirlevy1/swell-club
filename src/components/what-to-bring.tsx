@@ -28,7 +28,7 @@ export function WhatToBring({
 }) {
   return (
     <div className="space-y-2">
-      <p className="text-sm font-semibold">מה להביא למים 🌊</p>
+      <p className="text-sm font-semibold">מה להביא למים?</p>
       <p className="whitespace-pre-line text-sm leading-relaxed text-(--color-ink-soft)">
         {text}
       </p>
