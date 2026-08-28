@@ -13,8 +13,12 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
   const router = useRouter();
   const [description, setDescription] = useState(event.description ?? "");
   const [agendaText, setAgendaText] = useState(getEventAgendaText(event));
+  const [agendaVisible, setAgendaVisible] = useState(event.agenda_visible);
   const [equipmentText, setEquipmentText] = useState(
     getEventEquipmentText(event),
+  );
+  const [equipmentVisible, setEquipmentVisible] = useState(
+    event.equipment_visible,
   );
   const [equipmentLinkVisible, setEquipmentLinkVisible] = useState(
     event.equipment_link_visible,
@@ -30,7 +34,9 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
     const patch = {
       description: description.trim() || null,
       agenda_text: agendaText.trim() || null,
+      agenda_visible: agendaVisible,
       equipment_text: equipmentText.trim() || null,
+      equipment_visible: equipmentVisible,
       equipment_link_visible: equipmentLinkVisible,
     };
 
@@ -78,6 +84,21 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
         </Field>
       </Card>
 
+      <Card>
+        <label className="flex min-h-11 items-center gap-2.5 text-sm font-semibold text-(--color-ink)">
+          <input
+            type="checkbox"
+            checked={agendaVisible}
+            onChange={(e) => setAgendaVisible(e.target.checked)}
+            className="size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
+          />
+          להציג לו״ז?
+        </label>
+        <p className="mt-1 text-xs leading-relaxed text-(--color-ink-faint)">
+          כשמסומן, לוח הזמנים מוצג בעמוד המפגש.
+        </p>
+      </Card>
+
       <Card className="space-y-4">
         <Field label="מה להביא למים?">
           <Textarea
@@ -87,6 +108,21 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
             dir="auto"
           />
         </Field>
+      </Card>
+
+      <Card>
+        <label className="flex min-h-11 items-center gap-2.5 text-sm font-semibold text-(--color-ink)">
+          <input
+            type="checkbox"
+            checked={equipmentVisible}
+            onChange={(e) => setEquipmentVisible(e.target.checked)}
+            className="size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
+          />
+          להציג את הסקשן “מה להביא למים”?
+        </label>
+        <p className="mt-1 text-xs leading-relaxed text-(--color-ink-faint)">
+          כשמסומן, הסקשן כולו (הרשימה והקישור) מוצג בעמוד המפגש.
+        </p>
       </Card>
 
       <Card>

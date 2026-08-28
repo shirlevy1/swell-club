@@ -67,8 +67,10 @@ export default function NewEventPage() {
   // עולה ברגע שמישהי נוגעת בלו״ז בעצמה — מאותה נקודה שינוי שעה כבר
   // לא דורס את מה שהיא כתבה.
   const [agendaTouched, setAgendaTouched] = useState(false);
+  const [agendaVisible, setAgendaVisible] = useState(true);
   // בלי תלות בשעה כמו הלו"ז, אז אין צורך ב-useEffect נפרד
   const [equipmentText, setEquipmentText] = useState(defaultEquipmentText());
+  const [equipmentVisible, setEquipmentVisible] = useState(true);
   const [equipmentLinkVisible, setEquipmentLinkVisible] = useState(true);
   useEffect(() => {
     const now = roundedNow();
@@ -210,7 +212,9 @@ export default function NewEventPage() {
       checkin_closes_after_min: minutesField(form.get("closes_after")),
       description: description.trim() || null,
       agenda_text: agendaText.trim() || null,
+      agenda_visible: agendaVisible,
       equipment_text: equipmentText.trim() || null,
+      equipment_visible: equipmentVisible,
       equipment_link_visible: equipmentLinkVisible,
       is_sea: isSea,
     };
@@ -340,6 +344,21 @@ export default function NewEventPage() {
           </Field>
         </Card>
 
+        <Card>
+          <label className="flex min-h-11 items-center gap-2.5 text-sm font-semibold text-(--color-ink)">
+            <input
+              type="checkbox"
+              checked={agendaVisible}
+              onChange={(e) => setAgendaVisible(e.target.checked)}
+              className="size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
+            />
+            להציג לו״ז?
+          </label>
+          <p className="mt-1 text-xs leading-relaxed text-(--color-ink-faint)">
+            כשמסומן, לוח הזמנים מוצג בעמוד המפגש.
+          </p>
+        </Card>
+
         <Card className="space-y-4">
           <Field label="מה להביא למים?">
             <Textarea
@@ -349,6 +368,21 @@ export default function NewEventPage() {
               dir="auto"
             />
           </Field>
+        </Card>
+
+        <Card>
+          <label className="flex min-h-11 items-center gap-2.5 text-sm font-semibold text-(--color-ink)">
+            <input
+              type="checkbox"
+              checked={equipmentVisible}
+              onChange={(e) => setEquipmentVisible(e.target.checked)}
+              className="size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
+            />
+            להציג את הסקשן “מה להביא למים”?
+          </label>
+          <p className="mt-1 text-xs leading-relaxed text-(--color-ink-faint)">
+            כשמסומן, הסקשן כולו (הרשימה והקישור) מוצג בעמוד המפגש.
+          </p>
         </Card>
 
         <Card>

@@ -114,7 +114,9 @@ const EVENT_SEEDS: EventSeed[] = [
     created_at: new Date().toISOString(),
     description: null,
     agenda_text: null,
+    agenda_visible: true,
     equipment_text: null,
+    equipment_visible: true,
     equipment_link_visible: true,
     is_sea: true,
   },
@@ -134,7 +136,9 @@ const EVENT_SEEDS: EventSeed[] = [
     created_at: new Date().toISOString(),
     description: null,
     agenda_text: null,
+    agenda_visible: true,
     equipment_text: null,
+    equipment_visible: true,
     equipment_link_visible: true,
     is_sea: true,
   },
@@ -156,7 +160,9 @@ const EVENT_SEEDS: EventSeed[] = [
     created_at: new Date().toISOString(),
     description: null,
     agenda_text: null,
+    agenda_visible: true,
     equipment_text: null,
+    equipment_visible: true,
     equipment_link_visible: true,
     is_sea: true,
   },
@@ -176,7 +182,9 @@ const EVENT_SEEDS: EventSeed[] = [
     created_at: new Date().toISOString(),
     description: null,
     agenda_text: null,
+    agenda_visible: true,
     equipment_text: null,
+    equipment_visible: true,
     equipment_link_visible: true,
     is_sea: true,
   },
@@ -198,7 +206,9 @@ const EVENT_SEEDS: EventSeed[] = [
     created_at: new Date().toISOString(),
     description: null,
     agenda_text: null,
+    agenda_visible: true,
     equipment_text: null,
+    equipment_visible: true,
     equipment_link_visible: true,
     is_sea: true,
   },
@@ -218,7 +228,9 @@ const EVENT_SEEDS: EventSeed[] = [
     created_at: new Date().toISOString(),
     description: null,
     agenda_text: null,
+    agenda_visible: true,
     equipment_text: null,
+    equipment_visible: true,
     equipment_link_visible: true,
     is_sea: true,
   },
@@ -486,7 +498,9 @@ export function demoUpdateEventSchedule(
   patch: {
     description: string | null;
     agenda_text: string | null;
+    agenda_visible: boolean;
     equipment_text: string | null;
+    equipment_visible: boolean;
     equipment_link_visible: boolean;
   },
 ) {

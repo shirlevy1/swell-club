@@ -87,7 +87,7 @@ export default async function EventPage({
       )}
 
       <div className="space-y-2">
-        <EventAgendaView text={agendaText} />
+        {event.agenda_visible && <EventAgendaView text={agendaText} />}
         {isOrganizer && (
           <Link
             href={`/admin/events/${id}/edit`}
@@ -98,10 +98,12 @@ export default async function EventPage({
         )}
       </div>
 
-      <WhatToBring
-        text={equipmentText}
-        showLink={event.equipment_link_visible}
-      />
+      {event.equipment_visible && (
+        <WhatToBring
+          text={equipmentText}
+          showLink={event.equipment_link_visible}
+        />
+      )}
 
       {forecast && <SeaForecast day={forecast} />}
 

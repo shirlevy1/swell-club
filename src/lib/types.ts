@@ -50,8 +50,12 @@ export type SwellEvent = {
   description: string | null;
   // ריק אומר "אין לו״ז מותאם" — נופל על הלו״ז הקבוע. ראו lib/agenda.ts
   agenda_text: string | null;
+  // האם סקשן הלו״ז מוצג בעמוד המפגש בכלל.
+  agenda_visible: boolean;
   // אותו רעיון בדיוק בשביל "מה להביא למים?" — ריק נופל על ברירת המחדל.
   equipment_text: string | null;
+  // האם סקשן "מה להביא למים?" כולו מוצג בעמוד המפגש בכלל.
+  equipment_visible: boolean;
   // האם קישור הספידו יופיע מתחת לטקסט "מה להביא למים?" למפגש הזה.
   equipment_link_visible: boolean;
   is_sea: boolean;
