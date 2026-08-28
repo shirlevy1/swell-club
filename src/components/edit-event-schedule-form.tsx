@@ -74,17 +74,6 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
       </Card>
 
       <Card className="space-y-4">
-        <Field label="לו״ז המפגש">
-          <Textarea
-            value={agendaText}
-            onChange={(e) => setAgendaText(e.target.value)}
-            rows={7}
-            dir="auto"
-          />
-        </Field>
-      </Card>
-
-      <Card>
         <label className="flex min-h-11 items-center gap-2.5 text-sm font-semibold text-(--color-ink)">
           <input
             type="checkbox"
@@ -92,25 +81,17 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
             onChange={(e) => setAgendaVisible(e.target.checked)}
             className="size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
           />
-          להציג לו״ז?
+          לו״ז המפגש
         </label>
-        <p className="mt-1 text-xs leading-relaxed text-(--color-ink-faint)">
-          כשמסומן, לוח הזמנים מוצג בעמוד המפגש.
-        </p>
+        <Textarea
+          value={agendaText}
+          onChange={(e) => setAgendaText(e.target.value)}
+          rows={7}
+          dir="auto"
+        />
       </Card>
 
       <Card className="space-y-4">
-        <Field label="מה להביא למים?">
-          <Textarea
-            value={equipmentText}
-            onChange={(e) => setEquipmentText(e.target.value)}
-            rows={5}
-            dir="auto"
-          />
-        </Field>
-      </Card>
-
-      <Card>
         <label className="flex min-h-11 items-center gap-2.5 text-sm font-semibold text-(--color-ink)">
           <input
             type="checkbox"
@@ -118,11 +99,14 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
             onChange={(e) => setEquipmentVisible(e.target.checked)}
             className="size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
           />
-          להציג את הסקשן “מה להביא למים”?
+          מה להביא למים?
         </label>
-        <p className="mt-1 text-xs leading-relaxed text-(--color-ink-faint)">
-          כשמסומן, הסקשן כולו (הרשימה והקישור) מוצג בעמוד המפגש.
-        </p>
+        <Textarea
+          value={equipmentText}
+          onChange={(e) => setEquipmentText(e.target.value)}
+          rows={5}
+          dir="auto"
+        />
       </Card>
 
       <Card>
