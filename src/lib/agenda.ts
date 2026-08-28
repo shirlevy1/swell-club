@@ -37,7 +37,7 @@ export function defaultEquipmentText(): string {
     "בגד ים · כובע · משקפת · מצוף בטיחות מים פתוחים (חובה) · שעון חכם",
     "",
     "חסר לכם ציוד?",
-    "יש לנו הטבות שוות ל־Speedo ול־Garmin:",
+    "יש לנו הטבות שוות באתר ובחנויות של Speedo ושל Garmin:",
   ].join("\n");
 }
 
