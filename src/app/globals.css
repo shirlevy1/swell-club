@@ -65,6 +65,14 @@
     direction: ltr;
     unicode-bidi: isolate;
   }
+
+  /* אותו מנגנון בדיוק, אבל למילה/טוקן LTR בודד (שם מותג, קוד קופון)
+     בתוך משפט עברי — לא רק ספרות. בלי זה, כמה טוקנים LTR נפרדים
+     באותו משפט (למשל "Speedo" ו-"15%") מתחלפים בסדר התצוגה. */
+  .ltr-embed {
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
 }
 
 @layer utilities {

@@ -1,13 +1,15 @@
 const BRAND_DEALS = [
   {
     name: "Speedo",
-    discount: "15% הנחה באתר ובחנויות עם הקוד SWELLCLUB.",
+    percent: "15%",
+    code: "SWELLCLUB",
     linkLabel: "לציוד של Speedo",
     url: "https://speedo.co.il/",
   },
   {
     name: "Garmin",
-    discount: "10% הנחה באתר ובחנויות עם הקוד TRAINER-9860.",
+    percent: "10%",
+    code: "TRAINER-9860",
     linkLabel: "לשעונים של Garmin",
     url: "https://www.garmin.co.il/product-category/smart-watch/",
   },
@@ -37,10 +39,12 @@ export function WhatToBring({
           {BRAND_DEALS.map((brand) => (
             <div key={brand.name} className="space-y-1">
               <p className="text-sm leading-relaxed text-(--color-ink-soft)">
-                <span className="font-semibold text-(--color-ink)">
+                <span className="ltr-embed font-semibold text-(--color-ink)">
                   {brand.name}
                 </span>{" "}
-                - {brand.discount}
+                - <span className="ltr-embed">{brand.percent}</span> הנחה
+                באתר ובחנויות עם הקוד{" "}
+                <span className="ltr-embed">{brand.code}</span>.
               </p>
               <a
                 href={brand.url}
