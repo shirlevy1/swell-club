@@ -60,9 +60,9 @@ export function EventReportButton({
         onClick={download}
         disabled={pending}
         aria-label="ייצוא נוכחות"
-        className="flex size-8 shrink-0 items-center justify-center rounded-xl border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10 disabled:opacity-50"
+        className="flex size-7 shrink-0 items-center justify-center rounded-xl border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10 disabled:opacity-50"
       >
-        <DownloadIcon className="size-4" />
+        <DownloadIcon className="size-3.5" />
       </button>
       {error && (
         <p className="mt-1 text-xs whitespace-nowrap text-(--color-fail)">
