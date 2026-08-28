@@ -411,7 +411,7 @@ export default async function AdminPage() {
             <ExportButton
               rows={attendanceMatrixCsv}
               filename="swell-attendance-matrix.csv"
-              label="נוכחות"
+              label="הגעה"
             />
             <ExportButton rows={membersCsv} filename="swell-members.csv" />
           </div>
