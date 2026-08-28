@@ -203,9 +203,7 @@ export default async function AdminPage() {
     [
       "שם",
       "טלפון",
-      ...eventsChronological.map(
-        (e) => `${e.title} ${formatDayMonth(e.starts_at)}`,
-      ),
+      ...eventsChronological.map((e) => formatDayMonth(e.starts_at)),
     ],
     ...members.map((m) => [
       m.profile.full_name,
