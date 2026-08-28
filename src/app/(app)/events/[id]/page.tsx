@@ -98,6 +98,8 @@ export default async function EventPage({
         </p>
       )}
 
+      {forecast && <SeaForecast day={forecast} />}
+
       {event.agenda_visible && <EventAgendaView text={agendaText} />}
 
       {event.equipment_visible && (
@@ -106,8 +108,6 @@ export default async function EventPage({
           showLink={event.equipment_link_visible}
         />
       )}
-
-      {forecast && <SeaForecast day={forecast} />}
 
       {status === "before" && !hasAttended && (
         <Card>
