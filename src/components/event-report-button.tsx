@@ -4,6 +4,7 @@ import { useState } from "react";
 import { getEventAttendanceReportAction } from "@/lib/actions";
 import { downloadCsv } from "@/lib/csv";
 import { formatDayMonth } from "@/lib/format";
+import { DownloadIcon } from "./social-icons";
 
 /**
  * דוח RSVP/הגעה/תמונות למפגש ספציפי, שורה לכל חבר/ת קהילה — נשלף
@@ -53,16 +54,21 @@ export function EventReportButton({
   }
 
   return (
-    <span>
+    <span className="shrink-0">
       <button
         type="button"
         onClick={download}
         disabled={pending}
-        className="inline-flex min-h-11 items-center px-2 text-xs font-semibold text-(--color-sea) underline underline-offset-4 disabled:opacity-50"
+        aria-label="ייצוא נוכחות"
+        className="flex size-8 shrink-0 items-center justify-center rounded-full border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10 disabled:opacity-50"
       >
-        {pending ? "מכין…" : "ייצוא נוכחות"}
+        <DownloadIcon className="size-4" />
       </button>
-      {error && <p className="px-2 text-xs text-(--color-fail)">{error}</p>}
+      {error && (
+        <p className="mt-1 text-xs whitespace-nowrap text-(--color-fail)">
+          {error}
+        </p>
+      )}
     </span>
   );
 }

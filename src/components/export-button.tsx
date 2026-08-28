@@ -1,6 +1,7 @@
 "use client";
 
 import { downloadCsv } from "@/lib/csv";
+import { DownloadIcon } from "./social-icons";
 
 export function ExportButton({
   rows,
@@ -13,9 +14,10 @@ export function ExportButton({
     <button
       type="button"
       onClick={() => downloadCsv(rows, filename)}
-      className="-me-2 inline-flex min-h-11 items-center px-2 text-xs font-semibold text-(--color-sea) underline underline-offset-4"
+      aria-label="ייצוא CSV"
+      className="flex size-8 shrink-0 items-center justify-center rounded-full border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
     >
-      ייצוא CSV
+      <DownloadIcon className="size-4" />
     </button>
   );
 }

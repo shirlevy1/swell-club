@@ -301,22 +301,30 @@ export default async function AdminPage() {
 
               return (
                 <li key={event.id}>
-                  {/* Link עוטף רק את התוכן הלחיץ, לא את כל הכרטיס —
-                      כפתור הייצוא למטה הוא <button>, ולא ניתן לקנן
+                  {/* שורת הכותרת היא Link בפני עצמה (לא כל הכרטיס) —
+                      כפתור הייצוא לידה הוא <button>, ולא ניתן לקנן
                       אותו בתוך Link (עוגן-בתוך-עוגן, ראו attendee-grid). */}
                   <Card className="space-y-4 transition hover:border-(--color-line)">
+                    <div className="flex items-center justify-between gap-2">
+                      <Link
+                        href={`/events/${event.id}`}
+                        className="min-w-0 flex-1 truncate font-[family-name:var(--font-display)] text-lg font-bold"
+                      >
+                        {event.title}
+                      </Link>
+                      <p className="ltr-nums shrink-0 text-xs text-(--color-ink-faint)">
+                        {formatDateTime(event.starts_at)}
+                      </p>
+                      <EventReportButton
+                        eventId={event.id}
+                        eventTitle={event.title}
+                        eventStartsAt={event.starts_at}
+                      />
+                    </div>
                     <Link
                       href={`/events/${event.id}`}
                       className="block space-y-4"
                     >
-                      <div className="flex items-baseline justify-between gap-2">
-                        <p className="font-[family-name:var(--font-display)] text-lg font-bold">
-                          {event.title}
-                        </p>
-                        <p className="shrink-0 text-xs text-(--color-ink-faint)">
-                          {formatDateTime(event.starts_at)}
-                        </p>
-                      </div>
                       {/* שתי קבוצות — "כמה" ו"מי" — מופרדות בקו דק, לא
                           חמש עמודות דחוסות. סדר ה-DOM הפוך מסדר התצוגה
                           במכוון: איבר ראשון נופל מימין ב-RTL, ולכן כדי
@@ -364,14 +372,6 @@ export default async function AdminPage() {
                         </div>
                       </div>
                     </Link>
-
-                    <div className="flex justify-end border-t border-(--color-line)/60 pt-2">
-                      <EventReportButton
-                        eventId={event.id}
-                        eventTitle={event.title}
-                        eventStartsAt={event.starts_at}
-                      />
-                    </div>
                   </Card>
                 </li>
               );
