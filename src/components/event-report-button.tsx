@@ -4,7 +4,6 @@ import { useState } from "react";
 import { getEventAttendanceReportAction } from "@/lib/actions";
 import { downloadCsv } from "@/lib/csv";
 import { formatDayMonth } from "@/lib/format";
-import { DownloadIcon } from "./social-icons";
 
 /**
  * דוח RSVP/הגעה/תמונות למפגש ספציפי, שורה לכל חבר/ת קהילה — נשלף
@@ -60,9 +59,9 @@ export function EventReportButton({
         onClick={download}
         disabled={pending}
         aria-label="ייצוא נוכחות"
-        className="flex size-7 shrink-0 items-center justify-center rounded-xl border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10 disabled:opacity-50"
+        className="flex h-7 shrink-0 items-center justify-center rounded-xl border border-(--color-line) bg-(--color-surface) px-2.5 text-xs font-bold text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10 disabled:opacity-50"
       >
-        <DownloadIcon className="size-3.5" />
+        {pending ? "…" : "CSV"}
       </button>
       {error && (
         <p className="mt-1 text-xs whitespace-nowrap text-(--color-fail)">
