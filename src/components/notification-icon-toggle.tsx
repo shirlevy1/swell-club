@@ -3,7 +3,11 @@
 import { useEffect, useState } from "react";
 import { demoMode } from "@/lib/config";
 import { createClient } from "@/lib/supabase/client";
-import { pushSupported, subscribeToPush } from "@/lib/push-client";
+import {
+  PUSH_SUBSCRIBED_EVENT,
+  pushSupported,
+  subscribeToPush,
+} from "@/lib/push-client";
 
 /**
  * אייקון פעמון קומפקטי (בגודל אייקון עריכה), לא כרטיס עם טקסט הסבר —
@@ -76,6 +80,19 @@ export function NotificationIconToggle() {
     });
     return () => {
       cancelled = true;
+    };
+  }, []);
+
+  // הפעלה דרך notification-prompt-banner.tsx (ההצעה האוטומטית) קוראת
+  // לאותו subscribeToPush, אבל זה רכיב אחר לגמרי בלי state משותף —
+  // בלעדי האירוע הזה, הפעמון היה נשאר "כבוי" ויזואלית עד רענון ידני.
+  useEffect(() => {
+    function onSubscribed() {
+      setState("on");
+    }
+    window.addEventListener(PUSH_SUBSCRIBED_EVENT, onSubscribed);
+    return () => {
+      window.removeEventListener(PUSH_SUBSCRIBED_EVENT, onSubscribed);
     };
   }, []);
 

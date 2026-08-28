@@ -6,6 +6,13 @@ import { createClient } from "@/lib/supabase/client";
  * banner.tsx), כדי שלא תהיה כפילות בין השניים.
  */
 
+/**
+ * שני הרכיבים (הפעמון וההצעה האוטומטית) הם עצמאיים לגמרי, בלי state
+ * משותף — בלי האירוע הזה, הפעלת תזכורות מההצעה האוטומטית לא מעדכנת
+ * את צבע הפעמון עד רענון ידני, כי הוא כבר קבע את המצב שלו ב-mount.
+ */
+export const PUSH_SUBSCRIBED_EVENT = "swell-push-subscribed";
+
 function urlBase64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
   const padded = (base64 + "=".repeat((4 - (base64.length % 4)) % 4))
     .replace(/-/g, "+")
@@ -47,6 +54,7 @@ export async function subscribeToPush(vapidPublicKey: string): Promise<void> {
     { onConflict: "endpoint" },
   );
   if (error) throw error;
+  window.dispatchEvent(new Event(PUSH_SUBSCRIBED_EVENT));
 }
 
 /** תמיכה כללית — לא כולל את מקרה אייפון-בלי-התקנה, שנבדק בנפרד. */
