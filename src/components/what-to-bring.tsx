@@ -21,9 +21,10 @@ const BRAND_DEALS = [
  * showLink נשלט בנפרד למפגש (equipment_link_visible), ומכבה את שתי
  * ההטבות ביחד — אין כרגע צורך בכיבוי נפרד לכל מותג.
  *
- * הלוגואים עצמם (public/speedo_logo.png, public/garmin_logo.png)
- * מגיעים בצבע המקורי שלהם על רקע שקוף — brightness-0 invert הופך
- * כל פיקסל לא-שקוף ללבן אחיד, בלי צורך לערוך את קובצי המקור.
+ * הלוגואים מוצגים בצבעים המקוריים שלהם, לא מאולצים לצבע אחיד:
+ * speedo_logo.png שקוף (סימן אדום בלבד), אבל garmin_logo.png אטום
+ * לגמרי (ריבוע שחור מלא) — brightness-0/invert על קובץ בלי שקיפות
+ * הופך את כל הריבוע לצבע אחיד ומוחק את הלוגו, לא רק "צובע" אותו.
  */
 export function WhatToBring({
   text,
@@ -39,7 +40,7 @@ export function WhatToBring({
         {text}
       </p>
       {showLink && (
-        <div className="flex justify-center gap-8 pt-1">
+        <div className="flex gap-3 pt-1">
           {BRAND_DEALS.map((brand) => (
             <a
               key={brand.name}
@@ -47,16 +48,14 @@ export function WhatToBring({
               target="_blank"
               rel="noreferrer"
               aria-label={`הטבת ${brand.name}`}
-              className="flex flex-col items-center gap-1.5"
+              className="flex flex-1 flex-col items-center gap-2 rounded-xl border border-(--color-line) bg-(--color-surface) p-3 text-center transition active:scale-[0.98] hover:border-(--color-sea)/50 hover:bg-(--color-haze)"
             >
-              <span className="flex size-12 items-center justify-center rounded-full bg-(--color-sea) transition hover:brightness-110">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={brand.logo}
-                  alt={brand.name}
-                  className="h-5 w-auto max-w-[70%] object-contain brightness-0 invert"
-                />
-              </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={brand.logo}
+                alt={brand.name}
+                className="h-9 w-full object-contain"
+              />
               <span className="text-xs font-semibold text-(--color-ink-soft)">
                 <span className="ltr-embed">{brand.percent}</span>
                 {" · "}
