@@ -1238,3 +1238,92 @@ export async function getAdminData(clubId: string) {
 
   return { events, members };
 }
+
+export type EventAttendanceReportRow = {
+  fullName: string;
+  /** null = לא נגע/ה בכלל בכפתור ה-RSVP למפגש הזה */
+  going: boolean | null;
+  attended: boolean;
+  checkedInAt: string | null;
+  uploadedPhoto: boolean;
+};
+
+/**
+ * שורה לכל חבר/ת קהילה (מאושרים) למפגש נתון — לא רק למי שהיה מעורב/ת,
+ * כדי שהקובץ יראה גם מי שלא סימן/ה ולא הגיע/ה. "העלה/תה תמונות" סופר
+ * כל העלאה, גם ממתינה לאישור, לא רק מאושרות.
+ */
+export async function getEventAttendanceReport(
+  eventId: string,
+  clubId: string,
+): Promise<EventAttendanceReportRow[]> {
+  if (demoMode) {
+    const rsvps = demo.demoRsvps().filter((r) => r.eventId === eventId);
+    const attendances = demo
+      .demoAttendances()
+      .filter((a) => a.eventId === eventId);
+    const photos = demo.demoEventPhotos(eventId);
+    return demo.demoProfiles().map((p) => {
+      const rsvp = rsvps.find((r) => r.profileId === p.id);
+      const attendance = attendances.find((a) => a.profileId === p.id);
+      return {
+        fullName: p.full_name,
+        going: rsvp ? rsvp.going : null,
+        attended: !!attendance,
+        checkedInAt: attendance?.at ?? null,
+        uploadedPhoto: photos.some((ph) => ph.uploadedBy === p.id),
+      };
+    });
+  }
+
+  const supabase = await createClient();
+  const [
+    { data: memberRows },
+    { data: rsvpRows },
+    { data: attendanceRows },
+    { data: photoRows },
+  ] = await Promise.all([
+    supabase
+      .from("club_members")
+      .select("profile_id, profiles(full_name)")
+      .eq("club_id", clubId)
+      .eq("status", "approved"),
+    supabase.from("rsvps").select("profile_id, going").eq("event_id", eventId),
+    supabase
+      .from("attendances")
+      .select("profile_id, checked_in_at")
+      .eq("event_id", eventId),
+    supabase.from("event_photos").select("uploaded_by").eq("event_id", eventId),
+  ]);
+
+  const goingByProfile = new Map(
+    (rsvpRows ?? []).map((r) => [r.profile_id, r.going] as const),
+  );
+  const checkedInByProfile = new Map(
+    (attendanceRows ?? []).map((a) => [a.profile_id, a.checked_in_at] as const),
+  );
+  const uploadedProfiles = new Set(
+    (photoRows ?? []).map((p) => p.uploaded_by),
+  );
+
+  return (
+    (memberRows ?? []) as unknown as {
+      profile_id: string;
+      profiles: { full_name: string } | null;
+    }[]
+  ).flatMap((m) =>
+    m.profiles
+      ? [
+          {
+            fullName: m.profiles.full_name,
+            going: goingByProfile.has(m.profile_id)
+              ? (goingByProfile.get(m.profile_id) ?? null)
+              : null,
+            attended: checkedInByProfile.has(m.profile_id),
+            checkedInAt: checkedInByProfile.get(m.profile_id) ?? null,
+            uploadedPhoto: uploadedProfiles.has(m.profile_id),
+          },
+        ]
+      : [],
+  );
+}

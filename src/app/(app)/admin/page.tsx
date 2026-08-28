@@ -31,6 +31,7 @@ import { WaveIcon } from "@/components/streak-card";
 import { InstagramIcon, WhatsAppIcon } from "@/components/social-icons";
 import { Card, EmptyState, LinkButton, PageHeader } from "@/components/ui";
 import { ExportButton } from "@/components/export-button";
+import { EventReportButton } from "@/components/event-report-button";
 import { PendingMemberRow } from "@/components/pending-member-row";
 import { PendingPhotoGroup } from "@/components/pending-photo-group";
 import { AdminLiveRefresh } from "@/components/admin-live-refresh";
@@ -300,8 +301,14 @@ export default async function AdminPage() {
 
               return (
                 <li key={event.id}>
-                  <Link href={`/events/${event.id}`}>
-                    <Card className="space-y-4 transition hover:border-(--color-line)">
+                  {/* Link עוטף רק את התוכן הלחיץ, לא את כל הכרטיס —
+                      כפתור הייצוא למטה הוא <button>, ולא ניתן לקנן
+                      אותו בתוך Link (עוגן-בתוך-עוגן, ראו attendee-grid). */}
+                  <Card className="space-y-4 transition hover:border-(--color-line)">
+                    <Link
+                      href={`/events/${event.id}`}
+                      className="block space-y-4"
+                    >
                       <div className="flex items-baseline justify-between gap-2">
                         <p className="font-[family-name:var(--font-display)] text-lg font-bold">
                           {event.title}
@@ -356,8 +363,16 @@ export default async function AdminPage() {
                           </div>
                         </div>
                       </div>
-                    </Card>
-                  </Link>
+                    </Link>
+
+                    <div className="flex justify-end border-t border-(--color-line)/60 pt-2">
+                      <EventReportButton
+                        eventId={event.id}
+                        eventTitle={event.title}
+                        eventStartsAt={event.starts_at}
+                      />
+                    </div>
+                  </Card>
                 </li>
               );
             })}

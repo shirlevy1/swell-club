@@ -1,6 +1,12 @@
 "use server";
 
-import { getViewer, getClubMembersWithLatestSelfie, type MemberPickerRow } from "./data";
+import {
+  getViewer,
+  getClubMembersWithLatestSelfie,
+  getEventAttendanceReport,
+  type MemberPickerRow,
+  type EventAttendanceReportRow,
+} from "./data";
 import { isGoogleMapsUrl, parseGoogleMapsUrl } from "./maps";
 
 export type ResolveMapsLinkResult =
@@ -69,6 +75,27 @@ export async function getMembersForAttendanceAction(): Promise<MembersForAttenda
 
   const members = await getClubMembersWithLatestSelfie(viewer.club.id);
   return { ok: true, members };
+}
+
+export type EventAttendanceReportResult =
+  | { ok: true; rows: EventAttendanceReportRow[] }
+  | { ok: false; error: string };
+
+/**
+ * דוח RSVP/הגעה/תמונות למפגש ספציפי, שורה לכל חבר/ת קהילה — נשלף
+ * רק כשהמנהלת לוחצת על ייצוא, לא כחלק מטעינת עמוד הניהול (שם יש
+ * רשימת מפגשים שלמה, ואין טעם לשלוף דוח מלא לכל אחד מהם מראש).
+ */
+export async function getEventAttendanceReportAction(
+  eventId: string,
+): Promise<EventAttendanceReportResult> {
+  const viewer = await getViewer();
+  if (!viewer?.club || viewer.role !== "organizer") {
+    return { ok: false, error: "רק מנהלת קהילה יכולה לייצא דוח." };
+  }
+
+  const rows = await getEventAttendanceReport(eventId, viewer.club.id);
+  return { ok: true, rows };
 }
 
 export type LocationSuggestion = {
