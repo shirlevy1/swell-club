@@ -85,7 +85,7 @@ export default async function EventPage({
           }
           target="_blank"
           rel="noreferrer"
-          className="-ms-2 inline-flex min-h-11 items-center gap-1.5 px-2 text-sm font-semibold text-(--color-sea)"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-(--color-line) bg-(--color-surface) px-3 text-sm font-semibold text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-haze)"
         >
           {event.location_name}
           <span aria-hidden>↗</span>
