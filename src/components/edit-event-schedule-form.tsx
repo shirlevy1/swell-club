@@ -145,11 +145,11 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
             onChange={(e) => setEquipmentLinkVisible(e.target.checked)}
             className="size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
           />
-          להציג קישור לציוד של Speedo?
+          להציג הטבות Speedo ו-Garmin?
         </label>
         <p className="mt-1 text-xs leading-relaxed text-(--color-ink-faint)">
-          כשמסומן, קישור עם 15% הנחה בקוד SWELLCLUB מופיע מתחת ל“מה
-          להביא למים?” במפגש הזה.
+          כשמסומן, הטבות והקישורים של Speedo ו-Garmin מופיעים מתחת
+          ל“מה להביא למים” במפגש הזה.
         </p>
       </Card>
 
