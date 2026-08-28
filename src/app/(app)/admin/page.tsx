@@ -305,21 +305,25 @@ export default async function AdminPage() {
                       כפתור הייצוא לידה הוא <button>, ולא ניתן לקנן
                       אותו בתוך Link (עוגן-בתוך-עוגן, ראו attendee-grid). */}
                   <Card className="space-y-4 transition hover:border-(--color-line)">
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                       <Link
                         href={`/events/${event.id}`}
-                        className="min-w-0 flex-1 truncate font-[family-name:var(--font-display)] text-lg font-bold"
+                        className="min-w-0 truncate font-[family-name:var(--font-display)] text-lg font-bold"
                       >
                         {event.title}
                       </Link>
                       <p className="ltr-nums shrink-0 text-xs text-(--color-ink-faint)">
-                        {formatDateTime(event.starts_at)}
+                        {formatWeekdayName(event.starts_at)} ·{" "}
+                        {formatDayMonth(event.starts_at)} ·{" "}
+                        {formatTime(event.starts_at)}
                       </p>
-                      <EventReportButton
-                        eventId={event.id}
-                        eventTitle={event.title}
-                        eventStartsAt={event.starts_at}
-                      />
+                      <div className="justify-self-end">
+                        <EventReportButton
+                          eventId={event.id}
+                          eventTitle={event.title}
+                          eventStartsAt={event.starts_at}
+                        />
+                      </div>
                     </div>
                     <Link
                       href={`/events/${event.id}`}
