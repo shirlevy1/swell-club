@@ -319,7 +319,7 @@ export default function NewEventPage() {
               }}
               className="size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
             />
-            תיאור המפגש (אופציונלי)
+            תיאור המפגש
           </label>
           {descriptionVisible && (
             <Textarea
