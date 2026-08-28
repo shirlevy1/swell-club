@@ -7,11 +7,14 @@ import { demoMode } from "@/lib/config";
 import { updateEventScheduleAction } from "@/lib/demo/actions";
 import { getEventAgendaText, getEventEquipmentText } from "@/lib/agenda";
 import type { SwellEvent } from "@/lib/types";
-import { Button, Card, Field, Notice, Textarea } from "./ui";
+import { Button, Card, Notice, Textarea } from "./ui";
 
 export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
   const router = useRouter();
   const [description, setDescription] = useState(event.description ?? "");
+  const [descriptionVisible, setDescriptionVisible] = useState(
+    !!event.description,
+  );
   const [agendaText, setAgendaText] = useState(getEventAgendaText(event));
   const [agendaVisible, setAgendaVisible] = useState(event.agenda_visible);
   const [equipmentText, setEquipmentText] = useState(
@@ -63,14 +66,27 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
   return (
     <form onSubmit={onSubmit} className="space-y-5">
       <Card className="space-y-4">
-        <Field label="תיאור המפגש (אופציונלי)">
+        <label className="flex min-h-11 items-center gap-2.5 text-sm font-semibold text-(--color-ink)">
+          <input
+            type="checkbox"
+            checked={descriptionVisible}
+            onChange={(e) => {
+              const checked = e.target.checked;
+              setDescriptionVisible(checked);
+              if (!checked) setDescription("");
+            }}
+            className="size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
+          />
+          תיאור המפגש (אופציונלי)
+        </label>
+        {descriptionVisible && (
           <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
             placeholder="כאן תוכלו לשתף את כל הפרטים שחשוב לדעת לקראת המפגש, מעבר ללוח הזמנים."
           />
-        </Field>
+        )}
       </Card>
 
       <Card className="space-y-4">

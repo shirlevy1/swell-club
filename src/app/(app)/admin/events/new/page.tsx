@@ -62,6 +62,7 @@ export default function NewEventPage() {
   // מחשב (לשעה המקומית) — מתמלא ברגע שהעמוד עולה בדפדפן.
   const [startsAtDefault, setStartsAtDefault] = useState<Date | null>(null);
   const [description, setDescription] = useState("");
+  const [descriptionVisible, setDescriptionVisible] = useState(true);
   const [isSea, setIsSea] = useState(true);
   const [agendaText, setAgendaText] = useState("");
   // עולה ברגע שמישהי נוגעת בלו״ז בעצמה — מאותה נקודה שינוי שעה כבר
@@ -304,15 +305,30 @@ export default function NewEventPage() {
               onChange={handleStartsAtChange}
             />
           </Field>
+        </Card>
 
-          <Field label="תיאור המפגש (אופציונלי)">
+        <Card className="space-y-4">
+          <label className="flex min-h-11 items-center gap-2.5 text-sm font-semibold text-(--color-ink)">
+            <input
+              type="checkbox"
+              checked={descriptionVisible}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setDescriptionVisible(checked);
+                if (!checked) setDescription("");
+              }}
+              className="size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
+            />
+            תיאור המפגש (אופציונלי)
+          </label>
+          {descriptionVisible && (
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
               placeholder="כאן תוכלו לשתף את כל הפרטים שחשוב לדעת לקראת המפגש, מעבר ללוח הזמנים."
             />
-          </Field>
+          )}
         </Card>
 
         <Card>
