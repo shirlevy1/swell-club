@@ -88,48 +88,6 @@ export function EditIcon({ className }: { className?: string }) {
   );
 }
 
-/** משקפת שחייה — לא לוגו Speedo, ייצוג כללי של ציוד שחייה. */
-export function GogglesIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.9"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden
-    >
-      <circle cx="7" cy="12" r="4" />
-      <circle cx="17" cy="12" r="4" />
-      <path d="M11 12h2" />
-      <path d="M3 9 1 8M3 15l-2 1M21 9l2-1M21 15l2 1" />
-    </svg>
-  );
-}
-
-/** שעון חכם — לא לוגו Garmin, ייצוג כללי של שעון ריצה/שחייה. */
-export function WatchIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.9"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden
-    >
-      <rect x="7.5" y="2" width="9" height="4.5" rx="1.3" />
-      <rect x="7.5" y="17.5" width="9" height="4.5" rx="1.3" />
-      <circle cx="12" cy="12" r="5.5" />
-      <path d="M12 9.2V12l1.8 1" />
-    </svg>
-  );
-}
-
 export function InstagramIcon({ className }: { className?: string }) {
   return (
     <svg
