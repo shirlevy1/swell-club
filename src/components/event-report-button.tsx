@@ -37,14 +37,16 @@ export function EventReportButton({
         "סימן/ה שמתכנן/ת להגיע?",
         "הגיע/ה בפועל?",
         "מתי סימן/ה הגעה",
-        "העלה/תה תמונות?",
+        "יש סלפי צ׳ק־אין?",
+        "נוכחות נוספה ידנית ע״י המנהלת?",
       ],
       ...result.rows.map((r) => [
         r.fullName,
         r.going === null ? "לא סימן/ה" : r.going ? "כן" : "לא",
         r.attended ? "כן" : "לא",
         r.checkedInAt ? formatDateTime(r.checkedInAt) : "",
-        r.uploadedPhoto ? "כן" : "לא",
+        r.hasSelfie ? "כן" : "לא",
+        r.addedManually ? "כן" : "לא",
       ]),
     ];
 

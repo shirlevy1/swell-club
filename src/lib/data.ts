@@ -1245,13 +1245,17 @@ export type EventAttendanceReportRow = {
   going: boolean | null;
   attended: boolean;
   checkedInAt: string | null;
-  uploadedPhoto: boolean;
+  /** יש סלפי צ׳ק־אין אמיתי — לא event_photos (אלבום המפגש, פיצ'ר
+   *  נפרד לגמרי). נוכחות שנוספה ידנית אף פעם לא תהיה עם סלפי. */
+  hasSelfie: boolean;
+  /** נוספה ע"י המנהלת (admin_add_attendance), לא צ׳ק־אין אמיתי —
+   *  אז checkedInAt הוא זמן ההוספה, לא זמן ההגעה בפועל. */
+  addedManually: boolean;
 };
 
 /**
  * שורה לכל חבר/ת קהילה (מאושרים) למפגש נתון — לא רק למי שהיה מעורב/ת,
- * כדי שהקובץ יראה גם מי שלא סימן/ה ולא הגיע/ה. "העלה/תה תמונות" סופר
- * כל העלאה, גם ממתינה לאישור, לא רק מאושרות.
+ * כדי שהקובץ יראה גם מי שלא סימן/ה ולא הגיע/ה.
  */
 export async function getEventAttendanceReport(
   eventId: string,
@@ -1262,7 +1266,6 @@ export async function getEventAttendanceReport(
     const attendances = demo
       .demoAttendances()
       .filter((a) => a.eventId === eventId);
-    const photos = demo.demoEventPhotos(eventId);
     return demo.demoProfiles().map((p) => {
       const rsvp = rsvps.find((r) => r.profileId === p.id);
       const attendance = attendances.find((a) => a.profileId === p.id);
@@ -1271,39 +1274,36 @@ export async function getEventAttendanceReport(
         going: rsvp ? rsvp.going : null,
         attended: !!attendance,
         checkedInAt: attendance?.at ?? null,
-        uploadedPhoto: photos.some((ph) => ph.uploadedBy === p.id),
+        hasSelfie: !!attendance?.selfie,
+        // אין added_manually בהדגמה — כל הנוכחויות שם "אמיתיות"
+        addedManually: false,
       };
     });
   }
 
   const supabase = await createClient();
-  const [
-    { data: memberRows },
-    { data: rsvpRows },
-    { data: attendanceRows },
-    { data: photoRows },
-  ] = await Promise.all([
-    supabase
-      .from("club_members")
-      .select("profile_id, profiles(full_name)")
-      .eq("club_id", clubId)
-      .eq("status", "approved"),
-    supabase.from("rsvps").select("profile_id, going").eq("event_id", eventId),
-    supabase
-      .from("attendances")
-      .select("profile_id, checked_in_at")
-      .eq("event_id", eventId),
-    supabase.from("event_photos").select("uploaded_by").eq("event_id", eventId),
-  ]);
+  const [{ data: memberRows }, { data: rsvpRows }, { data: attendanceRows }] =
+    await Promise.all([
+      supabase
+        .from("club_members")
+        .select("profile_id, profiles(full_name)")
+        .eq("club_id", clubId)
+        .eq("status", "approved"),
+      supabase
+        .from("rsvps")
+        .select("profile_id, going")
+        .eq("event_id", eventId),
+      supabase
+        .from("attendances")
+        .select("profile_id, checked_in_at, selfie_path, added_manually")
+        .eq("event_id", eventId),
+    ]);
 
   const goingByProfile = new Map(
     (rsvpRows ?? []).map((r) => [r.profile_id, r.going] as const),
   );
-  const checkedInByProfile = new Map(
-    (attendanceRows ?? []).map((a) => [a.profile_id, a.checked_in_at] as const),
-  );
-  const uploadedProfiles = new Set(
-    (photoRows ?? []).map((p) => p.uploaded_by),
+  const attendanceByProfile = new Map(
+    (attendanceRows ?? []).map((a) => [a.profile_id, a] as const),
   );
 
   return (
@@ -1311,19 +1311,21 @@ export async function getEventAttendanceReport(
       profile_id: string;
       profiles: { full_name: string } | null;
     }[]
-  ).flatMap((m) =>
-    m.profiles
+  ).flatMap((m) => {
+    const attendance = attendanceByProfile.get(m.profile_id);
+    return m.profiles
       ? [
           {
             fullName: m.profiles.full_name,
             going: goingByProfile.has(m.profile_id)
               ? (goingByProfile.get(m.profile_id) ?? null)
               : null,
-            attended: checkedInByProfile.has(m.profile_id),
-            checkedInAt: checkedInByProfile.get(m.profile_id) ?? null,
-            uploadedPhoto: uploadedProfiles.has(m.profile_id),
+            attended: !!attendance,
+            checkedInAt: attendance?.checked_in_at ?? null,
+            hasSelfie: !!attendance?.selfie_path,
+            addedManually: attendance?.added_manually ?? false,
           },
         ]
-      : [],
-  );
+      : [];
+  });
 }

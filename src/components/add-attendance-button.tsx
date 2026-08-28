@@ -74,7 +74,7 @@ export function AddAttendanceButton({
       <button
         type="button"
         onClick={openModal}
-        aria-label="הוספת נוכחות ידנית"
+        aria-label="עוד חברי קהילה שהגיעו"
         className="flex size-6 shrink-0 items-center justify-center rounded-full border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
       >
         <EditIcon className="size-3.5" />
@@ -89,7 +89,7 @@ export function AddAttendanceButton({
         >
           <div className="flex max-h-[80vh] w-full max-w-sm flex-col rounded-2xl bg-(--color-surface) shadow-xl">
             <div className="flex shrink-0 items-center justify-between border-b border-(--color-line) p-4">
-              <p className="text-sm font-bold">הוספת נוכחות ידנית</p>
+              <p className="text-sm font-bold">עוד חברי קהילה שהגיעו</p>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
