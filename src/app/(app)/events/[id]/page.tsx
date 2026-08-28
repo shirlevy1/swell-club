@@ -98,9 +98,9 @@ export default async function EventPage({
         </p>
       )}
 
-      {forecast && <SeaForecast day={forecast} />}
-
       {event.agenda_visible && <EventAgendaView text={agendaText} />}
+
+      {forecast && <SeaForecast day={forecast} />}
 
       {event.equipment_visible && (
         <WhatToBring
