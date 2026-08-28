@@ -1079,6 +1079,8 @@ export type AdminEvent = SwellEvent & {
   cameCount: number;
   femaleCame: number;
   maleCame: number;
+  /** מי בפועל נכח (כולל הוספה ידנית) — למטריצת הנוכחות של כל המפגשים. */
+  attendedProfileIds: string[];
 };
 export type AdminMember = {
   profile: Profile;
@@ -1111,6 +1113,7 @@ export async function getAdminData(clubId: string) {
           maleCame: eventAttendances.filter(
             (a) => profileById.get(a.profileId)?.gender === "male",
           ).length,
+          attendedProfileIds: eventAttendances.map((a) => a.profileId),
         };
       });
 
@@ -1214,6 +1217,7 @@ export async function getAdminData(clubId: string) {
       .length,
     maleCame: e.attendances.filter((a) => a.profiles?.gender === "male")
       .length,
+    attendedProfileIds: e.attendances.map((a) => a.profile_id),
   }));
 
   const members: AdminMember[] = (

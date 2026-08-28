@@ -196,6 +196,26 @@ export default async function AdminPage() {
     }),
   ];
 
+  // מטריצת נוכחות: שורה לכל חבר/ה, עמודה לכל מפגש, "כן" איפה שנכח/ה
+  // בפועל (כולל הוספה ידנית) — כדי לראות בבת אחת מי הגיע/ה לאילו
+  // מפגשים לאורך זמן, לא רק סיכום לפי מפגש בודד.
+  const attendanceMatrixCsv = [
+    [
+      "שם",
+      "טלפון",
+      ...eventsChronological.map(
+        (e) => `${e.title} ${formatDayMonth(e.starts_at)}`,
+      ),
+    ],
+    ...members.map((m) => [
+      m.profile.full_name,
+      formatPhone(m.profile.phone) ?? "",
+      ...eventsChronological.map((e) =>
+        e.attendedProfileIds.includes(m.profile.id) ? "כן" : "",
+      ),
+    ]),
+  ];
+
   return (
     <div className="space-y-8">
       <AdminLiveRefresh clubId={viewer.club.id} />
@@ -389,7 +409,14 @@ export default async function AdminPage() {
           <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-ink-faint)">
             חברי הקהילה
           </h2>
-          <ExportButton rows={membersCsv} filename="swell-members.csv" />
+          <div className="flex items-center gap-2">
+            <ExportButton
+              rows={attendanceMatrixCsv}
+              filename="swell-attendance-matrix.csv"
+              label="נוכחות"
+            />
+            <ExportButton rows={membersCsv} filename="swell-members.csv" />
+          </div>
         </div>
 
         <Card className="divide-y divide-(--color-line)/50 p-0">
