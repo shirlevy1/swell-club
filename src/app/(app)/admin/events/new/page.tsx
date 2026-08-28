@@ -64,13 +64,22 @@ export default function NewEventPage() {
   const [description, setDescription] = useState("");
   const [isSea, setIsSea] = useState(true);
   const [agendaText, setAgendaText] = useState("");
+  // עולה ברגע שמישהי נוגעת בלו״ז בעצמה — מאותה נקודה שינוי שעה כבר
+  // לא דורס את מה שהיא כתבה.
+  const [agendaTouched, setAgendaTouched] = useState(false);
   useEffect(() => {
     const now = roundedNow();
     setStartsAtDefault(now);
-    // ברירת המחדל של הלו״ז נקבעת פעם אחת ביחס לשעה הראשונית — אחרי
-    // זה היא נשארת בידי מי שעורכת, גם אם היא משנה את התאריך אחר כך.
     setAgendaText(defaultAgendaText(now.toISOString()));
   }, []);
+
+  // כל עוד הלו״ז עדיין ההצעה האוטומטית ולא נערך ידנית, שינוי השעה
+  // בטופס מעדכן אותו בהתאם — מפגש שקיעה לא צריך להיפתח עם "רגליים
+  // במים — 15:15" רק כי זו הייתה השעה כשהטופס נטען.
+  function handleStartsAtChange(date: Date | null) {
+    if (!date || agendaTouched) return;
+    setAgendaText(defaultAgendaText(date.toISOString()));
+  }
 
   // חיפוש מיקום תוך כדי הקלדה בשדה "שם המקום" עצמו — זו הדרך
   // הראשית לקבוע מיקום. הבחירה ממלאת גם את הקואורדינטות וגם קישור
@@ -280,7 +289,11 @@ export default function NewEventPage() {
           </Field>
 
           <Field label="תאריך ושעה">
-            <EventDateTimeInput name="starts_at" defaultValue={startsAtDefault} />
+            <EventDateTimeInput
+              name="starts_at"
+              defaultValue={startsAtDefault}
+              onChange={handleStartsAtChange}
+            />
           </Field>
 
           <Field label="תיאור המפגש (אופציונלי)">
@@ -312,7 +325,10 @@ export default function NewEventPage() {
           <Field label="לו״ז המפגש">
             <Textarea
               value={agendaText}
-              onChange={(e) => setAgendaText(e.target.value)}
+              onChange={(e) => {
+                setAgendaTouched(true);
+                setAgendaText(e.target.value);
+              }}
               rows={7}
               dir="auto"
             />

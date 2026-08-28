@@ -27,9 +27,14 @@ const pad = (n: number) => String(n).padStart(2, "0");
 export function EventDateTimeInput({
   name,
   defaultValue,
+  onChange,
 }: {
   name: string;
   defaultValue: Date | null;
+  /** נורית צד: עולה בכל שינוי בבחירה, כדי שהורה יוכל להגיב (למשל
+   *  לעדכן לו״ז מוצע). לא קשור לערך שנשלח בפועל בטופס — זה עדיין
+   *  ה-hidden input, כדי לא לשנות איך השליחה עצמה עובדת. */
+  onChange?: (date: Date | null) => void;
 }) {
   const [year, setYear] = useState<number | "">("");
   const [month, setMonth] = useState<number | "">("");
@@ -57,6 +62,16 @@ export function EventDateTimeInput({
     year && month && day && hour !== "" && minute !== ""
       ? `${year}-${pad(month)}-${pad(day)}T${pad(Number(hour))}:${pad(Number(minute))}`
       : "";
+
+  useEffect(() => {
+    if (!onChange) return;
+    onChange(
+      year && month && day && hour !== "" && minute !== ""
+        ? new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute))
+        : null,
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [year, month, day, hour, minute]);
 
   return (
     <div className="space-y-2">
