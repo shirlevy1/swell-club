@@ -23,6 +23,7 @@ import { EditSelfieButton } from "@/components/edit-selfie-button";
 import { DeleteEventButton } from "@/components/delete-event-button";
 import { EventLiveRefresh } from "@/components/event-live-refresh";
 import { AddAttendanceButton } from "@/components/add-attendance-button";
+import { WhatToBring } from "@/components/what-to-bring";
 
 export default async function EventPage({
   params,
@@ -83,6 +84,8 @@ export default async function EventPage({
           {event.description}
         </p>
       )}
+
+      <WhatToBring />
 
       <div className="space-y-2">
         <EventAgendaView text={agendaText} />
