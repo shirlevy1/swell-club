@@ -1,5 +1,7 @@
 "use client";
 
+import { ChevronIcon } from "./social-icons";
+
 export function CloseIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -12,23 +14,6 @@ export function CloseIcon({ className }: { className?: string }) {
       aria-hidden
     >
       <path d="M6 6 18 18M18 6 6 18" />
-    </svg>
-  );
-}
-
-export function ChevronIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden
-    >
-      <path d="M15 5 8 12l7 7" />
     </svg>
   );
 }

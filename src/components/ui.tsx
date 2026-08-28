@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
+import { ChevronIcon } from "./social-icons";
 
 function cx(...parts: (string | false | null | undefined)[]) {
   return parts.filter(Boolean).join(" ");
@@ -65,9 +66,9 @@ export function BackLink({
   return (
     <Link
       href={href}
-      className="-ms-2 inline-flex min-h-11 items-center gap-1 px-2 text-sm text-(--color-ink-faint)"
+      className="-ms-2 inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-(--color-ink-faint) transition hover:text-(--color-sea)"
     >
-      <span aria-hidden>←</span>
+      <ChevronIcon className="size-3.5 shrink-0" />
       {children}
     </Link>
   );
