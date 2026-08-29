@@ -205,7 +205,7 @@ export function CheckInFlow({ event }: { event: SwellEvent }) {
     const detection = await detectFace(canvas);
     setCheckingFace(false);
     if (!detection.hasFace) {
-      setError("איפה הפנים? נסו שוב, הפעם עם הפנים מול המצלמה.");
+      setError("לא זיהינו פנים בתמונה. נסו שוב, הפעם עם הפנים מול המצלמה.");
       return;
     }
 

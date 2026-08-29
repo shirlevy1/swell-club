@@ -117,7 +117,7 @@ export function EditSelfieButton({ eventId }: { eventId: string }) {
       const detection = await detectFace(canvas);
       if (!detection.hasFace) {
         setStep("camera");
-        setError("איפה הפנים? נסו שוב, הפעם עם הפנים מול המצלמה.");
+        setError("לא זיהינו פנים בתמונה. נסו שוב, הפעם עם הפנים מול המצלמה.");
         return;
       }
 
