@@ -228,8 +228,14 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
     // רק כששעה/תאריך או מיקום השתנו בפועל — לא על כל שמירה — ורק
     // למי שכבר סימן/ה הגעה, כי אלה תכננו לפי הפרטים הישנים. לא ממתינים
     // לזה, כמו כל שאר התראות ה-push המיידיות.
+    //
+    // starts_at מושווה כזמן (getTime), לא כמחרוזת: מה שחוזר מ-Supabase
+    // (למשל "2026-08-28T18:00:00+00:00") לא זהה תווית ל-toISOString()
+    // הטרי ("...T18:00:00.000Z"), למרות שזה אותו רגע בדיוק — השוואת
+    // מחרוזות הייתה תמיד יוצאת "שונה" ומוציאה התראה על כל שמירה בכלל.
     const detailsChanged =
-      patch.starts_at !== event.starts_at ||
+      new Date(patch.starts_at).getTime() !==
+        new Date(event.starts_at).getTime() ||
       patch.lat !== event.lat ||
       patch.lng !== event.lng;
     if (detailsChanged) {
