@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { demoMode } from "@/lib/config";
 import { Button, Field, Input, Notice } from "@/components/ui";
 
 export default function UpdatePasswordPage() {
@@ -10,6 +12,32 @@ export default function UpdatePasswordPage() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // מגיעים לכאן רק דרך קישור איפוס שנשלח במייל, שיוצר סשן זמני
+  // אוטומטית ברגע שהעמוד נטען. בלי הבדיקה הזו, קישור פג-תוקף/שכבר
+  // נוצל (או פשוט הקלדת הכתובת ידנית) היה מציג את הטופס כרגיל, והכשל
+  // היה מתגלה רק אחרי לחיצה על "שמירה" — בשגיאה אנגלית גולמית.
+  const [checking, setChecking] = useState(!demoMode);
+  const [linkValid, setLinkValid] = useState(demoMode);
+
+  useEffect(() => {
+    if (demoMode) return;
+    let cancelled = false;
+    createClient()
+      .auth.getUser()
+      .then(({ data }) => {
+        if (cancelled) return;
+        setLinkValid(!!data.user);
+        setChecking(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setLinkValid(false);
+        setChecking(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -37,6 +65,27 @@ export default function UpdatePasswordPage() {
       setPending(false);
       setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
     }
+  }
+
+  if (checking) return null;
+
+  if (!linkValid) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-center font-[family-name:var(--font-display)] text-2xl font-bold">
+          סיסמה חדשה
+        </h1>
+        <Notice tone="error">
+          הקישור לא תקין או שפג תוקפו. בקשו קישור חדש מעמוד ההתחברות.
+        </Notice>
+        <Link
+          href="/login"
+          className="block text-center text-sm font-semibold text-(--color-sea)"
+        >
+          למסך ההתחברות
+        </Link>
+      </div>
+    );
   }
 
   return (
