@@ -41,10 +41,13 @@ export default async function EventPage({
     await getEventDetail(id, viewer.userId, isOrganizer);
   const { status, closesAt } = checkInWindow(event);
   const minutesBefore = formatMinutes(event.checkin_opens_before_min);
-  // אף פעם לא מפיל את העמוד — GoSurf לא זמין נחשב "אין תחזית", לא שגיאה
-  const forecast = event.is_sea
-    ? await getSeaForecastForEvent(event.starts_at)
-    : null;
+  // אף פעם לא מפיל את העמוד — GoSurf לא זמין נחשב "אין תחזית", לא שגיאה.
+  // גם לא נשלף בכלל למפגש שכבר נגמר — התחזית כבר לא מוצגת שם, ואין
+  // טעם בקריאת רשת חיצונית סתם.
+  const forecast =
+    event.is_sea && status !== "closed"
+      ? await getSeaForecastForEvent(event.starts_at)
+      : null;
   const agendaText = getEventAgendaText(event);
   const equipmentText = getEventEquipmentText(event);
 
@@ -92,21 +95,27 @@ export default async function EventPage({
         </a>
       </header>
 
-      {event.description && (
-        <p className="text-sm leading-relaxed text-(--color-ink-soft)">
-          {event.description}
-        </p>
-      )}
+      {/* תיאור/לו״ז/תחזית/ציוד הם מידע לקראת המפגש — לא רלוונטיים
+          יותר אחרי שהוא כבר נגמר, אז נעלמים יחד עם סגירת הצ'ק־אין. */}
+      {status !== "closed" && (
+        <>
+          {event.description && (
+            <p className="text-sm leading-relaxed text-(--color-ink-soft)">
+              {event.description}
+            </p>
+          )}
 
-      {event.agenda_visible && <EventAgendaView text={agendaText} />}
+          {event.agenda_visible && <EventAgendaView text={agendaText} />}
 
-      {forecast && <SeaForecast day={forecast} />}
+          {forecast && <SeaForecast day={forecast} />}
 
-      {event.equipment_visible && (
-        <WhatToBring
-          text={equipmentText}
-          showLink={event.equipment_link_visible}
-        />
+          {event.equipment_visible && (
+            <WhatToBring
+              text={equipmentText}
+              showLink={event.equipment_link_visible}
+            />
+          )}
+        </>
       )}
 
       {status === "before" && !hasAttended && (
