@@ -91,12 +91,14 @@ export default async function Home() {
             </>
           ) : (
             <>
+              <p className="text-[0.8rem] font-bold">
+                טיפ: הוסיפו את Swell Club למסך הבית
+              </p>
               {/* חצים שמצביעים לכיוון הקריאה של RTL — שמאלה, לא ימינה,
                   כי הצעד הבא בעברית ממשיך שמאלה מהצעד הקודם. */}
-              <p className="text-[0.8rem] font-bold">
-                בספארי ← שיתוף ← ״הוסף למסך הבית״.
-              </p>
               <p className="mt-1 text-[0.75rem] leading-relaxed text-(--color-ink-faint)">
+                בספארי ← שיתוף ← ״הוסף למסך הבית״.
+                <br />
                 וזהו, Swell Club אצלכם כמו אפליקציה.
               </p>
             </>
