@@ -12,7 +12,11 @@ import {
   type LocationSuggestion,
 } from "@/lib/actions";
 import { DEFAULT_EVENT_LOCATION } from "@/lib/maps";
-import { defaultAgendaText, defaultEquipmentText } from "@/lib/agenda";
+import {
+  defaultAgendaText,
+  defaultEquipmentText,
+  defaultEventTitle,
+} from "@/lib/agenda";
 import { EventDateTimeInput } from "@/components/event-datetime-input";
 import { Button, Card, Field, Input, Notice, Textarea } from "@/components/ui";
 
@@ -61,6 +65,10 @@ export default function NewEventPage() {
   // null בהתחלה כדי שלא יהיה פער בין מה שהשרת רינדר למה שהדפדפן
   // מחשב (לשעה המקומית) — מתמלא ברגע שהעמוד עולה בדפדפן.
   const [startsAtDefault, setStartsAtDefault] = useState<Date | null>(null);
+  const [title, setTitle] = useState("");
+  // עולה ברגע שמישהי נוגעת בכותרת בעצמה — מאותה נקודה שינוי שעה כבר
+  // לא דורס מה שהיא כתבה. אותו דפוס בדיוק כמו agendaTouched למטה.
+  const [titleTouched, setTitleTouched] = useState(false);
   const [description, setDescription] = useState("");
   const [descriptionVisible, setDescriptionVisible] = useState(true);
   const [isSea, setIsSea] = useState(true);
@@ -76,15 +84,17 @@ export default function NewEventPage() {
   useEffect(() => {
     const now = roundedNow();
     setStartsAtDefault(now);
+    setTitle(defaultEventTitle(now.toISOString()));
     setAgendaText(defaultAgendaText(now.toISOString()));
   }, []);
 
-  // כל עוד הלו״ז עדיין ההצעה האוטומטית ולא נערך ידנית, שינוי השעה
-  // בטופס מעדכן אותו בהתאם — מפגש שקיעה לא צריך להיפתח עם "רגליים
-  // במים — 15:15" רק כי זו הייתה השעה כשהטופס נטען.
+  // כל עוד הכותרת/הלו״ז עדיין ההצעה האוטומטית ולא נערכו ידנית, שינוי
+  // שעה בטופס מעדכן אותם בהתאם — מפגש שקיעה לא צריך להיפתח עם
+  // "שחיית בוקר" או "רגליים במים — 15:15" רק כי זו הייתה השעה כשהטופס נטען.
   function handleStartsAtChange(date: Date | null) {
-    if (!date || agendaTouched) return;
-    setAgendaText(defaultAgendaText(date.toISOString()));
+    if (!date) return;
+    if (!titleTouched) setTitle(defaultEventTitle(date.toISOString()));
+    if (!agendaTouched) setAgendaText(defaultAgendaText(date.toISOString()));
   }
 
   // חיפוש מיקום תוך כדי הקלדה בשדה "שם המקום" עצמו — זו הדרך
@@ -303,7 +313,15 @@ export default function NewEventPage() {
       <form onSubmit={onSubmit} className="space-y-5">
         <Card className="space-y-4">
           <Field label="שם המפגש">
-            <Input name="title" required defaultValue="שחיית בוקר" />
+            <Input
+              name="title"
+              required
+              value={title}
+              onChange={(e) => {
+                setTitleTouched(true);
+                setTitle(e.target.value);
+              }}
+            />
           </Field>
 
           <Field label="תאריך ושעה">

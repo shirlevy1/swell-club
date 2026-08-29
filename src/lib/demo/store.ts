@@ -1,5 +1,6 @@
 import type { Club, MemberRole, Profile, SwellEvent } from "../types";
 import { DEFAULT_EVENT_LOCATION } from "../maps";
+import { defaultEventTitle } from "../agenda";
 
 /**
  * מאגר בזיכרון למצב הדגמה. אין מסד נתונים ואין התחברות —
@@ -88,14 +89,6 @@ type EventSeed = Omit<SwellEvent, "starts_at" | "title"> & {
     | { fixedStartsAt: string; days?: never; offsetMin?: never }
   );
 
-/** כותרת שמתאימה לשעה שבה המפגש באמת מתקיים */
-function swimTitleFor(date: Date): string {
-  const h = date.getHours();
-  if (h >= 5 && h < 10) return "שחיית בוקר";
-  if (h >= 10 && h < 16) return "שחיית צהריים";
-  if (h >= 16 && h < 20) return "שחיית שקיעה";
-  return "שחיית לילה";
-}
 
 const EVENT_SEEDS: EventSeed[] = [
   {
@@ -365,7 +358,7 @@ export function demoEvents(): SwellEvent[] {
     return {
       ...rest,
       starts_at: startsAt.toISOString(),
-      title: title ?? swimTitleFor(startsAt),
+      title: title ?? defaultEventTitle(startsAt.toISOString()),
     };
   });
 }

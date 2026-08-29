@@ -48,3 +48,16 @@ export function getEventEquipmentText(
 ): string {
   return event.equipment_text?.trim() || defaultEquipmentText();
 }
+
+/**
+ * כותרת ברירת מחדל לפי שעת ההתחלה — לא תמיד "שחיית בוקר". משמש גם
+ * את טופס יצירת המפגש וגם את זריעת נתוני ההדגמה, כדי ששתי הגרסאות
+ * לא יתפצלו זו מזו.
+ */
+export function defaultEventTitle(startsAtISO: string): string {
+  const h = new Date(startsAtISO).getHours();
+  if (h >= 5 && h < 10) return "שחיית בוקר";
+  if (h >= 10 && h < 16) return "שחיית צהריים";
+  if (h >= 16 && h < 20) return "שחיית שקיעה";
+  return "שחיית לילה";
+}
