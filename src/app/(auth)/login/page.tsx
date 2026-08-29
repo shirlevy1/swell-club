@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
+import { authErrorMessage } from "@/lib/auth-errors";
 import { PasswordInput } from "@/components/password-input";
 import { Button, Field, Input, Notice } from "@/components/ui";
 
@@ -54,11 +55,7 @@ function LoginForm() {
 
       if (signInError) {
         setError(
-          signInError.message.includes("Invalid login")
-            ? "אימייל או סיסמה לא נכונים."
-            : signInError.message.includes("Email not confirmed")
-              ? "קודם צריך לאשר את המייל שנשלח אליכם."
-              : signInError.message,
+          authErrorMessage(signInError, "לא הצלחנו להתחבר. נסו שוב."),
         );
         return;
       }
@@ -82,9 +79,7 @@ function LoginForm() {
         });
       if (resetError) {
         return setError(
-          resetError.message.includes("rate limit")
-            ? "יותר מדי בקשות איפוס בזמן קצר. חכו כמה דקות ונסו שוב."
-            : "לא הצלחנו לשלוח את המייל. נסו שוב בעוד רגע.",
+          authErrorMessage(resetError, "לא הצלחנו לשלוח את המייל. נסו שוב בעוד רגע."),
         );
       }
       setResetSent(true);

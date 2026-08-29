@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
+import { authErrorMessage } from "@/lib/auth-errors";
 import { PasswordInput } from "@/components/password-input";
 import { Button, Field, Notice } from "@/components/ui";
 
@@ -58,7 +59,11 @@ export default function UpdatePasswordPage() {
       });
       setPending(false);
 
-      if (updateError) return setError(updateError.message);
+      if (updateError) {
+        return setError(
+          authErrorMessage(updateError, "לא הצלחנו לעדכן את הסיסמה. נסו שוב."),
+        );
+      }
 
       router.push("/events");
       router.refresh();

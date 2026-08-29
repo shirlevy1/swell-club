@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { isHebrewName, isValidIsraeliPhone, normalizeInstagram } from "@/lib/format";
 import { demoMode } from "@/lib/config";
+import { authErrorMessage } from "@/lib/auth-errors";
 import { CityAutocomplete } from "@/components/city-autocomplete";
 import { BirthDateInput } from "@/components/birth-date-input";
 import { GenderInput } from "@/components/gender-input";
@@ -101,9 +102,7 @@ export default function SignupPage() {
 
       if (signUpError) {
         setError(
-          signUpError.message.includes("already registered")
-            ? "האימייל הזה כבר רשום. אפשר להתחבר."
-            : signUpError.message,
+          authErrorMessage(signUpError, "לא הצלחנו להשלים את ההרשמה. נסו שוב."),
         );
         return;
       }
