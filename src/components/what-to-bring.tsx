@@ -40,29 +40,35 @@ export function WhatToBring({
         {text}
       </p>
       {showLink && (
-        <div className="flex gap-3 pt-1">
-          {BRAND_DEALS.map((brand) => (
-            <a
-              key={brand.name}
-              href={brand.url}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={`הטבת ${brand.name}`}
-              className="flex flex-1 flex-col items-center gap-2 rounded-xl border border-(--color-line) bg-(--color-surface) p-3 text-center transition active:scale-[0.98] hover:border-(--color-sea)/50 hover:bg-(--color-haze)"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={brand.logo}
-                alt={brand.name}
-                className="h-9 w-full object-contain"
-              />
-              <span className="text-xs font-semibold text-(--color-ink-soft)">
-                <span className="ltr-embed">{brand.percent}</span>
-                {" · "}
-                <span className="ltr-embed">{brand.code}</span>
-              </span>
-            </a>
-          ))}
+        <div className="space-y-2 pt-1">
+          <p className="text-sm leading-relaxed text-(--color-ink-soft)">
+            חסר לכם ציוד? יש לנו הטבות שוות באתר ובחנויות של Speedo ושל
+            Garmin:
+          </p>
+          <div className="flex gap-3">
+            {BRAND_DEALS.map((brand) => (
+              <a
+                key={brand.name}
+                href={brand.url}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`הטבת ${brand.name}`}
+                className="flex flex-1 flex-col items-center gap-2 rounded-xl border border-(--color-line) bg-(--color-surface) p-3 text-center transition active:scale-[0.98] hover:border-(--color-sea)/50 hover:bg-(--color-haze)"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={brand.logo}
+                  alt={brand.name}
+                  className="h-9 w-full object-contain"
+                />
+                <span className="text-xs font-semibold text-(--color-ink-soft)">
+                  <span className="ltr-embed">{brand.percent}</span>
+                  {" · "}
+                  <span className="ltr-embed">{brand.code}</span>
+                </span>
+              </a>
+            ))}
+          </div>
         </div>
       )}
     </div>
