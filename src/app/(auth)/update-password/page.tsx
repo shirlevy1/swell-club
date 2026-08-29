@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
-import { Button, Field, Input, Notice } from "@/components/ui";
+import { PasswordInput } from "@/components/password-input";
+import { Button, Field, Notice } from "@/components/ui";
 
 export default function UpdatePasswordPage() {
   const router = useRouter();
@@ -95,11 +96,9 @@ export default function UpdatePasswordPage() {
       </h1>
       <form onSubmit={onSubmit} className="space-y-4">
         <Field label="סיסמה חדשה" hint="לפחות 8 תווים">
-          <Input
+          <PasswordInput
             name="password"
-            type="password"
             autoComplete="new-password"
-            dir="ltr"
             required
             minLength={8}
             className="text-left"

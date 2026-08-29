@@ -10,6 +10,7 @@ import { CityAutocomplete } from "@/components/city-autocomplete";
 import { BirthDateInput } from "@/components/birth-date-input";
 import { GenderInput } from "@/components/gender-input";
 import { SwimLevelInput } from "@/components/swim-level-input";
+import { PasswordInput } from "@/components/password-input";
 import { Button, Field, Input, Notice } from "@/components/ui";
 
 export default function SignupPage() {
@@ -180,11 +181,9 @@ export default function SignupPage() {
         </Field>
 
         <Field label="סיסמה" hint="לפחות 8 תווים">
-          <Input
+          <PasswordInput
             name="password"
-            type="password"
             autoComplete="new-password"
-            dir="ltr"
             required
             minLength={8}
             className="text-left"

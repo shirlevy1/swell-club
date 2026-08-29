@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
+import { PasswordInput } from "@/components/password-input";
 import { Button, Field, Input, Notice } from "@/components/ui";
 
 /**
@@ -110,11 +111,9 @@ function LoginForm() {
         </Field>
 
         <Field label="סיסמה">
-          <Input
+          <PasswordInput
             name="password"
-            type="password"
             autoComplete="current-password"
-            dir="ltr"
             required
             className="text-left"
           />
