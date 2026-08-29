@@ -407,16 +407,24 @@ export default async function AdminPage() {
           <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-ink-faint)">
             חברי הקהילה
           </h2>
-          <div className="flex items-center gap-2">
-            <ExportButton
-              rows={attendanceMatrixCsv}
-              filename="swell-attendance-matrix.csv"
-              label="הגעה"
-            />
-            <ExportButton rows={membersCsv} filename="swell-members.csv" />
-          </div>
+          {members.length > 0 && (
+            <div className="flex items-center gap-2">
+              <ExportButton
+                rows={attendanceMatrixCsv}
+                filename="swell-attendance-matrix.csv"
+                label="הגעה"
+              />
+              <ExportButton rows={membersCsv} filename="swell-members.csv" />
+            </div>
+          )}
         </div>
 
+        {members.length === 0 ? (
+          <EmptyState
+            title="עוד אין חברי קהילה"
+            body="כשמישהו יצטרף לקהילה, הוא יופיע כאן."
+          />
+        ) : (
         <Card className="divide-y divide-(--color-line)/50 p-0">
           {members.map((m) => {
             const age = ageInYears(m.profile.birth_date);
@@ -506,6 +514,7 @@ export default async function AdminPage() {
             );
           })}
         </Card>
+        )}
       </section>
     </div>
   );
