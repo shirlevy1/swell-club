@@ -224,6 +224,22 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
     setPending(false);
 
     if (updateError) return setError("לא הצלחנו לשמור. נסו שוב.");
+
+    // רק כששעה/תאריך או מיקום השתנו בפועל — לא על כל שמירה — ורק
+    // למי שכבר סימן/ה הגעה, כי אלה תכננו לפי הפרטים הישנים. לא ממתינים
+    // לזה, כמו כל שאר התראות ה-push המיידיות.
+    const detailsChanged =
+      patch.starts_at !== event.starts_at ||
+      patch.lat !== event.lat ||
+      patch.lng !== event.lng;
+    if (detailsChanged) {
+      fetch("/api/push/notify-event-changed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event_id: event.id }),
+      }).catch(() => {});
+    }
+
     router.push(`/events/${event.id}`);
     router.refresh();
   }
