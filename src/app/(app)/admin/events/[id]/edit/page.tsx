@@ -20,7 +20,7 @@ export default async function EditEventSchedulePage({
       <BackLink href={`/events/${id}`}>למפגש</BackLink>
 
       <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold">
-        עריכת תיאור ולו״ז
+        עריכת מפגש
       </h1>
 
       <EditEventScheduleForm event={event} />

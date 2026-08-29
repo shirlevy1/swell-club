@@ -496,12 +496,22 @@ export function demoCreateEvent(event: SwellEvent) {
 export function demoUpdateEventSchedule(
   eventId: string,
   patch: {
+    title: string;
+    starts_at: string;
+    location_name: string;
+    lat: number;
+    lng: number;
+    maps_url: string | null;
+    checkin_radius_m: number;
+    checkin_opens_before_min: number;
+    checkin_closes_after_min: number;
     description: string | null;
     agenda_text: string | null;
     agenda_visible: boolean;
     equipment_text: string | null;
     equipment_visible: boolean;
     equipment_link_visible: boolean;
+    is_sea: boolean;
   },
 ) {
   const seed = EVENT_SEEDS.find((e) => e.id === eventId);
