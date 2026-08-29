@@ -42,8 +42,9 @@ export function WhatToBring({
       {showLink && (
         <div className="space-y-2 pt-1">
           <p className="text-sm leading-relaxed text-(--color-ink-soft)">
-            חסר לכם ציוד? יש לנו הטבות שוות באתר ובחנויות של Speedo ושל
-            Garmin:
+            חסר לכם ציוד?
+            <br />
+            יש לנו הטבות שוות באתר ובחנויות של Speedo ושל Garmin:
           </p>
           <div className="flex gap-3">
             {BRAND_DEALS.map((brand) => (
