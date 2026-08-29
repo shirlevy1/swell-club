@@ -20,13 +20,23 @@ export default function UpdatePasswordPage() {
 
     setPending(true);
     const supabase = createClient();
-    const { error: updateError } = await supabase.auth.updateUser({ password });
-    setPending(false);
 
-    if (updateError) return setError(updateError.message);
+    // כשל רשת אמיתי זורק חריגה במקום להחזיר error מסודר — בלי
+    // try/catch הכפתור היה נשאר נעול על "רגע…" לצמיתות.
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({
+        password,
+      });
+      setPending(false);
 
-    router.push("/events");
-    router.refresh();
+      if (updateError) return setError(updateError.message);
+
+      router.push("/events");
+      router.refresh();
+    } catch {
+      setPending(false);
+      setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
+    }
   }
 
   return (

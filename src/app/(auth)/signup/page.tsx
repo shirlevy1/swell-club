@@ -61,67 +61,74 @@ export default function SignupPage() {
     setPending(true);
     const supabase = createClient();
 
-    // בדיקה מוקדמת, לפני יצירת המשתמש בכלל — כך לא נשארת התחלה של
-    // הרשמה תקועה באמצע רק כי הטלפון כבר בשימוש. אימייל כפול כבר
-    // נבדק אוטומטית ע"י Supabase Auth, אין צורך לבדוק אותו ידנית.
-    const { data: phoneAvailable, error: phoneCheckError } =
-      await supabase.rpc("is_phone_available", { p_phone: phone });
-    if (phoneCheckError) {
-      setPending(false);
-      return setError("לא הצלחנו לבדוק את מספר הטלפון. נסו שוב.");
-    }
-    if (!phoneAvailable) {
-      setPending(false);
-      return setError(
-        "מספר הטלפון הזה כבר משויך לחשבון קיים. אם זה החשבון שלכם, אפשר להתחבר במקום להירשם.",
-      );
-    }
+    // כשל רשת אמיתי (לא רק שגיאה מסודרת) זורק חריגה במקום להחזיר
+    // error — בלי try/catch הכפתור היה נשאר נעול על "יוצרים…" לצמיתות.
+    try {
+      // בדיקה מוקדמת, לפני יצירת המשתמש בכלל — כך לא נשארת התחלה של
+      // הרשמה תקועה באמצע רק כי הטלפון כבר בשימוש. אימייל כפול כבר
+      // נבדק אוטומטית ע"י Supabase Auth, אין צורך לבדוק אותו ידנית.
+      const { data: phoneAvailable, error: phoneCheckError } =
+        await supabase.rpc("is_phone_available", { p_phone: phone });
+      if (phoneCheckError) {
+        setPending(false);
+        return setError("לא הצלחנו לבדוק את מספר הטלפון. נסו שוב.");
+      }
+      if (!phoneAvailable) {
+        setPending(false);
+        return setError(
+          "מספר הטלפון הזה כבר משויך לחשבון קיים. אם זה החשבון שלכם, אפשר להתחבר במקום להירשם.",
+        );
+      }
 
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        // נקרא ע"י handle_new_user() ליצירת הפרופיל
-        data: {
-          full_name: fullName,
-          gender,
-          phone,
-          birth_date: birthDate,
-          city,
-          swim_level: swimLevel,
-          instagram,
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          // נקרא ע"י handle_new_user() ליצירת הפרופיל
+          data: {
+            full_name: fullName,
+            gender,
+            phone,
+            birth_date: birthDate,
+            city,
+            swim_level: swimLevel,
+            instagram,
+          },
         },
-      },
-    });
-    setPending(false);
+      });
+      setPending(false);
 
-    if (signUpError) {
-      setError(
-        signUpError.message.includes("already registered")
-          ? "האימייל הזה כבר רשום. אפשר להתחבר."
-          : signUpError.message,
-      );
-      return;
+      if (signUpError) {
+        setError(
+          signUpError.message.includes("already registered")
+            ? "האימייל הזה כבר רשום. אפשר להתחבר."
+            : signUpError.message,
+        );
+        return;
+      }
+
+      // הפרופיל וחברות ה-pending כבר נוצרו ב-handle_new_user() ברגע
+      // הזה, גם אם עוד אין session (אימות אימייל) — לא ממתינים לזה
+      if (data.user) {
+        fetch("/api/push/notify-new-member", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ profile_id: data.user.id }),
+        }).catch(() => {});
+      }
+
+      // אם אימות אימייל פעיל ב-Supabase, אין session עד שמאשרים
+      if (!data.session) {
+        setNeedsEmailConfirm(true);
+        return;
+      }
+
+      router.push("/events");
+      router.refresh();
+    } catch {
+      setPending(false);
+      setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
     }
-
-    // הפרופיל וחברות ה-pending כבר נוצרו ב-handle_new_user() ברגע
-    // הזה, גם אם עוד אין session (אימות אימייל) — לא ממתינים לזה
-    if (data.user) {
-      fetch("/api/push/notify-new-member", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ profile_id: data.user.id }),
-      }).catch(() => {});
-    }
-
-    // אם אימות אימייל פעיל ב-Supabase, אין session עד שמאשרים
-    if (!data.session) {
-      setNeedsEmailConfirm(true);
-      return;
-    }
-
-    router.push("/events");
-    router.refresh();
   }
 
   if (needsEmailConfirm) {

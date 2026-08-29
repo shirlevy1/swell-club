@@ -40,37 +40,50 @@ function LoginForm() {
     setPending(true);
     const form = new FormData(e.currentTarget);
     const supabase = createClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: String(form.get("email") ?? "").trim(),
-      password: String(form.get("password") ?? ""),
-    });
-    setPending(false);
 
-    if (signInError) {
-      setError(
-        signInError.message.includes("Invalid login")
-          ? "אימייל או סיסמה לא נכונים."
-          : signInError.message.includes("Email not confirmed")
-            ? "קודם צריך לאשר את המייל שנשלח אליכם."
-            : signInError.message,
-      );
-      return;
+    // כשל רשת אמיתי (לא רק שגיאת התחברות רגילה) זורק חריגה במקום
+    // להחזיר error מסודר — בלי try/catch הכפתור היה נשאר נעול על
+    // "רגע…" לצמיתות, בלי שום הודעה.
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: String(form.get("email") ?? "").trim(),
+        password: String(form.get("password") ?? ""),
+      });
+      setPending(false);
+
+      if (signInError) {
+        setError(
+          signInError.message.includes("Invalid login")
+            ? "אימייל או סיסמה לא נכונים."
+            : signInError.message.includes("Email not confirmed")
+              ? "קודם צריך לאשר את המייל שנשלח אליכם."
+              : signInError.message,
+        );
+        return;
+      }
+
+      router.push(safeNext(params.get("next")));
+      router.refresh();
+    } catch {
+      setPending(false);
+      setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
     }
-
-    router.push(safeNext(params.get("next")));
-    router.refresh();
   }
 
   async function onReset() {
     if (!email) return setError("קודם הקלידו אימייל, ואז לחצו על שחזור.");
     setError(null);
     const supabase = createClient();
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-      email,
-      { redirectTo: `${window.location.origin}/update-password` },
-    );
-    if (resetError) return setError(resetError.message);
-    setResetSent(true);
+    try {
+      const { error: resetError } =
+        await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/update-password`,
+        });
+      if (resetError) return setError(resetError.message);
+      setResetSent(true);
+    } catch {
+      setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
+    }
   }
 
   return (
