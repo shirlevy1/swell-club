@@ -280,6 +280,10 @@ export function EventPhotoAlbum({
   }
 
   async function onDelete(photo: EventPhoto) {
+    // אותה בטוחה בדיוק כמו מחיקת מפגש שלם (delete-event-button.tsx) —
+    // גם מחיקת תמונה בלתי הפיכה, ולא הייתה לה שום "רגע לפני" עד עכשיו.
+    if (!window.confirm("למחוק את התמונה הזו? הפעולה לא הפיכה.")) return;
+
     setBusyId(photo.id);
     if (demoMode) {
       await deleteEventPhotoAction(eventId, photo.id);
