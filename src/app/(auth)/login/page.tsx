@@ -76,7 +76,7 @@ function LoginForm() {
   }
 
   async function onReset() {
-    if (!email) return setError("קודם הקלידו אימייל, ואז לחצו על שחזור.");
+    if (!email) return setError("קודם הקלידו אימייל, ואז לחצו על ״שכחתי סיסמה״.");
     setError(null);
     const supabase = createClient();
     try {
