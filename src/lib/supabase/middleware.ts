@@ -62,8 +62,15 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(to);
   }
 
-  // מחובר שנוחת על שער הכניסה — ישר פנימה
-  if (user && (pathname === "/login" || pathname === "/signup")) {
+  // מחובר שנוחת על שער הכניסה — ישר פנימה. חוץ ממקרה אחד: אם יש
+  // ?error= בכתובת (קישור מייל שבור/פג-תוקף שהפנה לכאן), לא מוחקים
+  // את זה בשקט — גם מי שכבר מחוברת/ת צריכה לראות את ההודעה, לא רק
+  // להיבלע ישר פנימה בלי שום הסבר.
+  if (
+    user &&
+    (pathname === "/login" || pathname === "/signup") &&
+    !request.nextUrl.searchParams.has("error")
+  ) {
     const to = request.nextUrl.clone();
     to.pathname = "/events";
     to.search = "";
