@@ -49,6 +49,12 @@ function minutesField(raw: FormDataEntryValue | null): number {
 export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
   const router = useRouter();
 
+  // מחושב פעם אחת (lazy initializer, לא בכל רינדור) — EventDateTimeInput
+  // מאפס את הבחירה שלו בכל פעם ש-defaultValue מקבל זהות אובייקט חדשה,
+  // ו-`new Date(...)` בתוך ה-JSX היה יוצר תאריך חדש בכל הקלדה בשדה
+  // אחר בטופס (תיאור, מיקום וכו'), ומוחק שינוי שעה/תאריך שכבר נבחר.
+  const [startsAtDefault] = useState(() => new Date(event.starts_at));
+
   const [locationName, setLocationName] = useState(event.location_name);
   const [coords, setCoords] = useState<{ lat: number; lng: number }>({
     lat: event.lat,
@@ -232,7 +238,7 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
         <Field label="תאריך ושעה">
           <EventDateTimeInput
             name="starts_at"
-            defaultValue={new Date(event.starts_at)}
+            defaultValue={startsAtDefault}
             onChange={handleStartsAtChange}
           />
         </Field>
