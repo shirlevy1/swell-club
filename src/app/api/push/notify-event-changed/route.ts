@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     (going ?? []).map((r) => r.profile_id),
     {
       title: `${formatWeekdayName(event.starts_at)} | ${formatDayMonth(event.starts_at)} | ${formatTime(event.starts_at)} | ${event.location_name}`,
-      body: "עדכון קטן למפגש\nבדקו שהשעה, התאריך והמקום עדיין מתאימים לכם.",
+      body: "יש עדכון קטן למפגש. בדקו שעדיין מתאים לכם.",
       tag: `event-changed-${event.id}`,
       url: `/events/${event.id}`,
     },
