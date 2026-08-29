@@ -68,10 +68,10 @@ export default async function EventPage({
               {formatDateTime(event.starts_at)}
             </h1>
           </div>
-          {isOrganizer && (
+          {isOrganizer && !eventHasStarted && (
             <Link
               href={`/admin/events/${id}/edit`}
-              aria-label="עריכת תיאור ולו״ז"
+              aria-label="עריכת מפגש"
               className="flex size-11 shrink-0 items-center justify-center rounded-full border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
             >
               <EditIcon className="size-5" />
