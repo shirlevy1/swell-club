@@ -80,7 +80,13 @@ function LoginForm() {
         await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/update-password`,
         });
-      if (resetError) return setError(resetError.message);
+      if (resetError) {
+        return setError(
+          resetError.message.includes("rate limit")
+            ? "יותר מדי בקשות איפוס בזמן קצר. חכו כמה דקות ונסו שוב."
+            : "לא הצלחנו לשלוח את המייל. נסו שוב בעוד רגע.",
+        );
+      }
       setResetSent(true);
     } catch {
       setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
