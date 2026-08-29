@@ -2,8 +2,14 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { demoMode, supabaseAnonKey, supabaseUrl } from "../config";
 
-/** מסלולים שנגישים בלי התחברות */
-const PUBLIC_PATHS = ["/", "/login", "/signup", "/auth"];
+/**
+ * מסלולים שנגישים בלי התחברות. /update-password חייב להיות כאן:
+ * מי שמגיע/ה מקישור איפוס במייל היא בהגדרה **לא** מחוברת (זו הסיבה
+ * שהיא מאפסת סיסמה), וההרשאה הזמנית מהקישור נוצרת רק בצד הלקוח אחרי
+ * שהעמוד נטען — אם ה-proxy חוסם את הדרך לשם קודם, אין בכלל דרך
+ * להגיע לטופס. הבדיקה שהקישור עצמו תקף כבר קיימת בתוך העמוד עצמו.
+ */
+const PUBLIC_PATHS = ["/", "/login", "/signup", "/auth", "/update-password"];
 
 function isPublic(pathname: string) {
   return PUBLIC_PATHS.some(
