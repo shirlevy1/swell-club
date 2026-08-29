@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { formatDayMonth, formatTime, formatWeekdayName } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { adminDb, sendPushToProfiles } from "@/lib/push-server";
 
@@ -24,7 +23,7 @@ export async function POST(request: Request) {
   const db = adminDb();
   const { data: event, error: eventError } = await db
     .from("events")
-    .select("id, club_id, starts_at, location_name")
+    .select("id, club_id")
     .eq("id", event_id)
     .maybeSingle();
   if (eventError) {
@@ -53,8 +52,8 @@ export async function POST(request: Request) {
   await sendPushToProfiles(
     (going ?? []).map((r) => r.profile_id),
     {
-      title: `${formatWeekdayName(event.starts_at)} | ${formatDayMonth(event.starts_at)} | ${formatTime(event.starts_at)} | ${event.location_name}`,
-      body: "משהו השתנה במפגש — ודאו שהשעה והמקום עדיין מתאימים לכם.",
+      title: "עדכון קטן למפגש",
+      body: "בדקו שהשעה, התאריך והמקום עדיין מתאימים לכם.",
       tag: `event-changed-${event.id}`,
       url: `/events/${event.id}`,
     },
