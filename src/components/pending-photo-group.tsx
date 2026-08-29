@@ -60,7 +60,10 @@ export function PendingPhotoGroup({
     const ok = await approvePhotos([photo]);
     setBusy(null);
     if (!ok) return setError("לא הצלחנו לאשר. נסו שוב.");
-    setViewerIndex(null);
+    // לא סוגרים את התצוגה המוגדלת — אחרי שה-router.refresh() מביא את
+    // הרשימה המעודכנת (בלי התמונה שאושרה), אותו אינדקס פשוט מצביע על
+    // התמונה הבאה בערימה. אם זו הייתה האחרונה, photos[viewerIndex]
+    // כבר לא קיים וה-JSX למטה סוגר את התצוגה לבד.
     router.refresh();
   }
 
@@ -100,7 +103,7 @@ export function PendingPhotoGroup({
     const ok = await rejectPhotos([photo]);
     setBusy(null);
     if (!ok) return setError("לא הצלחנו לדחות. נסו שוב.");
-    setViewerIndex(null);
+    // ראו הערה ב-approveOne — אותו היגיון בדיוק.
     router.refresh();
   }
 
