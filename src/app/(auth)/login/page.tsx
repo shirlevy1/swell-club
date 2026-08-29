@@ -26,7 +26,14 @@ function LoginForm() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resetSent, setResetSent] = useState(false);
+  const [resendSent, setResendSent] = useState(false);
   const [email, setEmail] = useState("");
+
+  // מגיעים לכאן עם אלה כשקישור ממייל (auth/confirm) נכשל — הקישור
+  // עצמו כבר "צעק" מה קרה (bad_link/expired_link + הסוג), רק שעד עכשיו
+  // שום דבר במסך לא הקשיב לזה, והמשתמשת פשוט ראתה מסך התחברות ריק.
+  const linkError = params.get("error");
+  const linkErrorType = params.get("type");
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -88,6 +95,28 @@ function LoginForm() {
     }
   }
 
+  // "בקשו קישור חדש" למייל אישור הרשמה שפג תוקף: לא לנסות להירשם שוב
+  // (זה נכשל — הטלפון כבר תפוס מההרשמה הראשונה, גם אם לא אושרה) אלא
+  // resend ייעודי, שלא עובר דרך signUp() ולא נתקל בבדיקת הטלפון שלנו.
+  async function onResendConfirmation() {
+    if (!email) return setError("קודם הקלידו את האימייל שנרשמתם איתו.");
+    setError(null);
+    try {
+      const { error: resendError } = await createClient().auth.resend({
+        type: "signup",
+        email,
+      });
+      if (resendError) {
+        return setError(
+          authErrorMessage(resendError, "לא הצלחנו לשלוח את המייל. נסו שוב בעוד רגע."),
+        );
+      }
+      setResendSent(true);
+    } catch {
+      setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="space-y-1 text-center">
@@ -95,6 +124,44 @@ function LoginForm() {
           התחברות
         </h1>
       </div>
+
+      {linkError === "bad_link" && (
+        <Notice tone="error">הקישור לא תקין.</Notice>
+      )}
+
+      {linkError === "expired_link" && linkErrorType === "recovery" && (
+        <Notice tone="warn">
+          קישור איפוס הסיסמה פג תוקף או שכבר נוצל. אפשר לבקש קישור חדש עם
+          ״שכחתי סיסמה״ למטה.
+        </Notice>
+      )}
+
+      {linkError === "expired_link" && linkErrorType === "signup" && (
+        <Notice tone={resendSent ? "good" : "warn"}>
+          {resendSent ? (
+            "שלחנו קישור אישור חדש. בדקו את המייל."
+          ) : (
+            <>
+              קישור האישור פג תוקף. הקלידו למטה את האימייל שנרשמתם איתו,
+              ואז{" "}
+              <button
+                type="button"
+                onClick={onResendConfirmation}
+                className="font-semibold underline underline-offset-4"
+              >
+                שליחת קישור אישור חדש
+              </button>
+              .
+            </>
+          )}
+        </Notice>
+      )}
+
+      {linkError === "expired_link" &&
+        linkErrorType !== "recovery" &&
+        linkErrorType !== "signup" && (
+          <Notice tone="warn">הקישור פג תוקף או שכבר נוצל. בקשו קישור חדש.</Notice>
+        )}
 
       <form onSubmit={onSubmit} className="space-y-4">
         <Field label="אימייל">

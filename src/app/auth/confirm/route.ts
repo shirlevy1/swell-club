@@ -26,7 +26,12 @@ export async function GET(request: NextRequest) {
   });
 
   if (error) {
-    return NextResponse.redirect(`${origin}/login?error=expired_link`);
+    // מעביר גם את סוג הקישור (recovery/signup/...) — כדי שמסך ההתחברות
+    // יוכל להציע פעולה קונקרטית ("שכחתי סיסמה" מול "שליחת אישור חדש"),
+    // לא רק "הקישור פג תוקף" בלי הסבר מה לעשות עם זה.
+    return NextResponse.redirect(
+      `${origin}/login?error=expired_link&type=${type}`,
+    );
   }
 
   return NextResponse.redirect(`${origin}${next}`);
