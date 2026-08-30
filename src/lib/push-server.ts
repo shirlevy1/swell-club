@@ -98,7 +98,7 @@ export function buildReminderPayload(
   const body =
     kind === "evening"
       ? "מחר במים. נתראה שם."
-      : "הגעתם? סמנו הגעה ותהיו חלק מהגל";
+      : "מגיעים? סמנו הגעה ותהיו חלק מהגל.";
   return {
     title,
     body,
