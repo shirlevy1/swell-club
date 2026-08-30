@@ -14,20 +14,14 @@ import Image from "next/image";
 export function AppHeader() {
   return (
     <header className="sticky top-0 z-10 bg-(--color-sky)">
-      <div className="mx-auto flex w-full max-w-md justify-center px-3 py-2.5">
-        {/* min-h-11: זה קישור הבית של האפליקציה, ובגובה 32px הוא היה
-            מטרת מגע שנכשלת בידיים רטובות. */}
-        <Link
-          href="/events"
-          aria-label="Swell Club"
-          className="flex min-h-11 items-center"
-        >
+      <div className="mx-auto flex w-full max-w-md justify-center px-3 py-4">
+        <Link href="/events" aria-label="Swell Club" className="flex items-center">
           <Image
             src="/logo-wordmark-white-v4.png"
             alt=""
             width={452}
             height={158}
-            className="h-11 w-auto"
+            className="h-20 w-auto"
             priority
           />
         </Link>
