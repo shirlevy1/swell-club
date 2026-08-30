@@ -6,8 +6,10 @@ import Image from "next/image";
  * ובמצב הדגמה עוברים אותו בלחיצה אחת ולא חוזרים אליו.
  *
  * הרקע של הסרגל עצמו הוא כחול הלוגו (sky) עד הקצוות, והתמונה היא רק
- * הכתב הלבן על שקיפות (logo-wordmark-white.png) — לא תמונה מלבנית עם
- * רקע כחול משלה. ככה אין "תפר" בין התמונה לרקע, בכל רוחב מסך.
+ * הכתב הלבן על שקיפות — לא תמונה מלבנית עם רקע כחול משלה. ככה אין
+ * "תפר" בין התמונה לרקע, בכל רוחב מסך.
+ * שם הקובץ מסתיים במספר גרסה (v3 וכו') בכוונה: משנים אותו בכל פעם
+ * שמעדכנים את התמונה, כדי לעקוף קאש דפדפן על נכס סטטי עם אותו שם.
  */
 export function AppHeader() {
   return (
@@ -21,11 +23,11 @@ export function AppHeader() {
           className="flex min-h-11 items-center"
         >
           <Image
-            src="/logo-wordmark-white-v2.png"
+            src="/logo-wordmark-white-v3.png"
             alt=""
             width={452}
             height={158}
-            className="h-9 w-auto"
+            className="h-11 w-auto"
             priority
           />
         </Link>
