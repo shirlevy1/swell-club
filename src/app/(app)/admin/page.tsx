@@ -297,7 +297,11 @@ export default async function AdminPage() {
             מפגשים
           </h2>
           {events.length > 0 && (
-            <ExportButton rows={eventsCsv} filename="swell-events.csv" />
+            <ExportButton
+              rows={eventsCsv}
+              filename="swell-events.csv"
+              label="מפגשים"
+            />
           )}
         </div>
         {events.length === 0 ? (
@@ -414,7 +418,11 @@ export default async function AdminPage() {
                 filename="swell-attendance-matrix.csv"
                 label="הגעה"
               />
-              <ExportButton rows={membersCsv} filename="swell-members.csv" />
+              <ExportButton
+                rows={membersCsv}
+                filename="swell-members.csv"
+                label="חברים"
+              />
             </div>
           )}
         </div>
