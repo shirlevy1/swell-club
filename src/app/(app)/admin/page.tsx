@@ -506,9 +506,12 @@ export default async function AdminPage() {
                   </div>
                 )}
 
-                <span className="ltr-nums shrink-0 text-sm font-bold text-(--color-ink-soft)">
-                  {m.attendedCount}
-                  <span className="text-(--color-ink-faint)">/{heldCount}</span>
+                <span className="shrink-0 text-sm font-bold text-(--color-ink-soft)">
+                  <span className="ltr-nums">
+                    {m.attendedCount}
+                    <span className="text-(--color-ink-faint)">/{heldCount}</span>
+                  </span>{" "}
+                  מפגשים
                 </span>
               </div>
             );
