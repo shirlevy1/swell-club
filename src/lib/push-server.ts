@@ -96,7 +96,9 @@ export function buildReminderPayload(
   const when = kind === "evening" ? "מחר" : "היום";
   const title = `${when} | ${formatTime(event.starts_at)} | ${event.location_name}`;
   const body =
-    kind === "evening" ? "נתראה במים" : "הגעתם? סמנו הגעה ותהיו חלק מהגל";
+    kind === "evening"
+      ? "מחר במים. נתראה שם."
+      : "הגעתם? סמנו הגעה ותהיו חלק מהגל";
   return {
     title,
     body,
