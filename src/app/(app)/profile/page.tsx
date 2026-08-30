@@ -85,15 +85,15 @@ export default async function ProfilePage() {
             <p className="text-sm text-(--color-ink-soft)">
               {monthStats
                 ? monthAttendanceLine(
-                    "היית איתנו",
+                    "הייתם איתנו",
                     monthStats.attended,
                     monthStats.total,
                   )
                 : count === 0
-                  ? "עוד לא היית איתנו באף מפגש"
+                  ? "עוד לא הייתם איתנו באף מפגש"
                   : count === 1
-                    ? "היית איתנו במפגש אחד"
-                    : `היית איתנו ב־${count} מפגשים`}
+                    ? "הייתם איתנו במפגש אחד"
+                    : `הייתם איתנו ב־${count} מפגשים`}
             </p>
           </div>
         </div>
@@ -120,7 +120,7 @@ export default async function ProfilePage() {
               הרגעים מהסוואל
             </h2>
             <p className="text-xs text-(--color-ink-faint)">
-              רגעים מהמפגשים שהיית בהם איתנו.
+              רגעים מהמפגשים שהייתם בהם איתנו.
             </p>
           </div>
           <SelfieHistory shots={shots} albumsByEvent={albumsByEvent} />
@@ -128,7 +128,7 @@ export default async function ProfilePage() {
       )}
 
       <p className="text-center text-xs leading-relaxed text-(--color-ink-faint)">
-        הפרטים שלך גלויים רק למי שהיה איתך במים.
+        הפרטים שלכם גלויים רק למי שהיה איתכם במים.
       </p>
 
       {!demoMode && (

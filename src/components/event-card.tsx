@@ -65,7 +65,7 @@ export function EventCard({
       </div>
 
       {attended ? (
-        <Badge tone="verified">היית איתנו</Badge>
+        <Badge tone="verified">הייתם איתנו</Badge>
       ) : status === "open" ? (
         <Badge tone="live">פתוח עכשיו</Badge>
       ) : going ? (

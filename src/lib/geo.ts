@@ -43,7 +43,7 @@ export function geolocationErrorMessage(err: unknown): string {
   const code = (err as GeolocationPositionError)?.code;
   if (code === 1)
     return "אין הרשאת מיקום. צריך לאשר גישה למיקום כדי לסמן הגעה.";
-  if (code === 2) return "לא הצלחנו לאתר אותך. נסו שוב בעוד רגע.";
+  if (code === 2) return "לא הצלחנו לאתר אתכם. נסו שוב בעוד רגע.";
   if (code === 3) return "איתור המיקום לקח יותר מדי זמן. נסו שוב.";
   return "לא הצלחנו לקרוא את המיקום שלכם.";
 }
