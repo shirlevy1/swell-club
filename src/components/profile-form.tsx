@@ -5,7 +5,12 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
 import { updateProfileAction } from "@/lib/demo/actions";
-import { isHebrewName, isValidIsraeliPhone, normalizeInstagram } from "@/lib/format";
+import {
+  byGender,
+  isHebrewName,
+  isValidIsraeliPhone,
+  normalizeInstagram,
+} from "@/lib/format";
 import { CityAutocomplete } from "@/components/city-autocomplete";
 import { BirthDateInput } from "@/components/birth-date-input";
 import { GenderInput } from "@/components/gender-input";
@@ -194,8 +199,8 @@ export function ProfileForm({ profile }: { profile: Profile }) {
               className="mt-0.5 size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
             />
             <span>
-              קראתי ואני מאשר/ת את הצהרת הפרטיות שלמעלה. בלי אישור אי
-              אפשר לשמור.
+              קראתי ואני {byGender(profile.gender, "מאשר", "מאשרת")} את
+              הצהרת הפרטיות שלמעלה. בלי אישור אי אפשר לשמור.
             </span>
           </label>
         </div>
@@ -207,22 +212,24 @@ export function ProfileForm({ profile }: { profile: Profile }) {
             </p>
             <p>
               בהצטרפות לכל פעילות של Swell Club (לרבות שחייה משותפת, מפגשים
-              ואירועים), אני מאשר/ת כי השתתפותי היא מרצוני החופשי ועל
-              אחריותי האישית בלבד.
+              ואירועים), אני {byGender(profile.gender, "מאשר", "מאשרת")} כי
+              השתתפותי היא מרצוני החופשי ועל אחריותי האישית בלבד.
             </p>
             <p>
               ידוע לי כי שחייה במים פתוחים כרוכה בסיכונים, לרבות תנאי ים
               משתנים, זרמים, גלים וסיכונים נוספים הנובעים מהשהייה בים.
             </p>
             <p>
-              אני מצהיר/ה כי אני אחראי/ת לוודא שמצבי הבריאותי, הכושר הגופני
-              והיכולת האישית שלי מתאימים להשתתפות בפעילות, וכי אני
-              מתחייב/ת לפעול בהתאם להנחיות צוות Swell Club במהלך המפגשים.
+              אני {byGender(profile.gender, "מצהיר", "מצהירה")} כי אני{" "}
+              {byGender(profile.gender, "אחראי", "אחראית")} לוודא שמצבי
+              הבריאותי, הכושר הגופני והיכולת האישית שלי מתאימים להשתתפות
+              בפעילות, וכי אני {byGender(profile.gender, "מתחייב", "מתחייבת")}{" "}
+              לפעול בהתאם להנחיות צוות Swell Club במהלך המפגשים.
             </p>
             <p>
-              אני מבין/ה כי צוות Swell Club אינו אחראי לכל פגיעה, נזק,
-              אובדן או הוצאה שעלולים להיגרם לפני, במהלך או לאחר הפעילות,
-              בכפוף לכל דין.
+              אני {byGender(profile.gender, "מבין", "מבינה")} כי צוות Swell
+              Club אינו אחראי לכל פגיעה, נזק, אובדן או הוצאה שעלולים
+              להיגרם לפני, במהלך או לאחר הפעילות, בכפוף לכל דין.
             </p>
           </div>
 
@@ -235,8 +242,8 @@ export function ProfileForm({ profile }: { profile: Profile }) {
               className="mt-0.5 size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
             />
             <span>
-              קראתי ואני מאשר/ת את כתב הוויתור שלמעלה. בלי אישור אי אפשר
-              לשמור.
+              קראתי ואני {byGender(profile.gender, "מאשר", "מאשרת")} את כתב
+              הוויתור שלמעלה. בלי אישור אי אפשר לשמור.
             </span>
           </label>
         </div>
