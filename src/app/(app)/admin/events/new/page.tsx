@@ -424,7 +424,7 @@ export default function NewEventPage() {
           </label>
           {equipmentVisible && (
             <>
-              <Field label="כותרת הסקשן">
+              <Field label="כותרת">
                 <Input
                   value={equipmentHeading}
                   onChange={(e) => setEquipmentHeading(e.target.value)}
