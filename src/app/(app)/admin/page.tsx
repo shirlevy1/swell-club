@@ -456,14 +456,13 @@ export default async function AdminPage() {
                       />
                     ) : null}
                   </div>
-                  <p className="min-w-0 flex-1 truncate text-sm font-semibold">
-                    {m.profile.full_name}
-                    {age !== null && (
-                      <span className="ms-1 font-normal text-(--color-ink-faint)">
-                        · {age}
-                      </span>
-                    )}
-                    <span className="ms-1 font-normal text-(--color-ink-faint)">
+                  {/* השם מתקצר עם "…" אם צריך, אבל הגיל ומספר המפגשים
+                      shrink-0 — לא נכנסים לתוך הקיצור, כדי שלא ייעלמו
+                      מאחורי ה-"…" בשורות עמוסות (הרבה אייקונים/תג רמה). */}
+                  <p className="flex min-w-0 flex-1 items-baseline gap-1 text-sm font-semibold">
+                    <span className="min-w-0 truncate">{m.profile.full_name}</span>
+                    <span className="shrink-0 font-normal text-(--color-ink-faint)">
+                      {age !== null && <>· {age} </>}
                       · <span className="ltr-nums">{m.attendedCount}</span>
                     </span>
                   </p>
