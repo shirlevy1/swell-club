@@ -10,7 +10,11 @@ import {
 } from "@/lib/format";
 import { checkInWindow, hasEventStarted } from "@/lib/checkin";
 import { getSeaForecastForEvent } from "@/lib/gosurf";
-import { getEventAgendaText, getEventEquipmentText } from "@/lib/agenda";
+import {
+  getEventAgendaText,
+  getEventEquipmentHeading,
+  getEventEquipmentText,
+} from "@/lib/agenda";
 import { BackLink, Card, Notice } from "@/components/ui";
 import { RsvpButton } from "@/components/rsvp-button";
 import { CheckInFlow } from "@/components/check-in-flow";
@@ -50,6 +54,7 @@ export default async function EventPage({
       : null;
   const agendaText = getEventAgendaText(event);
   const equipmentText = getEventEquipmentText(event);
+  const equipmentHeading = getEventEquipmentHeading(event);
 
   const eventHasStarted = hasEventStarted(event);
   // מנהלת רואה ומנהלת את האלבום גם בלי שנכחה — כמו בסלפים
@@ -111,6 +116,7 @@ export default async function EventPage({
 
           {event.equipment_visible && (
             <WhatToBring
+              heading={equipmentHeading}
               text={equipmentText}
               showLink={event.equipment_link_visible}
             />

@@ -54,6 +54,8 @@ export type SwellEvent = {
   agenda_visible: boolean;
   // אותו רעיון בדיוק בשביל "מה להביא למים?" — ריק נופל על ברירת המחדל.
   equipment_text: string | null;
+  // אותו רעיון גם בשביל כותרת הסקשן עצמה — ריק נופל על "מה להביא למים?"
+  equipment_heading: string | null;
   // האם סקשן "מה להביא למים?" כולו מוצג בעמוד המפגש בכלל.
   equipment_visible: boolean;
   // האם קישור הספידו יופיע מתחת לטקסט "מה להביא למים?" למפגש הזה.

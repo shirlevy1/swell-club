@@ -108,6 +108,7 @@ const EVENT_SEEDS: EventSeed[] = [
     description: null,
     agenda_text: null,
     agenda_visible: true,
+    equipment_heading: null,
     equipment_text: null,
     equipment_visible: true,
     equipment_link_visible: true,
@@ -130,6 +131,7 @@ const EVENT_SEEDS: EventSeed[] = [
     description: null,
     agenda_text: null,
     agenda_visible: true,
+    equipment_heading: null,
     equipment_text: null,
     equipment_visible: true,
     equipment_link_visible: true,
@@ -154,6 +156,7 @@ const EVENT_SEEDS: EventSeed[] = [
     description: null,
     agenda_text: null,
     agenda_visible: true,
+    equipment_heading: null,
     equipment_text: null,
     equipment_visible: true,
     equipment_link_visible: true,
@@ -176,6 +179,7 @@ const EVENT_SEEDS: EventSeed[] = [
     description: null,
     agenda_text: null,
     agenda_visible: true,
+    equipment_heading: null,
     equipment_text: null,
     equipment_visible: true,
     equipment_link_visible: true,
@@ -200,6 +204,7 @@ const EVENT_SEEDS: EventSeed[] = [
     description: null,
     agenda_text: null,
     agenda_visible: true,
+    equipment_heading: null,
     equipment_text: null,
     equipment_visible: true,
     equipment_link_visible: true,
@@ -222,6 +227,7 @@ const EVENT_SEEDS: EventSeed[] = [
     description: null,
     agenda_text: null,
     agenda_visible: true,
+    equipment_heading: null,
     equipment_text: null,
     equipment_visible: true,
     equipment_link_visible: true,
@@ -501,6 +507,7 @@ export function demoUpdateEventSchedule(
     description: string | null;
     agenda_text: string | null;
     agenda_visible: boolean;
+    equipment_heading: string | null;
     equipment_text: string | null;
     equipment_visible: boolean;
     equipment_link_visible: boolean;

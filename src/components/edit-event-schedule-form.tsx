@@ -13,8 +13,10 @@ import {
 } from "@/lib/actions";
 import {
   defaultAgendaText,
+  defaultEquipmentHeading,
   defaultEquipmentText,
   getEventAgendaText,
+  getEventEquipmentHeading,
   getEventEquipmentText,
 } from "@/lib/agenda";
 import type { SwellEvent } from "@/lib/types";
@@ -76,6 +78,9 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
     event.agenda_text !== null,
   );
   const [agendaVisible, setAgendaVisible] = useState(event.agenda_visible);
+  const [equipmentHeading, setEquipmentHeading] = useState(
+    getEventEquipmentHeading(event),
+  );
   const [equipmentText, setEquipmentText] = useState(
     getEventEquipmentText(event),
   );
@@ -188,6 +193,8 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
       agendaText.trim() === defaultAgendaText(startsAtISO).trim();
     const equipmentIsDefault =
       equipmentText.trim() === defaultEquipmentText().trim();
+    const equipmentHeadingIsDefault =
+      equipmentHeading.trim() === defaultEquipmentHeading().trim();
 
     const patch = {
       title: String(form.get("title") ?? "").trim(),
@@ -202,6 +209,9 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
       description: description.trim() || null,
       agenda_text: agendaIsDefault ? null : agendaText.trim() || null,
       agenda_visible: agendaVisible,
+      equipment_heading: equipmentHeadingIsDefault
+        ? null
+        : equipmentHeading.trim() || null,
       equipment_text: equipmentIsDefault ? null : equipmentText.trim() || null,
       equipment_visible: equipmentVisible,
       equipment_link_visible: equipmentLinkVisible,
@@ -347,12 +357,21 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
           מה להביא?
         </label>
         {equipmentVisible && (
-          <Textarea
-            value={equipmentText}
-            onChange={(e) => setEquipmentText(e.target.value)}
-            rows={5}
-            dir="auto"
-          />
+          <>
+            <Field label="כותרת הסקשן">
+              <Input
+                value={equipmentHeading}
+                onChange={(e) => setEquipmentHeading(e.target.value)}
+                dir="auto"
+              />
+            </Field>
+            <Textarea
+              value={equipmentText}
+              onChange={(e) => setEquipmentText(e.target.value)}
+              rows={5}
+              dir="auto"
+            />
+          </>
         )}
       </Card>
 
@@ -368,7 +387,7 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
         </label>
         <p className="mt-1 text-xs leading-relaxed text-(--color-ink-faint)">
           כשמסומן, הטבות והקישורים של Speedo ו-Garmin מופיעים מתחת
-          ל“מה להביא למים” במפגש הזה.
+          לרשימת הציוד במפגש הזה.
         </p>
       </Card>
 

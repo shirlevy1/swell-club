@@ -67,6 +67,7 @@ export async function updateEventScheduleAction(
     description: string | null;
     agenda_text: string | null;
     agenda_visible: boolean;
+    equipment_heading: string | null;
     equipment_text: string | null;
     equipment_visible: boolean;
     equipment_link_visible: boolean;

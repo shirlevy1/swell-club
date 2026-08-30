@@ -14,6 +14,7 @@ import {
 import { DEFAULT_EVENT_LOCATION } from "@/lib/maps";
 import {
   defaultAgendaText,
+  defaultEquipmentHeading,
   defaultEquipmentText,
   defaultEventTitle,
 } from "@/lib/agenda";
@@ -78,6 +79,9 @@ export default function NewEventPage() {
   const [agendaTouched, setAgendaTouched] = useState(false);
   const [agendaVisible, setAgendaVisible] = useState(true);
   // בלי תלות בשעה כמו הלו"ז, אז אין צורך ב-useEffect נפרד
+  const [equipmentHeading, setEquipmentHeading] = useState(
+    defaultEquipmentHeading(),
+  );
   const [equipmentText, setEquipmentText] = useState(defaultEquipmentText());
   const [equipmentVisible, setEquipmentVisible] = useState(true);
   const [equipmentLinkVisible, setEquipmentLinkVisible] = useState(true);
@@ -215,6 +219,8 @@ export default function NewEventPage() {
     // המחדל גם כשהיא תשתנה בעתיד, ולא יינעל על הניסוח שהיה בזמן היצירה.
     const agendaIsDefault = agendaText.trim() === defaultAgendaText(startsAtISO).trim();
     const equipmentIsDefault = equipmentText.trim() === defaultEquipmentText().trim();
+    const equipmentHeadingIsDefault =
+      equipmentHeading.trim() === defaultEquipmentHeading().trim();
 
     const draft = {
       title: String(form.get("title") ?? "").trim(),
@@ -232,6 +238,9 @@ export default function NewEventPage() {
       description: description.trim() || null,
       agenda_text: agendaIsDefault ? null : agendaText.trim() || null,
       agenda_visible: agendaVisible,
+      equipment_heading: equipmentHeadingIsDefault
+        ? null
+        : equipmentHeading.trim() || null,
       equipment_text: equipmentIsDefault ? null : equipmentText.trim() || null,
       equipment_visible: equipmentVisible,
       equipment_link_visible: equipmentLinkVisible,
@@ -414,12 +423,21 @@ export default function NewEventPage() {
             מה להביא?
           </label>
           {equipmentVisible && (
-            <Textarea
-              value={equipmentText}
-              onChange={(e) => setEquipmentText(e.target.value)}
-              rows={5}
-              dir="auto"
-            />
+            <>
+              <Field label="כותרת הסקשן">
+                <Input
+                  value={equipmentHeading}
+                  onChange={(e) => setEquipmentHeading(e.target.value)}
+                  dir="auto"
+                />
+              </Field>
+              <Textarea
+                value={equipmentText}
+                onChange={(e) => setEquipmentText(e.target.value)}
+                rows={5}
+                dir="auto"
+              />
+            </>
           )}
         </Card>
 
@@ -435,7 +453,7 @@ export default function NewEventPage() {
           </label>
           <p className="mt-1 text-xs leading-relaxed text-(--color-ink-faint)">
             כשמסומן, הטבות והקישורים של Speedo ו-Garmin מופיעים מתחת
-            ל“מה להביא למים” במפגש הזה.
+            לרשימת הציוד במפגש הזה.
           </p>
         </Card>
 

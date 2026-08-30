@@ -49,6 +49,16 @@ export function getEventEquipmentText(
   return event.equipment_text?.trim() || defaultEquipmentText();
 }
 
+export function defaultEquipmentHeading(): string {
+  return "מה להביא למים?";
+}
+
+export function getEventEquipmentHeading(
+  event: Pick<SwellEvent, "equipment_heading">,
+): string {
+  return event.equipment_heading?.trim() || defaultEquipmentHeading();
+}
+
 /**
  * כותרת ברירת מחדל לפי שעת ההתחלה — לא תמיד "שחיית בוקר". משמש גם
  * את טופס יצירת המפגש וגם את זריעת נתוני ההדגמה, כדי ששתי הגרסאות

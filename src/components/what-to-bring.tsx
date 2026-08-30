@@ -27,15 +27,17 @@ const BRAND_DEALS = [
  * הופך את כל הריבוע לצבע אחיד ומוחק את הלוגו, לא רק "צובע" אותו.
  */
 export function WhatToBring({
+  heading,
   text,
   showLink,
 }: {
+  heading: string;
   text: string;
   showLink: boolean;
 }) {
   return (
     <div className="space-y-2">
-      <p className="text-sm font-semibold">מה להביא למים?</p>
+      <p className="text-sm font-semibold">{heading}</p>
       <p className="whitespace-pre-line text-sm leading-relaxed text-(--color-ink-soft)">
         {text}
       </p>
