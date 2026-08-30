@@ -5,22 +5,27 @@ import Image from "next/image";
  * סרגל המותג בתוך האפליקציה. בלעדיו הלוגו נראה רק בדף הנחיתה —
  * ובמצב הדגמה עוברים אותו בלחיצה אחת ולא חוזרים אליו.
  *
- * הלוגו כאן הוא גרסה מלבנית של הכתב, לא העיגול — בגודל הזה הכתב
- * כבר קריא בעצמו, ולכן אין צורך גם בטקסט "Swell Club" לצידו.
- * פרוס על כל רוחב המסך (w-full h-auto, בלי padding בצדדים) — היחס
- * המקורי של התמונה נשמר, ולכן הסרגל גבוה יותר מסרגל ניווט רגיל.
+ * הרקע של הסרגל עצמו הוא כחול הלוגו (sky) עד הקצוות, והתמונה היא רק
+ * הכתב הלבן על שקיפות (logo-wordmark-white.png) — לא תמונה מלבנית עם
+ * רקע כחול משלה. ככה אין "תפר" בין התמונה לרקע, בכל רוחב מסך.
  */
 export function AppHeader() {
   return (
-    <header className="sticky top-0 z-10 border-b border-(--color-line) bg-(--color-page)/85 backdrop-blur-md">
-      <div className="mx-auto w-full max-w-md">
-        <Link href="/events" aria-label="Swell Club" className="block">
+    <header className="sticky top-0 z-10 bg-(--color-sky)">
+      <div className="mx-auto flex w-full max-w-md justify-center px-3 py-2.5">
+        {/* min-h-11: זה קישור הבית של האפליקציה, ובגובה 32px הוא היה
+            מטרת מגע שנכשלת בידיים רטובות. */}
+        <Link
+          href="/events"
+          aria-label="Swell Club"
+          className="flex min-h-11 items-center"
+        >
           <Image
-            src="/logo-wordmark.png"
+            src="/logo-wordmark-white.png"
             alt=""
-            width={980}
-            height={430}
-            className="h-auto w-full"
+            width={452}
+            height={158}
+            className="h-8 w-auto"
             priority
           />
         </Link>
