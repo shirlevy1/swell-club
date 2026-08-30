@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { GoingPerson } from "@/lib/data";
 import type { Gender, SwellEvent } from "@/lib/types";
 import {
@@ -81,7 +82,7 @@ export function EventCard({
  * שני שמות ואחריהם היתר במספר. בלי פעלים ("מתכוון"/"מתכוונת") — כל צורה
  * כזאת מניחה מגדר, ו"בדרך" נכון לכל מספר ולכל אדם.
  */
-function goingSummary(people: GoingPerson[]): string {
+function goingSummary(people: GoingPerson[]): ReactNode {
   // "אתם" ראשון: קודם כל מוודאים שסימנתם, ורק אז מי עוד
   const names = [...people]
     .sort((a, b) => Number(b.isMe) - Number(a.isMe))
@@ -89,7 +90,13 @@ function goingSummary(people: GoingPerson[]): string {
 
   const shown = names.slice(0, 2);
   const rest = names.length - shown.length;
-  return rest > 0 ? `${shown.join(", ")} ועוד ${rest}` : shown.join(", ");
+  if (rest === 0) return shown.join(", ");
+  if (rest === 1) return `${shown.join(", ")} ועוד אחד`;
+  return (
+    <>
+      {shown.join(", ")} ועוד <span className="ltr-nums">{rest}</span>
+    </>
+  );
 }
 
 function Badge({

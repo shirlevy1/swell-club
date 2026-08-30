@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
@@ -158,9 +158,9 @@ export function EventPhotoAlbum({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [downloading, setDownloading] = useState(false);
-  const [downloaded, setDownloaded] = useState<string | null>(null);
+  const [downloaded, setDownloaded] = useState<ReactNode>(null);
 
-  function flashDownloaded(message: string) {
+  function flashDownloaded(message: ReactNode) {
     setDownloaded(message);
     setTimeout(() => setDownloaded((m) => (m === message ? null : m)), 3000);
   }
@@ -326,7 +326,13 @@ export function EventPhotoAlbum({
       return;
     }
     flashDownloaded(
-      chosen.length === 1 ? "התמונה הורדה בהצלחה." : `${chosen.length} תמונות הורדו בהצלחה.`,
+      chosen.length === 1 ? (
+        "התמונה הורדה בהצלחה."
+      ) : (
+        <>
+          <span className="ltr-nums">{chosen.length}</span> תמונות הורדו בהצלחה.
+        </>
+      ),
     );
     setSelecting(false);
     setSelected(new Set());
@@ -391,7 +397,13 @@ export function EventPhotoAlbum({
       {canManage && pending.length > 0 && (
         <div className="space-y-2 rounded-xl border border-(--color-line) bg-(--color-haze) p-3">
           <p className="text-xs font-bold tracking-[0.1em] text-(--color-sea)">
-            {pending.length === 1 ? "תמונה אחת ממתינה לאישור" : `${pending.length} תמונות ממתינות לאישור`}
+            {pending.length === 1 ? (
+              "תמונה אחת ממתינה לאישור"
+            ) : (
+              <>
+                <span className="ltr-nums">{pending.length}</span> תמונות ממתינות לאישור
+              </>
+            )}
           </p>
           <div className="grid grid-cols-3 gap-2">
             {pending.map((photo) => (
@@ -514,11 +526,15 @@ export function EventPhotoAlbum({
 
       {selecting && selected.size > 0 && (
         <Button onClick={downloadSelected} disabled={downloading} className="w-full">
-          {downloading
-            ? "מורידים…"
-            : selected.size === 1
-              ? "הורדת תמונה"
-              : `הורדת ${selected.size} תמונות`}
+          {downloading ? (
+            "מורידים…"
+          ) : selected.size === 1 ? (
+            "הורדת תמונה"
+          ) : (
+            <>
+              הורדת <span className="ltr-nums">{selected.size}</span> תמונות
+            </>
+          )}
         </Button>
       )}
 
