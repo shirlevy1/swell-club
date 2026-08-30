@@ -17,7 +17,7 @@ export default async function EventsPage() {
     return (
       <EmptyState
         title="אתם עוד לא בקהילה"
-        body="בקשו ממנהל הקהילה את קישור ההצטרפות."
+        body="בקשו ממנהלת הקהילה את קישור ההצטרפות."
       />
     );
   }
