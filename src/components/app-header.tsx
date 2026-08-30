@@ -14,14 +14,14 @@ import Image from "next/image";
 export function AppHeader() {
   return (
     <header className="sticky top-0 z-10 bg-(--color-sky)">
-      <div className="mx-auto flex w-full max-w-md justify-center px-3 py-4">
+      <div className="mx-auto flex w-full max-w-md justify-center px-3 py-1">
         <Link href="/events" aria-label="Swell Club" className="flex items-center">
           <Image
             src="/logo-wordmark-white-v4.png"
             alt=""
             width={452}
             height={158}
-            className="h-20 w-auto"
+            className="h-14 w-auto"
             priority
           />
         </Link>
