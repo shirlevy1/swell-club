@@ -411,7 +411,7 @@ export default function NewEventPage() {
               }}
               className="size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
             />
-            מה להביא למים?
+            מה להביא?
           </label>
           {equipmentVisible && (
             <Textarea
