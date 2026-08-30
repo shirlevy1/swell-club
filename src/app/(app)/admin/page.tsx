@@ -463,6 +463,9 @@ export default async function AdminPage() {
                         · {age}
                       </span>
                     )}
+                    <span className="ms-1 font-normal text-(--color-ink-faint)">
+                      · <span className="ltr-nums">{m.attendedCount}</span>
+                    </span>
                   </p>
                 </Link>
 
@@ -505,10 +508,6 @@ export default async function AdminPage() {
                     )}
                   </div>
                 )}
-
-                <span className="ltr-nums shrink-0 text-sm font-bold text-(--color-ink-soft)">
-                  {m.attendedCount}
-                </span>
               </div>
             );
           })}
