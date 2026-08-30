@@ -18,7 +18,7 @@ export function DeleteEventButton({ eventId }: { eventId: string }) {
 
   async function handleDelete() {
     const ok = window.confirm(
-      "למחוק את המפגש הזה? הפעולה לא הפיכה — כל הרישומים, הצ'ק־אינים והתמונות שלו יימחקו יחד איתו.",
+      "למחוק את המפגש הזה? הפעולה לא הפיכה — כל הרישומים, הצ׳ק־אינים והתמונות שלו יימחקו יחד איתו.",
     );
     if (!ok) return;
 
