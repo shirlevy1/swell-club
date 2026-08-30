@@ -25,7 +25,7 @@ export function AppHeader() {
             alt=""
             width={452}
             height={158}
-            className="h-8 w-auto"
+            className="h-9 w-auto"
             priority
           />
         </Link>
