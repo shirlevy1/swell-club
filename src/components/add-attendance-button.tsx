@@ -120,7 +120,7 @@ export function AddAttendanceButton({
                 <p className="text-sm text-(--color-ink-faint)">
                   {query
                     ? "לא נמצא אף אחד בשם הזה."
-                    : "כל חברי הקהילה כבר ברשימת הנוכחים."}
+                    : "כולם כבר היו במים."}
                 </p>
               ) : (
                 <ul className="space-y-1">
