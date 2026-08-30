@@ -21,7 +21,7 @@ export function AppHeader() {
           className="flex min-h-11 items-center"
         >
           <Image
-            src="/logo-wordmark-white.png"
+            src="/logo-wordmark-white-v2.png"
             alt=""
             width={452}
             height={158}
