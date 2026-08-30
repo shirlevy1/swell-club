@@ -7,24 +7,20 @@ import Image from "next/image";
  *
  * הלוגו כאן הוא גרסה מלבנית של הכתב, לא העיגול — בגודל הזה הכתב
  * כבר קריא בעצמו, ולכן אין צורך גם בטקסט "Swell Club" לצידו.
+ * פרוס על כל רוחב המסך (w-full h-auto, בלי padding בצדדים) — היחס
+ * המקורי של התמונה נשמר, ולכן הסרגל גבוה יותר מסרגל ניווט רגיל.
  */
 export function AppHeader() {
   return (
     <header className="sticky top-0 z-10 border-b border-(--color-line) bg-(--color-page)/85 backdrop-blur-md">
-      <div className="mx-auto flex w-full max-w-md justify-end px-3 py-1">
-        {/* min-h-11: זה קישור הבית של האפליקציה, ובגובה 32px הוא היה
-            מטרת מגע שנכשלת בידיים רטובות. */}
-        <Link
-          href="/events"
-          aria-label="Swell Club"
-          className="flex min-h-11 items-center rounded-xl px-2"
-        >
+      <div className="mx-auto w-full max-w-md">
+        <Link href="/events" aria-label="Swell Club" className="block">
           <Image
             src="/logo-wordmark.png"
             alt=""
-            width={82}
-            height={36}
-            className="h-9 w-auto rounded-lg"
+            width={980}
+            height={430}
+            className="h-auto w-full"
             priority
           />
         </Link>
