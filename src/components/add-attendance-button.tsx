@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getMembersForAttendanceAction } from "@/lib/actions";
 import type { MemberPickerRow } from "@/lib/data";
-import { EditIcon, SwimmerIcon, XIcon } from "./social-icons";
+import { PlusIcon, SwimmerIcon, XIcon } from "./social-icons";
 
 /**
  * הוספת נוכחות ידנית — למי שהגיע בפועל אבל פספס את חלון הצ'ק־אין.
@@ -77,7 +77,7 @@ export function AddAttendanceButton({
         aria-label="עוד חברי קהילה שהגיעו"
         className="flex size-6 shrink-0 items-center justify-center rounded-full border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
       >
-        <EditIcon className="size-3.5" />
+        <PlusIcon className="size-3.5" />
       </button>
 
       {open && (
