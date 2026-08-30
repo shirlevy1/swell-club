@@ -466,8 +466,8 @@ export default async function AdminPage() {
                   </p>
                 </Link>
 
-                {/* תג הרמה והאייקונים מוקטנים כדי שיהיה מקום לשם המלא
-                    לצידם, באותה שורה — לא יורדים לשורה שנייה. */}
+                {/* תג הרמה מוקטן כדי שיהיה מקום לשם המלא באותה שורה —
+                    אייקוני וואטסאפ/אינסטגרם בגודל הרגיל שלהם. */}
                 <div className="ms-auto flex shrink-0 items-center gap-1.5">
                   {m.profile.swim_level && (
                     <span
@@ -490,9 +490,9 @@ export default async function AdminPage() {
                           target="_blank"
                           rel="noreferrer"
                           aria-label={`וואטסאפ עם ${m.profile.full_name}`}
-                          className="flex size-6 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-verified) transition hover:border-(--color-verified)/50 hover:bg-(--color-verified)/10"
+                          className="flex size-8 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-verified) transition hover:border-(--color-verified)/50 hover:bg-(--color-verified)/10"
                         >
-                          <WhatsAppIcon className="size-3" />
+                          <WhatsAppIcon className="size-3.5" />
                         </a>
                       )}
                       {ig && (
@@ -501,9 +501,9 @@ export default async function AdminPage() {
                           target="_blank"
                           rel="noreferrer"
                           aria-label={`אינסטגרם של ${m.profile.full_name}`}
-                          className="flex size-6 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
+                          className="flex size-8 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
                         >
-                          <InstagramIcon className="size-3" />
+                          <InstagramIcon className="size-3.5" />
                         </a>
                       )}
                     </div>
