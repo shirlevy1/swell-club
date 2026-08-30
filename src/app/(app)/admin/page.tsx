@@ -434,14 +434,14 @@ export default async function AdminPage() {
             return (
               <div
                 key={m.profile.id}
-                className="flex items-center gap-3 px-4 py-3 transition hover:bg-(--color-haze)/60"
+                className="flex flex-wrap items-center gap-3 px-4 py-3 transition hover:bg-(--color-haze)/60"
               >
                 {/* קישור לפרופיל רק על פנים+שם — כפתורי וואטסאפ/אינסטגרם
                     בהמשך השורה הם קישורים בפני עצמם, ועוגן בתוך עוגן
                     שובר את שניהם (כבר קרה פעם, ראו attendee-grid). */}
                 <Link
                   href={`/admin/members/${m.profile.id}`}
-                  className="flex min-w-0 flex-1 items-center gap-3"
+                  className="flex items-center gap-3"
                 >
                   {/* פנים ברשימה — המנהלת מזהה אנשים ככה, לא לפי שם */}
                   <div className="size-11 shrink-0 overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)">
@@ -456,57 +456,61 @@ export default async function AdminPage() {
                       />
                     ) : null}
                   </div>
-                  {/* השם מתקצר עם "…" אם צריך, אבל הגיל ומספר המפגשים
-                      shrink-0 — לא נכנסים לתוך הקיצור, כדי שלא ייעלמו
-                      מאחורי ה-"…" בשורות עמוסות (הרבה אייקונים/תג רמה). */}
-                  <p className="flex min-w-0 flex-1 items-baseline gap-1 text-sm font-semibold">
-                    <span className="min-w-0 truncate">{m.profile.full_name}</span>
-                    <span className="shrink-0 font-normal text-(--color-ink-faint)">
+                  {/* השם לא מתקצר לעולם. אם אין מקום לתג רמה/אייקונים
+                      לצידו, השורה עצמה נשברת (flex-wrap למעלה) ואלה
+                      יורדים לשורה שנייה — לא השם הוא שנעלם. */}
+                  <p className="flex items-baseline gap-1 whitespace-nowrap text-sm font-semibold">
+                    <span>{m.profile.full_name}</span>
+                    <span className="font-normal text-(--color-ink-faint)">
                       {age !== null && <>· {age} </>}
                       · <span className="ltr-nums">{m.attendedCount}</span>
                     </span>
                   </p>
                 </Link>
 
-                {m.profile.swim_level && (
-                  <span
-                    className="flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-[0.65rem] font-semibold text-(--color-ink)"
-                    style={swimLevelBadgeStyle(m.profile.swim_level)}
-                  >
-                    <WaveIcon
-                      className="size-2.5"
-                      style={{ color: SWIM_LEVEL_COLOR[m.profile.swim_level] }}
-                    />
-                    {swimLevelLabel(m.profile.swim_level)}
-                  </span>
-                )}
+                {/* תג הרמה והאייקונים תמיד יחד, בקצה השורה — כשאין
+                    מקום לצד השם הם יורדים כיחידה אחת לשורה השנייה. */}
+                <div className="ms-auto flex flex-wrap items-center gap-2">
+                  {m.profile.swim_level && (
+                    <span
+                      className="flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-[0.65rem] font-semibold text-(--color-ink)"
+                      style={swimLevelBadgeStyle(m.profile.swim_level)}
+                    >
+                      <WaveIcon
+                        className="size-2.5"
+                        style={{ color: SWIM_LEVEL_COLOR[m.profile.swim_level] }}
+                      />
+                      {swimLevelLabel(m.profile.swim_level)}
+                    </span>
+                  )}
 
-                {(wa || ig) && (
-                  <div className="flex shrink-0 gap-1">
-                    {wa && (
-                      <a
-                        href={wa}
-                        target="_blank"
-                        rel="noreferrer"
-                        aria-label={`וואטסאפ עם ${m.profile.full_name}`}
-                        className="flex size-8 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-verified) transition hover:border-(--color-verified)/50 hover:bg-(--color-verified)/10"
-                      >
-                        <WhatsAppIcon className="size-3.5" />
-                      </a>
-                    )}
-                    {ig && (
-                      <a
-                        href={ig}
-                        target="_blank"
-                        rel="noreferrer"
-                        aria-label={`אינסטגרם של ${m.profile.full_name}`}
-                        className="flex size-8 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
-                      >
-                        <InstagramIcon className="size-3.5" />
-                      </a>
-                    )}
-                  </div>
-                )}
+                  {(wa || ig) && (
+                    <div className="flex shrink-0 gap-1">
+                      {wa && (
+                        <a
+                          href={wa}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label={`וואטסאפ עם ${m.profile.full_name}`}
+                          className="flex size-8 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-verified) transition hover:border-(--color-verified)/50 hover:bg-(--color-verified)/10"
+                        >
+                          <WhatsAppIcon className="size-3.5" />
+                        </a>
+                      )}
+                      {ig && (
+                        <a
+                          href={ig}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label={`אינסטגרם של ${m.profile.full_name}`}
+                          className="flex size-8 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
+                        >
+                          <InstagramIcon className="size-3.5" />
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })}
