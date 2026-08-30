@@ -58,10 +58,10 @@ export function EventReportButton({
         type="button"
         onClick={download}
         disabled={pending}
-        aria-label="ייצוא נוכחות"
+        aria-label="ייצוא פירוט"
         className="flex h-7 shrink-0 items-center justify-center rounded-xl border border-(--color-line) bg-(--color-surface) px-2.5 text-xs font-bold text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10 disabled:opacity-50"
       >
-        {pending ? "…" : "CSV"}
+        {pending ? "…" : "פירוט"}
       </button>
       {error && (
         <p className="mt-1 text-xs whitespace-nowrap text-(--color-fail)">
