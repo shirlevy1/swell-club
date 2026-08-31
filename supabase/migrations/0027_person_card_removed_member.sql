@@ -4,11 +4,19 @@
 -- על "לא נמצא" גנרי, במקום להמשיך לראות את מי שהיא/הוא באמת הכיר/ה.
 -- עכשיו: גישה מותרת אם "הם" עדיין חברי קהילה איתי, *או* שכבר יש
 -- נוכחות משותפת אמיתית בעבר — מה שקודם קורה.
+--
+-- drop קודם כי שינוי טיפוס ה-OUT parameters לא מתאפשר עם create or
+-- replace בלבד (כמו ב-0012/0019) — צריך למחוק ולהגדיר מחדש, ולכן
+-- גם להעניק את ה-execute מחדש בסוף.
+drop function if exists public.person_card(uuid);
+
 create or replace function public.person_card(p_profile_id uuid)
 returns table (
   full_name      text,
+  gender         public.gender,
   instagram      text,
   phone          text,
+  swim_level     public.swim_level,
   shared_count   integer,
   attended_count integer
 )
@@ -50,8 +58,10 @@ begin
   return query
     select
       p.full_name,
+      p.gender,
       case when v_shared > 0 or v_organizer then p.instagram else null end,
       case when v_shared > 0 or v_organizer then p.phone else null end,
+      case when v_shared > 0 or v_organizer then p.swim_level else null end,
       v_shared,
       (select count(*)::int from public.attendances a
         where a.profile_id = p_profile_id)
@@ -59,3 +69,6 @@ begin
     where p.id = p_profile_id;
 end;
 $$;
+
+revoke execute on function public.person_card(uuid) from public, anon;
+grant execute on function public.person_card(uuid) to authenticated;
