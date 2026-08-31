@@ -76,7 +76,10 @@ export default async function EventPage({
               {formatDateTime(event.starts_at)}
             </h1>
           </div>
-          {isOrganizer && !eventHasStarted && (
+          {/* לא רק "לפני שהמפגש התחיל" — גם ברגע שחלון הצ'ק־אין נפתח
+              (שיכול להיות לפני שעת ההתחלה) או שכבר יש נוכחויות
+              מאומתות, עריכת מיקום/רדיוס/חלון היא כבר לא בטוחה. */}
+          {isOrganizer && status === "before" && attendees.length === 0 && (
             <Link
               href={`/admin/events/${id}/edit`}
               aria-label="עריכת מפגש"
