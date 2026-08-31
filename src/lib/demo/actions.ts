@@ -5,6 +5,7 @@ import { demoMode } from "../config";
 import type { MemberRole, Profile, SwellEvent } from "../types";
 import {
   demoAddEventPhoto,
+  demoAddManualAttendance,
   demoApproveEventPhoto,
   demoCheckIn,
   demoCreateEvent,
@@ -36,6 +37,15 @@ export async function checkInAction(
   guard();
   demoCheckIn(eventId, selfie, faceX, faceY);
   revalidatePath("/events");
+  revalidatePath(`/events/${eventId}`);
+}
+
+export async function addManualAttendanceAction(
+  eventId: string,
+  profileId: string,
+) {
+  guard();
+  demoAddManualAttendance(eventId, profileId);
   revalidatePath(`/events/${eventId}`);
 }
 

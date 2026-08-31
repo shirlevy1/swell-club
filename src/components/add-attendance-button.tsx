@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { demoMode } from "@/lib/config";
 import { getMembersForAttendanceAction } from "@/lib/actions";
+import { addManualAttendanceAction } from "@/lib/demo/actions";
 import type { MemberPickerRow } from "@/lib/data";
 import { PlusIcon, SwimmerIcon, XIcon } from "./social-icons";
 
@@ -50,18 +52,27 @@ export function AddAttendanceButton({
   async function addMember(profileId: string) {
     setAddingId(profileId);
     setError(null);
-    const { error: rpcError } = await createClient().rpc(
-      "admin_add_attendance",
-      { p_event_id: eventId, p_profile_id: profileId },
-    );
-    if (rpcError) {
+    try {
+      if (demoMode) {
+        await addManualAttendanceAction(eventId, profileId);
+      } else {
+        const { error: rpcError } = await createClient().rpc(
+          "admin_add_attendance",
+          { p_event_id: eventId, p_profile_id: profileId },
+        );
+        if (rpcError) {
+          setError("לא הצלחנו להוסיף. נסו שוב.");
+          setAddingId(null);
+          return;
+        }
+      }
+      setJustAdded((prev) => new Set(prev).add(profileId));
+      setAddingId(null);
+      router.refresh();
+    } catch {
       setError("לא הצלחנו להוסיף. נסו שוב.");
       setAddingId(null);
-      return;
     }
-    setJustAdded((prev) => new Set(prev).add(profileId));
-    setAddingId(null);
-    router.refresh();
   }
 
   const excluded = new Set([...excludeProfileIds, ...justAdded]);

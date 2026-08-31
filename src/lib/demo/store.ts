@@ -450,6 +450,21 @@ export function demoCheckIn(
   });
 }
 
+/** אותו רעיון בדיוק כמו admin_add_attendance() בשרת: בלי סלפי,
+ * ומתעלם בשקט אם האדם כבר מסומן כנוכח (on conflict do nothing). */
+export function demoAddManualAttendance(eventId: string, profileId: string) {
+  const rows = db().attendances;
+  if (rows.some((a) => a.eventId === eventId && a.profileId === profileId)) return;
+  rows.push({
+    eventId,
+    profileId,
+    selfie: null,
+    at: new Date().toISOString(),
+    faceX: null,
+    faceY: null,
+  });
+}
+
 export function demoUpdateProfile(patch: Partial<Profile>) {
   const me = demoMe();
   Object.assign(me, patch);
