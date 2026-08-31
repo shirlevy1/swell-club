@@ -183,6 +183,8 @@ export function InstagramIcon({ className }: { className?: string }) {
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       className={className}
       aria-hidden
     >
