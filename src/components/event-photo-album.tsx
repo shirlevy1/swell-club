@@ -12,6 +12,7 @@ import {
 import { compressImageFile, blobToDataUrl, ALBUM_PHOTO_OPTIONS } from "@/lib/image";
 import { Button, Notice } from "@/components/ui";
 import { PhotoLightbox } from "@/components/photo-lightbox";
+import { DownloadIcon } from "@/components/social-icons";
 import type { EventPhoto } from "@/lib/data";
 
 function CheckIcon({ className }: { className?: string }) {
@@ -27,23 +28,6 @@ function CheckIcon({ className }: { className?: string }) {
       aria-hidden
     >
       <path d="M5 12.5 10 17.5 19 6.5" />
-    </svg>
-  );
-}
-
-function DownloadIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.1"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden
-    >
-      <path d="M12 4v11m0 0 4-4m-4 4-4-4M5 19h14" />
     </svg>
   );
 }
