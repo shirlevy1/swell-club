@@ -1,10 +1,9 @@
 import { redirect } from "next/navigation";
 import { SwellLogo } from "@/components/swell-logo";
+import { MorningGlow } from "@/components/morning-glow";
 import { LinkButton } from "@/components/ui";
 import { demoMode, supabaseConfigured } from "@/lib/config";
 import { createClient } from "@/lib/supabase/server";
-
-const HORIZON = "56%";
 
 export default async function Home() {
   // מי שכבר מחובר לא צריך לראות שער כניסה
@@ -18,26 +17,7 @@ export default async function Home() {
 
   return (
     <main className="relative isolate flex flex-1 flex-col overflow-y-auto">
-      {/* --- אטמוספירה: ערפל בוקר מעל המים --- */}
-      <div className="haze pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(180deg, #ffffff 0%, #f2f7fa 42%, #dbe8f1 100%)",
-          }}
-        />
-        {/* קו המים, רך ומטושטש — לא קו חד */}
-        <div
-          className="absolute inset-x-0 h-[30rem] -translate-y-1/2"
-          style={{
-            top: HORIZON,
-            background:
-              "radial-gradient(64% 46% at 50% 50%, color-mix(in oklab, var(--color-sky) 46%, transparent), transparent 72%)",
-            animation: "horizon 12s ease-in-out infinite",
-          }}
-        />
-      </div>
+      <MorningGlow horizonTop="56%" />
 
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-9 px-7 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(2.5rem,env(safe-area-inset-top))]">
         <header className="rise flex flex-col items-center text-center">
