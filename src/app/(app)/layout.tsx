@@ -54,6 +54,26 @@ export default async function AppLayout({
                 </form>
               </Card>
             </div>
+          ) : viewer.status === null ? (
+            // הוסרו מהקהילה, או עזבו בעצמם — club_members כבר לא קיימת,
+            // אבל החשבון עדיין מחובר. בלי המסך הזה כל שאר העמודים
+            // מניחים viewer.club לא ריק ומתרסקים.
+            <div className="flex flex-1 items-center pt-10">
+              <Card className="space-y-4 text-center">
+                <h1 className="font-[family-name:var(--font-display)] text-xl font-bold">
+                  כבר לא חלק מהקהילה
+                </h1>
+                <p className="text-sm leading-relaxed text-(--color-ink-soft)">
+                  החשבון הזה כבר לא חבר בקהילה. אם זה לא צפוי, פנו למנהלת
+                  הקהילה.
+                </p>
+                <form action="/auth/signout" method="post">
+                  <Button type="submit" variant="ghost" className="w-full">
+                    התנתקות
+                  </Button>
+                </form>
+              </Card>
+            </div>
           ) : (
             <>
               <NotificationPromptBanner />
@@ -63,7 +83,7 @@ export default async function AppLayout({
         </PullToRefresh>
       </main>
 
-      {viewer.status !== "pending" && (
+      {viewer.status !== "pending" && viewer.status !== null && (
         <AppNav
           isOrganizer={viewer.role === "organizer"}
           clubId={viewer.club?.id ?? null}

@@ -263,6 +263,11 @@ type DemoDb = {
   // מנהלת קהילה מול חבר רגיל — באותה הדגמה. ברירת המחדל היא מנהלת,
   // כי זה הצד שיש בו יותר להראות.
   myRole: MemberRole;
+  // מי שהוסר/ה או עזב/ה את הקהילה. הפרופיל עצמו נשאר ב-profiles (בדיוק
+  // כמו במסד האמיתי, שם רק שורת club_members נמחקת) — כדי שהיסטוריית
+  // נוכחות ישנה תמשיך להציג את השם/הסלפי שלו/ה. רק "מי חברה בקהילה
+  // עכשיו" מתעלם ממי שכאן.
+  removedMemberIds: Set<string>;
 };
 
 function seed(): DemoDb {
@@ -329,6 +334,7 @@ function seed(): DemoDb {
       uploadedBy: others[0]?.id ?? ME_ID,
     })),
     myRole: "organizer",
+    removedMemberIds: new Set(),
   };
 }
 
@@ -377,6 +383,15 @@ export function demoProfiles() {
   return db().profiles;
 }
 
+/** רק מי שעדיין חבר/ת קהילה בפועל — כמו .eq("status","approved") האמיתי.
+ * להשתמש בזה בכל מקום שמונה "חברי קהילה עכשיו" (רשימת ניהול, בורר
+ * הוספת נוכחות ידנית); לא בשאילתות היסטוריות, ששם מי שכבר עזב/ה עדיין
+ * אמור/ה להופיע (ראו הערה על removedMemberIds למעלה). */
+export function demoActiveProfiles() {
+  const removed = db().removedMemberIds;
+  return db().profiles.filter((p) => !removed.has(p.id));
+}
+
 export function demoMe() {
   return db().profiles.find((p) => p.id === ME_ID)!;
 }
@@ -419,6 +434,12 @@ export function demoAllPendingPhotos() {
 
 export function demoMyRole(): MemberRole {
   return db().myRole;
+}
+
+/** האם "אני" הוסרתי/עזבתי — כדי ש-getViewer() ידמה status: null
+ * בדיוק כמו שקורה במסד האמיתי אחרי שהשורה ב-club_members נמחקת. */
+export function demoMeRemoved() {
+  return db().removedMemberIds.has(ME_ID);
 }
 
 // ------------------------------------------------------------------ כתיבה
@@ -472,6 +493,20 @@ export function demoUpdateProfile(patch: Partial<Profile>) {
 
 export function demoSetMyRole(role: MemberRole) {
   db().myRole = role;
+}
+
+/** מקביל ל-remove_member() בשרת: מנהלת מסירה חבר/ה אחר/ת. חוסמת הסרת
+ * "אני" — בהדגמה רק "אני" יכול/ה להיות מנהל/ת, ואי אפשר להסיר מנהלת. */
+export function demoRemoveMember(profileId: string) {
+  if (profileId === ME_ID) return;
+  db().removedMemberIds.add(profileId);
+}
+
+/** מקביל ל-leave_community() בשרת: עזיבה עצמית. חסום כשאני מנהלת,
+ * בדיוק כמו החסימה בשרת. */
+export function demoLeaveCommunity() {
+  if (demoMyRole() === "organizer") return;
+  db().removedMemberIds.add(ME_ID);
 }
 
 export function demoAddEventPhoto(eventId: string, dataUrl: string) {

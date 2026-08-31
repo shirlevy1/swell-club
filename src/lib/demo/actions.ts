@@ -10,6 +10,8 @@ import {
   demoCheckIn,
   demoCreateEvent,
   demoDeleteEventPhoto,
+  demoLeaveCommunity,
+  demoRemoveMember,
   demoSetMyRole,
   demoToggleRsvp,
   demoUpdateEventSchedule,
@@ -114,5 +116,18 @@ export async function setMyRoleAction(role: MemberRole) {
   guard();
   demoSetMyRole(role);
   // התפקיד קובע את תפריט הניווט בשלד האפליקציה, אז מרעננים את כל העץ
+  revalidatePath("/", "layout");
+}
+
+export async function removeMemberAction(profileId: string) {
+  guard();
+  demoRemoveMember(profileId);
+  revalidatePath("/admin");
+}
+
+export async function leaveCommunityAction() {
+  guard();
+  demoLeaveCommunity();
+  // משפיע מיד על הגישה לכל העמודים (כמו setMyRoleAction)
   revalidatePath("/", "layout");
 }

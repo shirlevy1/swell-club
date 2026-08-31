@@ -26,6 +26,17 @@ export type Viewer = {
 /** הזהות של מי שמסתכל. כל עמוד ב-(app) מתחיל מכאן. */
 export async function getViewer(): Promise<Viewer | null> {
   if (demoMode) {
+    // אחרי leaveCommunityAction() בהדגמה: בדיוק כמו club_members שנמחקה
+    // באמת — בלי מועדון, בלי תפקיד, ומסך "כבר לא חלק מהקהילה" בשלד.
+    if (demo.demoMeRemoved()) {
+      return {
+        userId: demo.demoMeId,
+        profile: demo.demoMe(),
+        club: null,
+        role: null,
+        status: null,
+      };
+    }
     return {
       userId: demo.demoMeId,
       profile: demo.demoMe(),
@@ -900,7 +911,7 @@ export async function getClubMembersWithLatestSelfie(
 ): Promise<MemberPickerRow[]> {
   if (demoMode) {
     const attendances = demo.demoAttendances();
-    return demo.demoProfiles().map((profile) => {
+    return demo.demoActiveProfiles().map((profile) => {
       const mine = attendances
         .filter((a) => a.profileId === profile.id)
         .sort((a, b) => b.at.localeCompare(a.at));
@@ -1084,6 +1095,7 @@ export type AdminEvent = SwellEvent & {
 };
 export type AdminMember = {
   profile: Profile;
+  role: MemberRole;
   attendedCount: number;
   /** הסלפי האחרון — כדי שהמנהלת תזהה פנים ברשימה, לא רק שמות */
   latestSelfieUrl: string | null;
@@ -1120,7 +1132,7 @@ export async function getAdminData(clubId: string) {
     const eventOrder = new Map(
       demo.demoEvents().map((e) => [e.id, e.starts_at]),
     );
-    const members: AdminMember[] = demo.demoProfiles().map((profile) => {
+    const members: AdminMember[] = demo.demoActiveProfiles().map((profile) => {
       const mine = attendances
         .filter((a) => a.profileId === profile.id)
         .sort((x, y) =>
@@ -1131,6 +1143,7 @@ export async function getAdminData(clubId: string) {
       const latest = mine.find((a) => a.selfie);
       return {
         profile,
+        role: profile.id === demo.demoMeId ? demo.demoMyRole() : "member",
         attendedCount: mine.length,
         latestSelfieUrl: latest?.selfie ?? null,
         latestFaceX: latest?.faceX ?? null,
@@ -1152,7 +1165,7 @@ export async function getAdminData(clubId: string) {
       .order("starts_at", { ascending: false }),
     supabase
       .from("club_members")
-      .select("profile_id, profiles(*)")
+      .select("profile_id, role, profiles(*)")
       .eq("club_id", clubId)
       // ממתינים לאישור לא "חברים" עדיין — יש להם סעיף נפרד
       // (getPendingMembers) עם כפתורי אישור/דחייה, לא רשימה עם 0 נוכחויות.
@@ -1223,6 +1236,7 @@ export async function getAdminData(clubId: string) {
   const members: AdminMember[] = (
     (memberRows ?? []) as unknown as {
       profile_id: string;
+      role: MemberRole;
       profiles: Profile | null;
     }[]
   )
@@ -1231,6 +1245,7 @@ export async function getAdminData(clubId: string) {
         ? [
             {
               profile: m.profiles,
+              role: m.role,
               attendedCount: attendedByProfile.get(m.profile_id) ?? 0,
               latestSelfieUrl: (() => {
                 const path = latestPathByProfile.get(m.profile_id);

@@ -32,6 +32,7 @@ import { Card, EmptyState, LinkButton, PageHeader } from "@/components/ui";
 import { ExportButton } from "@/components/export-button";
 import { EventReportButton } from "@/components/event-report-button";
 import { PendingMemberRow } from "@/components/pending-member-row";
+import { RemoveMemberButton } from "@/components/remove-member-button";
 import { PendingPhotoGroup } from "@/components/pending-photo-group";
 import { AdminLiveRefresh } from "@/components/admin-live-refresh";
 
@@ -514,6 +515,15 @@ export default async function AdminPage() {
                         </a>
                       )}
                     </div>
+                  )}
+
+                  {/* אי אפשר להסיר מנהלת — קהילה בלי אף מנהלת נעולה
+                      לגמרי. גם נאכף שוב בשרת ב-remove_member(). */}
+                  {m.role !== "organizer" && (
+                    <RemoveMemberButton
+                      profileId={m.profile.id}
+                      fullName={m.profile.full_name}
+                    />
                   )}
                 </div>
               </div>

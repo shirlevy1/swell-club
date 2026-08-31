@@ -18,6 +18,7 @@ import {
 } from "@/lib/swim-level";
 import { monthAttendanceLine } from "@/lib/attendance-text";
 import { EditIcon, WaveIcon } from "@/components/social-icons";
+import { LeaveCommunityButton } from "@/components/leave-community-button";
 import { Button } from "@/components/ui";
 
 export default async function ProfilePage() {
@@ -138,6 +139,10 @@ export default async function ProfilePage() {
           </Button>
         </form>
       )}
+
+      {/* מנהלת לא יכולה לעזוב ככה — קהילה בלי אף מנהלת נעולה לגמרי.
+          נאכף שוב בשרת ב-leave_community(). */}
+      {viewer.role !== "organizer" && <LeaveCommunityButton />}
     </div>
   );
 }
