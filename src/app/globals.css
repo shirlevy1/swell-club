@@ -37,7 +37,7 @@
   --color-warn: #966a2e;     /*  4.8:1 */
   --color-fail: #b0604e;     /*  4.5:1 */
 
-  --font-display: var(--font-frank), Georgia, serif;
+  --font-display: var(--font-rubik), Arial, sans-serif;
   --font-sans: var(--font-assistant), system-ui, sans-serif;
 
   /* האטה שמרגישה כמו גל שנשבר, לא כמו ממשק */
