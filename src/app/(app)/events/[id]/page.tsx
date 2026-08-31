@@ -186,7 +186,10 @@ export default async function EventPage({
               <span className="ltr-nums text-sm text-(--color-ink-faint)">
                 {attendees.length}
               </span>
-              {isOrganizer && (
+              {/* לפני שחלון הצ'ק־אין נפתח אין עדיין את מי "שהחמיץ" אותו
+                  להוסיף ידנית — ראו גם admin_add_attendance() בשרת,
+                  שחוסמת את זה שוב מאחורי הממשק. */}
+              {isOrganizer && status !== "before" && (
                 <AddAttendanceButton
                   eventId={id}
                   excludeProfileIds={attendees.map((a) => a.profile.id)}
