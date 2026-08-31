@@ -8,6 +8,7 @@ import { toggleRsvpAction } from "@/lib/demo/actions";
 import { downloadIcs } from "@/lib/ics";
 import { byGender } from "@/lib/format";
 import type { Gender, SwellEvent } from "@/lib/types";
+import { CheckIcon } from "./social-icons";
 import { Button, Notice } from "./ui";
 
 export function RsvpButton({
@@ -78,7 +79,7 @@ export function RsvpButton({
         className="w-full"
       >
         {/* גוף ראשון עם ניסוח מגדרי — לא "אני מתכוון" שמניח זכר */}
-        {going ? "✓ " : ""}
+        {going && <CheckIcon className="size-4" />}
         {byGender(gender, "אני מגיע", "אני מגיעה")}
       </Button>
 

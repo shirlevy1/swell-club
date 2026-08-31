@@ -7,6 +7,7 @@ import {
   swimLevelBadgeStyle,
 } from "@/lib/swim-level";
 import { WaveIcon } from "./streak-card";
+import { ChevronIcon } from "./social-icons";
 import { Card } from "./ui";
 
 /**
@@ -114,9 +115,7 @@ export function GoingList({
                   {swimLevelLabel(person.swimLevel)}
                 </span>
               )}
-              <span aria-hidden className="text-xs text-(--color-ink-faint)">
-                ←
-              </span>
+              <ChevronIcon className="size-3.5 shrink-0 text-(--color-ink-faint)" />
             </Link>
           </li>
         ))}

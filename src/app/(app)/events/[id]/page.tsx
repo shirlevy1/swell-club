@@ -28,7 +28,7 @@ import { DeleteEventButton } from "@/components/delete-event-button";
 import { EventLiveRefresh } from "@/components/event-live-refresh";
 import { AddAttendanceButton } from "@/components/add-attendance-button";
 import { WhatToBring } from "@/components/what-to-bring";
-import { EditIcon } from "@/components/social-icons";
+import { EditIcon, ExternalLinkIcon } from "@/components/social-icons";
 
 export default async function EventPage({
   params,
@@ -96,7 +96,7 @@ export default async function EventPage({
           className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-(--color-line) bg-(--color-surface) px-3 text-sm font-semibold text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-haze)"
         >
           {event.location_name}
-          <span aria-hidden>↗</span>
+          <ExternalLinkIcon className="size-3.5" />
         </a>
       </header>
 
