@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
 import { approveEventPhotoAction, deleteEventPhotoAction } from "@/lib/demo/actions";
+import { CheckIcon, XIcon } from "./social-icons";
 import { Notice } from "./ui";
 import { PhotoLightbox } from "./photo-lightbox";
 import type { PendingEventPhoto } from "@/lib/data";
@@ -160,18 +161,18 @@ export function PendingPhotoGroup({
               onClick={() => approveOne(photo)}
               disabled={busy === photo.id || busyAll}
               aria-label="אישור תמונה זו"
-              className="absolute start-1 top-1 flex size-5 items-center justify-center rounded-full bg-(--color-sea) text-[0.65rem] font-bold text-white disabled:opacity-40"
+              className="absolute start-1 top-1 flex size-[26px] items-center justify-center rounded-full bg-(--color-sea) text-white disabled:opacity-40"
             >
-              ✓
+              <CheckIcon className="size-[15px]" />
             </button>
             <button
               type="button"
               onClick={() => rejectOne(photo)}
               disabled={busy === photo.id || busyAll}
               aria-label="הסרת תמונה זו"
-              className="absolute end-1 top-1 flex size-5 items-center justify-center rounded-full bg-black/55 text-[0.65rem] text-white disabled:opacity-40"
+              className="absolute end-1 top-1 flex size-[26px] items-center justify-center rounded-full bg-black/55 text-white disabled:opacity-40"
             >
-              ✕
+              <XIcon className="size-[15px]" />
             </button>
           </div>
         ))}
