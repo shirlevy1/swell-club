@@ -41,9 +41,10 @@ export default async function Home() {
 
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-9 px-7 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(2.5rem,env(safe-area-inset-top))]">
         <header className="rise flex flex-col items-center text-center">
-          {/* הלוגו נושא את השם בעצמו — כותרת טקסט לצידו הייתה כפילות.
-              ה-h1 נשאר לקוראי מסך ולמבנה העמוד. */}
-          <SwellLogo className="w-40" />
+          {/* הלוגו נושא את השם בעצמו — כותרת טקסט לצידו הייתה כפילות
+              חזותית. ה-h1 נשאר לקוראי מסך ולמבנה העמוד; decorative
+              משתיק את ה-aria-label של הלוגו כדי שלא יוכרז פעמיים. */}
+          <SwellLogo className="w-40" decorative />
           <h1 className="sr-only">Swell Club</h1>
         </header>
 

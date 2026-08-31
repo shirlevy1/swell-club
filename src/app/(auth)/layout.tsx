@@ -35,7 +35,7 @@ export default function AuthLayout({
           href="/"
           className="flex flex-col items-center gap-3 text-center"
         >
-          <SwellLogo className="w-28" />
+          <SwellLogo className="w-28" decorative />
           <span className="sr-only">Swell Club</span>
         </Link>
 
