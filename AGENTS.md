@@ -47,7 +47,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 בשמש חזקה מסך בהיר קריא יותר מכהה שמחזיר השתקפויות.
 
 טוקנים ב־`globals.css` תחת `@theme` — להשתמש בהם, לא בצבעים קשיחים.
-גופנים: Frank Ruhl Libre (כותרות) + Assistant (גוף) + Sacramento (הלוגו בלבד).
+גופנים: Frank Ruhl Libre (כותרות) + Assistant (גוף).
 
 **`swell-logo.tsx` מציג את קובץ הלוגו האמיתי** (`/public/logo.png`),
 לא שחזור — לא משנה הגודל.

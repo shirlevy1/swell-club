@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Frank_Ruhl_Libre, Assistant, Sacramento } from "next/font/google";
+import { Frank_Ruhl_Libre, Assistant } from "next/font/google";
 import "./globals.css";
 
 // פרנק־רוהל הוא פני הספר העברי הקלאסי. הוא נותן ל־Swell כובד עריכתי
@@ -8,14 +8,6 @@ const frank = Frank_Ruhl_Libre({
   variable: "--font-frank",
   subsets: ["hebrew", "latin"],
   weight: ["500", "700", "900"],
-});
-
-// כתב זורם ללוגו בלבד. שחזור של הלטרינג בלוגו המקורי — לא לשימוש
-// בשום מקום אחר בממשק.
-const script = Sacramento({
-  variable: "--font-script",
-  subsets: ["latin"],
-  weight: "400",
 });
 
 const assistant = Assistant({
@@ -52,7 +44,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="he"
       dir="rtl"
-      className={`${frank.variable} ${assistant.variable} ${script.variable} h-full antialiased`}
+      className={`${frank.variable} ${assistant.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
