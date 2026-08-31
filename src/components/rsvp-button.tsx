@@ -27,54 +27,71 @@ export function RsvpButton({
   const [count, setCount] = useState(initialCount);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  // נעילה מיידית משלה, לא רק pending (שנהיה true רק בסוף התהליך,
+  // ב-startTransition) — כדי שלחיצה כפולה מהירה (ידיים רטובות בחוף)
+  // לא תפעיל שני עדכונים חופפים.
+  const [submitting, setSubmitting] = useState(false);
 
   async function toggle() {
+    if (submitting) return;
+    setSubmitting(true);
+
     const next = !going;
     setError(null);
     // אופטימי — הכפתור הזה חייב להרגיש מיידי
     setGoing(next);
     setCount((c) => Math.max(0, c + (next ? 1 : -1)));
 
-    if (demoMode) {
-      await toggleRsvpAction(event.id);
+    try {
+      if (demoMode) {
+        await toggleRsvpAction(event.id);
+        startTransition(() => router.refresh());
+        return;
+      }
+
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error: upsertError } = await supabase.from("rsvps").upsert(
+        { event_id: event.id, profile_id: user.id, going: next },
+        { onConflict: "event_id,profile_id" },
+      );
+
+      if (upsertError) {
+        setGoing(!next);
+        setCount((c) => Math.max(0, c + (next ? -1 : 1)));
+        setError("לא הצלחנו לשמור. נסו שוב.");
+        return;
+      }
+
+      // רק כשמסמנים הגעה, לא כשמבטלים — לא ממתינים לזה
+      if (next) {
+        fetch("/api/push/notify-rsvp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ event_id: event.id }),
+        }).catch(() => {});
+      }
       startTransition(() => router.refresh());
-      return;
-    }
-
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { error: upsertError } = await supabase.from("rsvps").upsert(
-      { event_id: event.id, profile_id: user.id, going: next },
-      { onConflict: "event_id,profile_id" },
-    );
-
-    if (upsertError) {
+    } catch {
+      // כשל רשת אמיתי, לא רק שגיאה מסודרת מהשרת — חוזרים למה שהיה
+      // לפני הלחיצה, כי שם זה נשאר בפועל
       setGoing(!next);
       setCount((c) => Math.max(0, c + (next ? -1 : 1)));
-      setError("לא הצלחנו לשמור. נסו שוב.");
-      return;
+      setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
+    } finally {
+      setSubmitting(false);
     }
-
-    // רק כשמסמנים הגעה, לא כשמבטלים — לא ממתינים לזה
-    if (next) {
-      fetch("/api/push/notify-rsvp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event_id: event.id }),
-      }).catch(() => {});
-    }
-    startTransition(() => router.refresh());
   }
 
   return (
     <div className="space-y-3">
       <Button
         onClick={toggle}
-        disabled={pending}
+        disabled={pending || submitting}
         variant={going ? "secondary" : "primary"}
         className="w-full"
       >
