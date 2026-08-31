@@ -27,8 +27,7 @@ import {
   SWIM_LEVEL_COLOR,
   swimLevelBadgeStyle,
 } from "@/lib/swim-level";
-import { WaveIcon } from "@/components/streak-card";
-import { InstagramIcon, WhatsAppIcon } from "@/components/social-icons";
+import { InstagramIcon, WhatsAppIcon, WaveIcon } from "@/components/social-icons";
 import { Card, EmptyState, LinkButton, PageHeader } from "@/components/ui";
 import { ExportButton } from "@/components/export-button";
 import { EventReportButton } from "@/components/event-report-button";

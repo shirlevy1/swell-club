@@ -17,8 +17,7 @@ import {
 } from "@/lib/swim-level";
 import { BackLink, Notice } from "@/components/ui";
 import { SelfieHistory } from "@/components/selfie-history";
-import { InstagramIcon, WhatsAppIcon } from "@/components/social-icons";
-import { WaveIcon } from "@/components/streak-card";
+import { InstagramIcon, WhatsAppIcon, WaveIcon } from "@/components/social-icons";
 
 /**
  * עמוד של חבר קהילה אחר, שנפתח מלחיצה על שם ברשימת "מי מגיע?".

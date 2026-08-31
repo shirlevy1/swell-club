@@ -1,38 +1,8 @@
-import type { CSSProperties } from "react";
 import type { Streak } from "@/lib/streak";
 import type { Gender } from "@/lib/types";
 import { byGender } from "@/lib/format";
+import { WaveIcon } from "./social-icons";
 import { Card } from "./ui";
-
-/**
- * גל א-סימטרי — אותה צורה בדיוק כמו אייקון "מפגשים" בסרגל הניווט
- * (app-nav.tsx), שנגזרה מהגל האמיתי ב-public/logo.png. לא להמציא
- * צורת גל חדשה כאן; זו שפת העיצוב של Swell, לא סינוס גנרי.
- */
-export function WaveIcon({
-  className,
-  style,
-}: {
-  className?: string;
-  style?: CSSProperties;
-}) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.9"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      style={style}
-      aria-hidden
-    >
-      <path d="M2 11q3-2.8 6.5 0t6.5 0q2-2 5.5-0.8" />
-      <path d="M4.5 16q3.5-2 7-0.3t5.5-0.7" />
-    </svg>
-  );
-}
 
 /**
  * הרצף: מספר גדול + אייקון גל כמסר ראשי שנקרא במבט אחד (כמו "רצף

@@ -7,8 +7,7 @@ import {
   SWIM_LEVEL_COLOR,
   swimLevelBadgeStyle,
 } from "@/lib/swim-level";
-import { WaveIcon } from "./streak-card";
-import { InstagramIcon, SwimmerIcon, WhatsAppIcon } from "./social-icons";
+import { InstagramIcon, SwimmerIcon, WaveIcon, WhatsAppIcon } from "./social-icons";
 import { cx } from "./ui";
 
 /** נוכחות שנוספה ידנית (הוספת נוכחות ידנית) — אין לה סלפי בכלל. */

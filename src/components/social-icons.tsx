@@ -1,3 +1,35 @@
+import type { CSSProperties } from "react";
+
+/**
+ * גל א-סימטרי — אותה צורה בדיוק כמו אייקון "מפגשים" בסרגל הניווט
+ * (app-nav.tsx), שנגזרה מהגל האמיתי ב-public/logo.png. לא להמציא
+ * צורת גל חדשה כאן; זו שפת העיצוב של Swell, לא סינוס גנרי.
+ */
+export function WaveIcon({
+  className,
+  style,
+}: {
+  className?: string;
+  style?: CSSProperties;
+}) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      style={style}
+      aria-hidden
+    >
+      <path d="M2 11q3-2.8 6.5 0t6.5 0q2-2 5.5-0.8" />
+      <path d="M4.5 16q3.5-2 7-0.3t5.5-0.7" />
+    </svg>
+  );
+}
+
 export function WhatsAppIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>

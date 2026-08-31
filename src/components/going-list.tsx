@@ -6,8 +6,7 @@ import {
   SWIM_LEVEL_COLOR,
   swimLevelBadgeStyle,
 } from "@/lib/swim-level";
-import { WaveIcon } from "./streak-card";
-import { ChevronIcon } from "./social-icons";
+import { ChevronIcon, WaveIcon } from "./social-icons";
 import { Card } from "./ui";
 
 /**

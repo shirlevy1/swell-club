@@ -8,7 +8,7 @@ import {
 } from "@/lib/data";
 import { demoMode } from "@/lib/config";
 import { attendanceStreak } from "@/lib/streak";
-import { StreakCard, WaveIcon } from "@/components/streak-card";
+import { StreakCard } from "@/components/streak-card";
 import { SelfieHistory } from "@/components/selfie-history";
 import { facePositionStyle } from "@/lib/face-position";
 import {
@@ -17,7 +17,7 @@ import {
   swimLevelBadgeStyle,
 } from "@/lib/swim-level";
 import { monthAttendanceLine } from "@/lib/attendance-text";
-import { EditIcon } from "@/components/social-icons";
+import { EditIcon, WaveIcon } from "@/components/social-icons";
 import { Button } from "@/components/ui";
 
 export default async function ProfilePage() {

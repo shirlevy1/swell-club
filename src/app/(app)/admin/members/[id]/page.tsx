@@ -16,8 +16,7 @@ import {
   SWIM_LEVEL_COLOR,
   swimLevelBadgeStyle,
 } from "@/lib/swim-level";
-import { WaveIcon } from "@/components/streak-card";
-import { WhatsAppIcon, InstagramIcon } from "@/components/social-icons";
+import { WhatsAppIcon, InstagramIcon, WaveIcon } from "@/components/social-icons";
 
 export default async function AdminMemberPage({
   params,
