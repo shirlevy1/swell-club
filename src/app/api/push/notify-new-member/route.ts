@@ -40,7 +40,9 @@ export async function POST(request: Request) {
   await sendPushToProfiles(organizerIds, {
     title: profile.full_name,
     body: byGender(profile.gender, "ביקש להצטרף לקהילה", "ביקשה להצטרף לקהילה"),
-    tag: "new-member-request",
+    // ייחודי לכל מבקש/ת — אחרת בקשה שנייה מוחקת מהמגש את ההתראה על
+    // הראשונה, במקום שתישאר בנפרד לצידה (ראו rsvp לאותו דפוס)
+    tag: `new-member-${profile_id}`,
     url: "/admin",
   });
 

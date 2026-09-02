@@ -50,7 +50,9 @@ export async function POST(request: Request) {
     body:
       byGender(uploader?.gender ?? null, "העלה תמונה מ", "העלתה תמונה מ") +
       event.title,
-    tag: "new-photo-pending",
+    // ייחודי לכל תמונה — אחרת תמונה שנייה שממתינה מוחקת מהמגש את
+    // ההתראה על הראשונה, במקום שתישאר בנפרד לצידה (ראו rsvp לאותו דפוס)
+    tag: `new-photo-${photo_id}`,
     url: "/admin",
   });
 
