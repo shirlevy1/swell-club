@@ -39,17 +39,15 @@ function NavIcon({ d }: { d: string }) {
   );
 }
 
-/** עיגול מספר בודד — שני מהם נערמים אנכית משמאל לאייקון "ניהול":
- * העליון להצטרפות, התחתון לתמונות. צבע האתר, לא צבע התראה אדום. */
-function CountCircle({ count, label }: { count: number; label: string }) {
-  if (count <= 0) return null;
+/** נקודה על פינת אייקון "ניהול" — רק "יש משהו לבדוק", בלי מספר.
+ * המספר המדויק (כמה בקשות, כמה תמונות) כבר מופיע בפירוט בעמוד הניהול
+ * עצמו; כאן זה רק תזכורת עדינה, לא עוד ספירה לפענח מהניווט התחתון. */
+function PendingDot({ label }: { label: string }) {
   return (
     <span
       aria-label={label}
-      className="flex size-4 items-center justify-center rounded-full bg-(--color-sea) text-[0.62rem] font-bold leading-none text-white"
-    >
-      <span className="ltr-nums">{count > 9 ? "9+" : count}</span>
-    </span>
+      className="absolute -top-0.5 -end-0.5 size-2.5 rounded-full bg-(--color-sea)"
+    />
   );
 }
 
@@ -154,21 +152,18 @@ export function AppNav({
                     : "text-(--color-ink-faint) hover:text-(--color-ink-soft)",
                 )}
               >
-                <span className="flex items-center gap-1">
-                  {/* בסדר הזה, ב-RTL: האייקון נשאר מימין,
-                      העיגולים נערמים משמאל לו — כמו שביקשה. */}
+                <span className="relative flex items-center">
                   <NavIcon d={item.icon} />
                   {isAdmin && (pendingCounts.members > 0 || pendingCounts.photos > 0) && (
-                    <span className="flex flex-col gap-0.5">
-                      <CountCircle
-                        count={pendingCounts.members}
-                        label={`${pendingCounts.members} בקשות הצטרפות ממתינות`}
-                      />
-                      <CountCircle
-                        count={pendingCounts.photos}
-                        label={`${pendingCounts.photos} תמונות ממתינות לאישור`}
-                      />
-                    </span>
+                    <PendingDot
+                      label={
+                        pendingCounts.members > 0 && pendingCounts.photos > 0
+                          ? "יש בקשות הצטרפות ותמונות ממתינות בניהול"
+                          : pendingCounts.members > 0
+                            ? "יש בקשות הצטרפות ממתינות בניהול"
+                            : "יש תמונות ממתינות לאישור בניהול"
+                      }
+                    />
                   )}
                 </span>
                 {item.label}
