@@ -16,6 +16,7 @@ import {
   demoToggleRsvp,
   demoUpdateEventSchedule,
   demoUpdateProfile,
+  demoUpdateSelfie,
 } from "./store";
 
 function guard() {
@@ -55,6 +56,18 @@ export async function updateProfileAction(patch: Partial<Profile>) {
   guard();
   demoUpdateProfile(patch);
   revalidatePath("/profile");
+}
+
+/** הסלפי מגיע כ-data URL, בדיוק כמו ב-checkInAction. */
+export async function updateSelfieAction(
+  eventId: string,
+  selfie: string,
+  faceX: number | null,
+  faceY: number | null,
+) {
+  guard();
+  demoUpdateSelfie(eventId, selfie, faceX, faceY);
+  revalidatePath(`/events/${eventId}`);
 }
 
 export async function createEventAction(event: SwellEvent) {

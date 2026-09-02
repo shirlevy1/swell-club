@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { demoMode } from "@/lib/config";
+import { updateSelfieAction } from "@/lib/demo/actions";
 import { detectFace } from "@/lib/face-detection";
 import { Button, Card, Notice } from "./ui";
 
@@ -118,6 +120,20 @@ export function EditSelfieButton({ eventId }: { eventId: string }) {
       if (!detection.hasFace) {
         setStep("camera");
         setError("לא זיהינו פנים בתמונה. נסו שוב, הפעם עם הפנים מול המצלמה.");
+        return;
+      }
+
+      if (demoMode) {
+        stopCamera();
+        setStep("uploading");
+        await updateSelfieAction(
+          eventId,
+          canvas.toDataURL("image/jpeg", JPEG_QUALITY),
+          detection.center?.x ?? null,
+          detection.center?.y ?? null,
+        );
+        setStep("done");
+        router.refresh();
         return;
       }
 

@@ -486,6 +486,24 @@ export function demoAddManualAttendance(eventId: string, profileId: string) {
   });
 }
 
+/** מקביל ל-storage.upload(upsert) + update_selfie_face_position() ב-
+ * edit-selfie-button האמיתי: מחליף רק את התמונה ומיקום הפנים של הנוכחות
+ * הקיימת שלי במפגש הזה — לא נוגע במיקום/זמן הצ'ק־אין המקורי. */
+export function demoUpdateSelfie(
+  eventId: string,
+  selfie: string,
+  faceX: number | null,
+  faceY: number | null,
+) {
+  const mine = db().attendances.find(
+    (a) => a.eventId === eventId && a.profileId === ME_ID,
+  );
+  if (!mine) return;
+  mine.selfie = selfie;
+  mine.faceX = faceX;
+  mine.faceY = faceY;
+}
+
 export function demoUpdateProfile(patch: Partial<Profile>) {
   const me = demoMe();
   Object.assign(me, patch);
