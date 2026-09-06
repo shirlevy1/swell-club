@@ -90,8 +90,8 @@ for (w, h, dpr, css_w, css_h) in DEVICES:
     # למטה ליד תחתית המסך, שתי שורות — בדיוק כמו "from Meta" באינסטגרם.
     # הלוגו נשאר ממורכז אנכית באמצע בפני עצמו, לא צמוד לכיתוב.
     draw = ImageDraw.Draw(canvas)
-    label_font = ImageFont.truetype(font_path, max(12, round(w * 0.026)))
-    name_font = ImageFont.truetype(bold_font_path, max(14, round(w * 0.034)))
+    label_font = ImageFont.truetype(font_path, max(14, round(w * 0.028)))
+    name_font = ImageFont.truetype(bold_font_path, max(28, round(w * 0.065)))
 
     label_bbox = draw.textbbox((0, 0), CREDIT_LABEL, font=label_font)
     name_bbox = draw.textbbox((0, 0), CREDIT_NAME, font=name_font)
