@@ -82,13 +82,16 @@ for (w, h, dpr, css_w, css_h) in DEVICES:
     logo_y = (h - target_h) // 2
     canvas.alpha_composite(resized, (logo_x, logo_y))
 
+    # למטה ליד תחתית המסך (כמו "from Meta" באינסטגרם) — לא צמוד ללוגו.
+    # הלוגו נשאר ממורכז אנכית באמצע בפני עצמו.
     font_size = max(14, round(w * 0.032))
     font = ImageFont.truetype(font_path, font_size)
     draw = ImageDraw.Draw(canvas)
     bbox = draw.textbbox((0, 0), caption_visual, font=font)
     text_w = bbox[2] - bbox[0]
+    text_h = bbox[3] - bbox[1]
     text_x = (w - text_w) // 2 - bbox[0]
-    text_y = logo_y + target_h + round(h * 0.018)
+    text_y = h - round(h * 0.06) - text_h
     draw.text((text_x, text_y), caption_visual, font=font, fill=CAPTION_COLOR)
 
     filename = f"splash-{w}x{h}.png"
