@@ -19,6 +19,15 @@ export const metadata: Metadata = {
   title: "Swell Club",
   description: "מי באמת היה איתכם בים הבוקר.",
   manifest: "/manifest.webmanifest",
+  // Next 16 שולחת רק את התווית התקנית החדשה (mobile-web-app-capable)
+  // כשמגדירים appleWebApp.capable — לא את התווית הישנה עם קידומת
+  // apple- שאייפון דרש/דורש עדיין בגרסאות iOS שלא הספיקו לתמוך
+  // בתווית התקנית (זה קרה רק החל מ-iOS/Safari 17.4). בלי שתיהן,
+  // אייפון ישן יותר לא בהכרח מזהה את האתר כ"אפליקציה" במסך מלא בכלל —
+  // כולל מסך הפתיחה שמותנה בדיוק בזיהוי הזה.
+  other: {
+    "apple-mobile-web-app-capable": "yes",
+  },
   appleWebApp: {
     capable: true,
     title: "Swell Club",
