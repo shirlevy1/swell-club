@@ -49,6 +49,11 @@ export function PendingMemberRow({
   }
 
   async function reject() {
+    const ok = window.confirm(
+      `לדחות את הבקשה של ${fullName}? הפעולה לא הפיכה — הבקשה תימחק לגמרי.`,
+    );
+    if (!ok) return;
+
     setError(null);
     setPending("reject");
     if (demoMode) {
