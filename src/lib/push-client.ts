@@ -12,6 +12,38 @@ import { createClient } from "@/lib/supabase/client";
  * את צבע הפעמון עד רענון ידני, כי הוא כבר קבע את המצב שלו ב-mount.
  */
 export const PUSH_SUBSCRIBED_EVENT = "swell-push-subscribed";
+/** אותו רעיון בדיוק כמו PUSH_SUBSCRIBED_EVENT, בשביל "לא תודה" —
+ * שהפעמון (אם כבר מוצג באותו עמוד) יעבור מיד ל"כבוי" בלי רענון ידני. */
+export const PUSH_DECLINED_EVENT = "swell-push-declined";
+
+/**
+ * "לא תודה" בהצעה האוטומטית לא נוגע בהרשאת הדפדפן בכלל (אתר לא יכול
+ * לחסום הרשאה בעצמו — רק המשתמש/ת דרך הודעת המערכת האמיתית) ולכן
+ * צריך זיכרון נפרד כדי שהבחירה הזו תיחשב "החלטה" ולא תישאל שוב.
+ * שמור בדפדפן הספציפי (לא בחשבון) — מכשיר/דפדפן אחר ישאל מחדש.
+ */
+const DECLINED_KEY = "swell-push-declined";
+
+export function markPushDeclined(): void {
+  try {
+    localStorage.setItem(DECLINED_KEY, "1");
+  } catch {
+    // מצב פרטי/localStorage חסום — לא קריטי, פשוט יישאל שוב בפעם הבאה
+  }
+  window.dispatchEvent(new Event(PUSH_DECLINED_EVENT));
+}
+
+/** true אם כבר יש החלטה כלשהי — הרשאה אמיתית של הדפדפן (ניתנה/נחסמה),
+ * או "לא תודה" שנשמר. משותף להצעה האוטומטית ולפעמון, כדי ששניהם
+ * יסכימו על "האם כבר שאלנו" בלי לשכפל את הלוגיקה. */
+export function hasDecidedAboutPush(): boolean {
+  if (Notification.permission !== "default") return true;
+  try {
+    return localStorage.getItem(DECLINED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
 
 function urlBase64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
   const padded = (base64 + "=".repeat((4 - (base64.length % 4)) % 4))

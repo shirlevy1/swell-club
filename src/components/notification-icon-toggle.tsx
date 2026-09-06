@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { demoMode } from "@/lib/config";
 import { createClient } from "@/lib/supabase/client";
 import {
+  hasDecidedAboutPush,
+  PUSH_DECLINED_EVENT,
   PUSH_SUBSCRIBED_EVENT,
   pushSupported,
   subscribeToPush,
@@ -16,8 +18,20 @@ import {
 
 const VAPID = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
-type State = "loading" | "unsupported" | "needs-install" | "off" | "on";
+type State =
+  | "loading"
+  | "unsupported"
+  | "needs-install"
+  | "pending"
+  | "off"
+  | "on";
 
+/**
+ * "pending" = עדיין אין החלטה (לא ניתנה הרשאה, לא נחסמה, ולא נלחץ
+ * "לא תודה" בהצעה האוטומטית) — הפעמון מוסתר אז, כדי לא להציג שני
+ * ממשקים לאותה החלטה יחד עם notification-prompt-banner.tsx על אותו
+ * מסך. ברגע שיש החלטה כלשהי, הפעמון הופך לדרך הקבועה לשלוט בה.
+ */
 async function detectState(): Promise<State> {
   if (demoMode || !VAPID) return "unsupported";
 
@@ -30,9 +44,10 @@ async function detectState(): Promise<State> {
   try {
     const reg = await navigator.serviceWorker.getRegistration();
     const sub = await reg?.pushManager.getSubscription();
-    return sub ? "on" : "off";
+    if (sub) return "on";
+    return hasDecidedAboutPush() ? "off" : "pending";
   } catch {
-    return "off";
+    return hasDecidedAboutPush() ? "off" : "pending";
   }
 }
 
@@ -83,16 +98,21 @@ export function NotificationIconToggle() {
     };
   }, []);
 
-  // הפעלה דרך notification-prompt-banner.tsx (ההצעה האוטומטית) קוראת
-  // לאותו subscribeToPush, אבל זה רכיב אחר לגמרי בלי state משותף —
-  // בלעדי האירוע הזה, הפעמון היה נשאר "כבוי" ויזואלית עד רענון ידני.
+  // הפעלה/דחייה דרך notification-prompt-banner.tsx (ההצעה האוטומטית)
+  // קורות ברכיב אחר לגמרי בלי state משותף — בלעדי האירועים האלה, הפעמון
+  // היה נשאר במצב הקודם שלו (מוסתר, או "כבוי") ויזואלית עד רענון ידני.
   useEffect(() => {
     function onSubscribed() {
       setState("on");
     }
+    function onDeclined() {
+      setState("off");
+    }
     window.addEventListener(PUSH_SUBSCRIBED_EVENT, onSubscribed);
+    window.addEventListener(PUSH_DECLINED_EVENT, onDeclined);
     return () => {
       window.removeEventListener(PUSH_SUBSCRIBED_EVENT, onSubscribed);
+      window.removeEventListener(PUSH_DECLINED_EVENT, onDeclined);
     };
   }, []);
 
@@ -134,7 +154,8 @@ export function NotificationIconToggle() {
     setPending(false);
   }
 
-  if (state === "loading" || state === "unsupported") return null;
+  if (state === "loading" || state === "unsupported" || state === "pending")
+    return null;
 
   return (
     <div className="relative">

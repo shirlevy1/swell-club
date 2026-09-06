@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { demoMode } from "@/lib/config";
-import { pushSupported, subscribeToPush } from "@/lib/push-client";
+import {
+  hasDecidedAboutPush,
+  markPushDeclined,
+  pushSupported,
+  subscribeToPush,
+} from "@/lib/push-client";
 import { Button, Card } from "./ui";
 
 const VAPID = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
@@ -11,10 +16,12 @@ const VAPID = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
  * הצעה אקטיבית להפעלת תזכורות, בכניסה הראשונה לאפליקציה — לא רק
  * כפתור שמחכה שמישהו ימצא אותו בפרופיל.
  *
- * `Notification.permission === "default"` הוא בעצם "עוד לא נשאל/ה
- * מעולם" — הדפדפן עצמו שומר את זה, ולכן אין צורך בדגל נפרד במסד או
- * ב-localStorage: ברגע שעונים (אישור/סירוב), הערך משתנה לצמיתות
- * ל-"granted"/"denied" והבאנר הזה פשוט לא מציג את עצמו שוב.
+ * מוצגת רק כל עוד `hasDecidedAboutPush()` false, כדי שלא תופיע יחד
+ * עם הפעמון (notification-icon-toggle.tsx) — שני ממשקים לאותה
+ * החלטה בדיוק על אותו מסך. "כן"/"לא" כאן שניהם נחשבים החלטה סופית:
+ * "כן" משנה בפועל את הרשאת הדפדפן; "לא" לא יכול לגעת בהרשאה עצמה
+ * (אתר לא יכול לחסום הרשאה בשם המשתמש/ת), ולכן נשמר ב-localStorage
+ * דרך `markPushDeclined()` — אחרת הבאנר היה חוזר לשאול בכל כניסה.
  *
  * לא מבקשת הרשאה אוטומטית בלי לחיצה — זה גם נחסם/מוגבל בדפדפנים
  * רבים, וגם פחות מנומס. הכפתור כאן הוא הלחיצה הנדרשת.
@@ -26,7 +33,7 @@ export function NotificationPromptBanner() {
   useEffect(() => {
     if (demoMode || !VAPID) return;
     if (!pushSupported()) return; // כולל אייפון בלי התקנה למסך הבית
-    if (Notification.permission === "default") setShow(true);
+    if (!hasDecidedAboutPush()) setShow(true);
   }, []);
 
   async function accept() {
@@ -42,6 +49,11 @@ export function NotificationPromptBanner() {
     setPending(false);
   }
 
+  function decline() {
+    markPushDeclined();
+    setShow(false);
+  }
+
   if (!show) return null;
 
   return (
@@ -51,7 +63,7 @@ export function NotificationPromptBanner() {
       </p>
       <div className="flex shrink-0 gap-2">
         <Button
-          onClick={() => setShow(false)}
+          onClick={decline}
           disabled={pending}
           variant="ghost"
           className="min-h-9 px-3 text-xs"
