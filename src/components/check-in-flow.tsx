@@ -203,8 +203,12 @@ export function CheckInFlow({ event }: { event: SwellEvent }) {
     setError(null);
     setCheckingFace(true);
     const detection = await detectFace(canvas);
-    setCheckingFace(false);
     if (!detection.hasFace) {
+      // רק כאן — נשארים על מסך המצלמה ורוצים שהכפתור יהיה לחיץ שוב.
+      // בהצלחה ממשיכים ישר לשמירה/העלאה בלי לשחרר את הכפתור באמצע —
+      // אחרת לחיצה כפולה מהירה פותחת שני תהליכי צילום מקבילים (הכפתור
+      // היה נראה לחיץ לרגע, לפני ש-setStep("uploading") מסתיר אותו).
+      setCheckingFace(false);
       setError("לא זיהינו פנים בתמונה. נסו שוב, הפעם עם הפנים מול המצלמה.");
       return;
     }
