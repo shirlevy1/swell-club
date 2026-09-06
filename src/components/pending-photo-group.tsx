@@ -90,6 +90,11 @@ export function PendingPhotoGroup({
   }
 
   async function rejectAll() {
+    const confirmed = window.confirm(
+      `לדחות את ${photos.length === 1 ? "התמונה" : `${photos.length} התמונות`} של ${uploaderName}? הפעולה לא הפיכה.`,
+    );
+    if (!confirmed) return;
+
     setError(null);
     setBusy("reject");
     const ok = await rejectPhotos(photos);
@@ -99,6 +104,9 @@ export function PendingPhotoGroup({
   }
 
   async function rejectOne(photo: PendingEventPhoto) {
+    const confirmed = window.confirm("לדחות את התמונה הזו? הפעולה לא הפיכה.");
+    if (!confirmed) return;
+
     setError(null);
     setBusy(photo.id);
     const ok = await rejectPhotos([photo]);
