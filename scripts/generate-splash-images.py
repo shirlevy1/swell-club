@@ -16,9 +16,8 @@ appleWebApp.startupImage ב-src/app/layout.tsx — הסקריפט מדפיס א�
 שהמידה המדויקת שלו לא ברשימה (כולל דגמים עתידיים) — שאותה מוסיפים
 ידנית, הסקריפט לא מדפיס אותה כי היא לא תלויה בגודל ספציפי.
 
-הטקסט העברי מצויר הפוך (text[::-1]) כי PIL לא יודע bidi — לביטוי
-הקבוע הבודד הזה (בלי מספרים/פיסוק מיוחד) זה מספיק בשביל סדר ויזואלי
-נכון, בלי תלות בספריית bidi חיצונית.
+הכיתוב התחתון ("from" + שם) הוא באנגלית בכוונה — בדיוק הסגנון של
+"from Meta" באינסטגרם — ולכן אין כאן שאלת bidi בכלל.
 """
 
 import sys
@@ -36,11 +35,17 @@ OUT_DIR.mkdir(exist_ok=True)
 
 SKY = (146, 173, 197, 255)  # --color-sky, #92adc5 (globals.css)
 WORDMARK = PUBLIC / "logo-wordmark-white-v4.png"
-CAPTION_HE = "מי באמת היה איתכם בים"
-CAPTION_COLOR = (255, 255, 255, 190)  # לבן, ~75% אטימות — כמו בהדמיה שאושרה
+CREDIT_LABEL = "from"
+CREDIT_NAME = "Shir Levy"
+LABEL_COLOR = (255, 255, 255, 165)   # "from" — עדין יותר, כמו באינסטגרם
+NAME_COLOR = (255, 255, 255, 230)    # השם — בולט יותר
 FONT_CANDIDATES = [
     r"C:\Windows\Fonts\arial.ttf",
     "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+]
+FONT_BOLD_CANDIDATES = [
+    r"C:\Windows\Fonts\arialbd.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
 ]
 
 # (pixel_w, pixel_h, dpr, css_w, css_h) — פורטרט בלבד
@@ -64,11 +69,11 @@ if not WORDMARK.exists():
     sys.exit(f"לא נמצא {WORDMARK}")
 
 font_path = next((p for p in FONT_CANDIDATES if Path(p).exists()), None)
-if not font_path:
-    sys.exit("לא נמצא גופן עברי זמין (arial.ttf) — עדכנו FONT_CANDIDATES")
+bold_font_path = next((p for p in FONT_BOLD_CANDIDATES if Path(p).exists()), None)
+if not font_path or not bold_font_path:
+    sys.exit("לא נמצא גופן זמין (arial.ttf/arialbd.ttf) — עדכנו FONT_CANDIDATES")
 
 wordmark = Image.open(WORDMARK).convert("RGBA")
-caption_visual = CAPTION_HE[::-1]
 
 generated = []
 for (w, h, dpr, css_w, css_h) in DEVICES:
@@ -82,17 +87,31 @@ for (w, h, dpr, css_w, css_h) in DEVICES:
     logo_y = (h - target_h) // 2
     canvas.alpha_composite(resized, (logo_x, logo_y))
 
-    # למטה ליד תחתית המסך (כמו "from Meta" באינסטגרם) — לא צמוד ללוגו.
-    # הלוגו נשאר ממורכז אנכית באמצע בפני עצמו.
-    font_size = max(14, round(w * 0.032))
-    font = ImageFont.truetype(font_path, font_size)
+    # למטה ליד תחתית המסך, שתי שורות — בדיוק כמו "from Meta" באינסטגרם.
+    # הלוגו נשאר ממורכז אנכית באמצע בפני עצמו, לא צמוד לכיתוב.
     draw = ImageDraw.Draw(canvas)
-    bbox = draw.textbbox((0, 0), caption_visual, font=font)
-    text_w = bbox[2] - bbox[0]
-    text_h = bbox[3] - bbox[1]
-    text_x = (w - text_w) // 2 - bbox[0]
-    text_y = h - round(h * 0.06) - text_h
-    draw.text((text_x, text_y), caption_visual, font=font, fill=CAPTION_COLOR)
+    label_font = ImageFont.truetype(font_path, max(12, round(w * 0.026)))
+    name_font = ImageFont.truetype(bold_font_path, max(14, round(w * 0.034)))
+
+    label_bbox = draw.textbbox((0, 0), CREDIT_LABEL, font=label_font)
+    name_bbox = draw.textbbox((0, 0), CREDIT_NAME, font=name_font)
+    label_w = label_bbox[2] - label_bbox[0]
+    label_h = label_bbox[3] - label_bbox[1]
+    name_w = name_bbox[2] - name_bbox[0]
+    name_h = name_bbox[3] - name_bbox[1]
+    line_gap = round(h * 0.008)
+
+    name_y = h - round(h * 0.06) - name_h
+    label_y = name_y - line_gap - label_h
+
+    draw.text(
+        ((w - label_w) // 2 - label_bbox[0], label_y),
+        CREDIT_LABEL, font=label_font, fill=LABEL_COLOR,
+    )
+    draw.text(
+        ((w - name_w) // 2 - name_bbox[0], name_y),
+        CREDIT_NAME, font=name_font, fill=NAME_COLOR,
+    )
 
     filename = f"splash-{w}x{h}.png"
     canvas.convert("RGB").save(OUT_DIR / filename, "PNG")
