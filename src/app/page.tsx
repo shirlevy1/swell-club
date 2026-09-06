@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { SwellLogo } from "@/components/swell-logo";
 import { MorningGlow } from "@/components/morning-glow";
+import { AddToHomeScreenTip } from "@/components/add-to-home-screen-tip";
 import { LinkButton } from "@/components/ui";
 import { demoMode, supabaseConfigured } from "@/lib/config";
 import { createClient } from "@/lib/supabase/server";
@@ -55,36 +56,23 @@ export default async function Home() {
           </LinkButton>
         </section>
 
-        <section
-          className="rise rounded-2xl border border-(--color-line)/70 bg-(--color-surface)/40 p-4 backdrop-blur-sm"
-          style={{ animationDelay: "380ms" }}
-        >
-          {demoMode ? (
-            <>
-              <p className="text-[0.8rem] font-bold text-(--color-sea)">
-                מצב הדגמה
-              </p>
-              <p className="mt-1 text-[0.75rem] leading-relaxed text-(--color-ink-faint)">
-                נתונים לדוגמה. מסך ההרשמה/ההתחברות כאן להמחשה בלבד ולא
-                נשמר — אפשר להקליד כל דבר. אחרי זה: לסמן הגעה, לצלם סלפי
-                ולראות את רשימת המשתתפים נפתחת.
-              </p>
-            </>
-          ) : (
-            <>
-              <p className="text-[0.8rem] font-bold">
-                טיפ: הוסיפו את Swell Club למסך הבית
-              </p>
-              {/* חצים שמצביעים לכיוון הקריאה של RTL — שמאלה, לא ימינה,
-                  כי הצעד הבא בעברית ממשיך שמאלה מהצעד הקודם. */}
-              <p className="mt-1 text-[0.75rem] leading-relaxed text-(--color-ink-faint)">
-                בספארי ← שיתוף ← ״הוסף למסך הבית״.
-                <br />
-                וזהו, Swell Club אצלכם כמו אפליקציה.
-              </p>
-            </>
-          )}
-        </section>
+        {demoMode ? (
+          <section
+            className="rise rounded-2xl border border-(--color-line)/70 bg-(--color-surface)/40 p-4 backdrop-blur-sm"
+            style={{ animationDelay: "380ms" }}
+          >
+            <p className="text-[0.8rem] font-bold text-(--color-sea)">
+              מצב הדגמה
+            </p>
+            <p className="mt-1 text-[0.75rem] leading-relaxed text-(--color-ink-faint)">
+              נתונים לדוגמה. מסך ההרשמה/ההתחברות כאן להמחשה בלבד ולא
+              נשמר — אפשר להקליד כל דבר. אחרי זה: לסמן הגעה, לצלם סלפי
+              ולראות את רשימת המשתתפים נפתחת.
+            </p>
+          </section>
+        ) : (
+          <AddToHomeScreenTip />
+        )}
       </div>
     </main>
   );
