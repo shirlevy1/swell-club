@@ -91,9 +91,13 @@ export default async function AdminPage() {
   const viewer = await getViewer();
   if (!viewer?.club || viewer.role !== "organizer") redirect("/events");
 
-  const { events, members } = await getAdminData(viewer.club.id);
-  const pendingMembers = await getPendingMembers(viewer.club.id);
-  const pendingPhotos = await getPendingEventPhotos(viewer.club.id);
+  // שלוש שאילתות בלתי-תלויות זו בזו — בבת אחת, לא ברצף
+  const [{ events, members }, pendingMembers, pendingPhotos] =
+    await Promise.all([
+      getAdminData(viewer.club.id),
+      getPendingMembers(viewer.club.id),
+      getPendingEventPhotos(viewer.club.id),
+    ]);
   const pendingPhotosByEvent = groupPendingPhotos(pendingPhotos);
 
   // המכנה של אחוז ההגעה הוא מפגשים שכבר **אפשר היה** לסמן בהם נוכחות,

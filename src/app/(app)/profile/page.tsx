@@ -25,14 +25,19 @@ export default async function ProfilePage() {
   const viewer = await getViewer();
   if (!viewer) redirect("/login");
 
-  const shots = await getSelfieHistory(viewer.userId);
+  // שתי שאילתות בלתי-תלויות זו בזו — בבת אחת, לא ברצף. אלבומי
+  // התמונות דווקא כן תלויים ב-shots (צריך את מזהי המפגשים שלהם),
+  // ולכן נשארים אחרי, לא בתוך אותה קבוצה.
+  const [shots, monthStats] = await Promise.all([
+    getSelfieHistory(viewer.userId),
+    viewer.club
+      ? getRecentMonthStats(viewer.club.id, viewer.userId)
+      : Promise.resolve(null),
+  ]);
   const count = shots.length;
   const albumsByEvent = await getEventPhotoCollages(shots.map((s) => s.eventId));
   // הנוכחויות כבר כאן — אין צורך בשאילתה נוספת בשביל הרצף
   const streak = attendanceStreak(shots.map((s) => s.startsAt));
-  const monthStats = viewer.club
-    ? await getRecentMonthStats(viewer.club.id, viewer.userId)
-    : null;
   const fullName = viewer.profile?.full_name ?? "הפרופיל שלי";
   // הסלפי האחרון שלך — shots כבר ממוינים מהאחרון לראשון
   const latestSelfie = shots[0]?.selfieUrl ?? null;

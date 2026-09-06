@@ -37,22 +37,27 @@ export default async function EventPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const viewer = await getViewer();
-  const event = await getEvent(id);
+  // שתי שאילתות בלתי-תלויות זו בזו — בבת אחת, לא ברצף
+  const [viewer, event] = await Promise.all([getViewer(), getEvent(id)]);
   if (!viewer || !event) notFound();
 
   const isOrganizer = viewer.role === "organizer";
-  const { myGoing, rsvpCount, going, hasAttended, attendees } =
-    await getEventDetail(id, viewer.userId, isOrganizer);
   const { status, closesAt } = checkInWindow(event);
   const minutesBefore = formatMinutes(event.checkin_opens_before_min);
-  // אף פעם לא מפיל את העמוד — GoSurf לא זמין נחשב "אין תחזית", לא שגיאה.
-  // גם לא נשלף בכלל למפגש שכבר נגמר — התחזית כבר לא מוצגת שם, ואין
-  // טעם בקריאת רשת חיצונית סתם.
-  const forecast =
+
+  // אותו עיקרון: פרטי הנוכחות ותחזית הים לא תלויים זה בזה, רק ב-
+  // event/viewer שכבר יש לנו. אף פעם לא מפילה את העמוד — GoSurf לא
+  // זמין נחשב "אין תחזית", לא שגיאה. גם לא נשלפת בכלל למפגש שכבר
+  // נגמר — התחזית כבר לא מוצגת שם, ואין טעם בקריאת רשת חיצונית סתם.
+  const [
+    { myGoing, rsvpCount, going, hasAttended, attendees },
+    forecast,
+  ] = await Promise.all([
+    getEventDetail(id, viewer.userId, isOrganizer),
     event.is_sea && status !== "closed"
-      ? await getSeaForecastForEvent(event.starts_at)
-      : null;
+      ? getSeaForecastForEvent(event.starts_at)
+      : Promise.resolve(null),
+  ]);
   const agendaText = getEventAgendaText(event);
   const equipmentText = getEventEquipmentText(event);
   const equipmentHeading = getEventEquipmentHeading(event);
