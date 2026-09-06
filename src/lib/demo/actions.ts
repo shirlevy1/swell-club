@@ -116,13 +116,17 @@ export async function addEventPhotoAction(eventId: string, dataUrl: string) {
 export async function deleteEventPhotoAction(eventId: string, photoId: string) {
   guard();
   demoDeleteEventPhoto(photoId);
+  // גם /admin, לא רק העמוד של המפגש עצמו — pending-photo-group.tsx
+  // (תור התמונות הממתינות) מוצג שם, לא רק באלבום המפגש.
   revalidatePath(`/events/${eventId}`);
+  revalidatePath("/admin");
 }
 
 export async function approveEventPhotoAction(eventId: string, photoId: string) {
   guard();
   demoApproveEventPhoto(photoId);
   revalidatePath(`/events/${eventId}`);
+  revalidatePath("/admin");
 }
 
 /** משנה בין תצוגת מנהלת קהילה לתצוגת חבר רגיל, כדי להראות את שני
