@@ -38,6 +38,11 @@ export const metadata: Metadata = {
     // מותח/מקטין תמונה אחת לכל המכשירים. פורטרט בלבד, כי האתר נעול
     // לכיוון הזה. נוצר ע"י scripts/generate-splash-images (ראו public/splash).
     startupImage: [
+      // בלי media בכלל — רשת ביטחון למכשיר שלא נמצא באף אחת מהמידות
+      // המדויקות למטה (למשל דגם חדש שיצא אחרי הרשימה הזו). בלעדיה,
+      // אייפון "ממציא" מסך משלו מהצבע/מהתיאור במניפסט, במקום להציג
+      // את התמונה שלנו בכלל.
+      { url: "/splash/splash-1170x2532.png" },
       { url: "/splash/splash-750x1334.png", media: "(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" },
       { url: "/splash/splash-828x1792.png", media: "(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" },
       { url: "/splash/splash-1080x2340.png", media: "(device-width: 360px) and (device-height: 780px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" },
