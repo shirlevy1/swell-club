@@ -186,13 +186,20 @@ export function EventPhotoAlbum({
     setError(null);
     setUploading(true);
 
-    try {
-      for (const file of files) {
+    // כל תמונה מנוסה בנפרד — כישלון באחת (למשל פורמט לא נתמך) לא עוצר
+    // את שאר התור. בסוף מדווחים בדיוק כמה הצליחו וכמה לא, במקום הודעת
+    // "הכול נכשל" גורפת שיכולה להיות שגויה (חלק כן הועלו בהצלחה).
+    let succeeded = 0;
+    let failed = 0;
+
+    for (const file of files) {
+      try {
         const blob = await compressImageFile(file, ALBUM_PHOTO_OPTIONS);
 
         if (demoMode) {
           const dataUrl = await blobToDataUrl(blob);
           await addEventPhotoAction(eventId, dataUrl);
+          succeeded++;
           continue;
         }
 
@@ -220,15 +227,23 @@ export function EventPhotoAlbum({
             body: JSON.stringify({ photo_id: photoRow.id }),
           }).catch(() => {});
         }
+        succeeded++;
+      } catch {
+        failed++;
       }
-      router.refresh();
-    } catch {
-      setError(
-        "העלאת התמונות נכשלה. יכול להיות שהפורמט לא נתמך — נסו תמונה אחרת.",
-      );
-    } finally {
-      setUploading(false);
     }
+
+    if (failed > 0) {
+      setError(
+        succeeded > 0
+          ? `${succeeded} מתוך ${files.length} תמונות הועלו. ${failed === 1 ? "תמונה אחת נכשלה" : `${failed} תמונות נכשלו`} — יכול להיות שהפורמט לא נתמך.`
+          : "העלאת התמונות נכשלה. יכול להיות שהפורמט לא נתמך — נסו תמונה אחרת.",
+      );
+    }
+    // גם אם הכול נכשל, לא רק בהצלחה חלקית/מלאה: יכול להיות ששרידי
+    // ניסיון קודם כן נוספו ל-storage/DB לפני שהזריקה קרתה.
+    router.refresh();
+    setUploading(false);
   }
 
   async function onApprove(photoId: string) {
