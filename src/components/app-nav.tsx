@@ -78,10 +78,10 @@ export function AppNav({
   clubId: string | null;
 }) {
   const pathname = usePathname();
-  // בהדגמה יש רק תמונות ממתינות (אין הרשמה אמיתית להדגים) — נתון
-  // מקומי סינכרוני, אין צורך ב-fetch או ב-realtime.
+  // בהדגמה זה נתון מקומי סינכרוני שידוע כבר ברגע הטעינה — אין צורך
+  // ב-fetch או ב-realtime כמו במצב האמיתי.
   const [pendingCounts, setPendingCounts] = useState(() => ({
-    members: 0,
+    members: demoMode ? demo.demoPendingMembers().length : 0,
     photos: demoMode ? demo.demoAllPendingPhotos().length : 0,
   }));
 

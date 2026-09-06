@@ -92,7 +92,16 @@ export type PendingMember = {
 export async function getPendingMembers(
   clubId: string,
 ): Promise<PendingMember[]> {
-  if (demoMode) return [];
+  if (demoMode) {
+    return demo.demoPendingMembers().map((m) => ({
+      profileId: m.profileId,
+      fullName: m.fullName,
+      requestedAt: m.requestedAt,
+      ageYears: ageInYears(m.birthDate),
+      phone: m.phone,
+      instagram: m.instagram,
+    }));
+  }
 
   const supabase = await createClient();
   const { data } = await supabase.rpc("list_pending_members", {

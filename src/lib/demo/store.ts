@@ -18,6 +18,36 @@ const CLUB: Club = {
 
 const ME_ID = "demo-me";
 
+/** מבנה זהה בדיוק ל-Profile שכבר קיים בקהילה — כדי שאישור בקשה ידע
+ * להפוך אותם לחברים לכל דבר בלי לחסר שום שדה. */
+type DemoPendingMember = {
+  profileId: string;
+  fullName: string;
+  instagram: string | null;
+  city: string;
+  birthDate: string;
+  phone: string;
+  requestedAt: string;
+};
+
+const PENDING_PEOPLE: [string, string | null, string, string][] = [
+  ["עידו ברקאי", "ido.barkai", "פתח תקווה", "1997-08-19"],
+  ["נטע אשכנזי", null, "כפר סבא", "1990-02-05"],
+];
+
+function pendingMembers(): DemoPendingMember[] {
+  return PENDING_PEOPLE.map(([name, ig, city, birthDate], i) => ({
+    profileId: `demo-pending${i + 1}`,
+    fullName: name,
+    instagram: ig,
+    city,
+    birthDate,
+    phone: `05${(20_000_000 + i * 111_111).toString().slice(0, 8)}`,
+    // בקשה "טרייה" ליום לפני, ואחת ישנה יותר — כמו שנראה בפועל
+    requestedAt: new Date(Date.now() - (i + 1) * 86_400_000).toISOString(),
+  }));
+}
+
 const PEOPLE: [string, string | null, string, string][] = [
   ["שיר לוי", "shirlevi", "תל אביב-יפו", "1994-03-11"],
   ["נועה ברק", "noa.barak", "הרצליה", "1991-07-22"],
@@ -259,6 +289,7 @@ type DemoDb = {
   rsvps: { eventId: string; profileId: string; going: boolean }[];
   attendances: DemoAttendance[];
   eventPhotos: DemoEventPhoto[];
+  pendingMembers: DemoPendingMember[];
   // התפקיד של "אני" בהדגמה. ניתן להחלפה כדי להראות את שני הצדדים —
   // מנהלת קהילה מול חבר רגיל — באותה הדגמה. ברירת המחדל היא מנהלת,
   // כי זה הצד שיש בו יותר להראות.
@@ -335,6 +366,7 @@ function seed(): DemoDb {
     })),
     myRole: "organizer",
     removedMemberIds: new Set(),
+    pendingMembers: pendingMembers(),
   };
 }
 
@@ -390,6 +422,11 @@ export function demoProfiles() {
 export function demoActiveProfiles() {
   const removed = db().removedMemberIds;
   return db().profiles.filter((p) => !removed.has(p.id));
+}
+
+/** מקביל ל-list_pending_members() ב-RPC האמיתי. */
+export function demoPendingMembers() {
+  return db().pendingMembers;
 }
 
 export function demoMe() {
@@ -525,6 +562,35 @@ export function demoRemoveMember(profileId: string) {
 export function demoLeaveCommunity() {
   if (demoMyRole() === "organizer") return;
   db().removedMemberIds.add(ME_ID);
+}
+
+/** מקביל ל-approve_member(): הבקשה הופכת לחברה/חבר קהילה לכל דבר. */
+export function demoApproveMember(profileId: string) {
+  const list = db().pendingMembers;
+  const i = list.findIndex((m) => m.profileId === profileId);
+  if (i === -1) return;
+  const [request] = list.splice(i, 1);
+  db().profiles.push({
+    id: request.profileId,
+    full_name: request.fullName,
+    phone: request.phone,
+    instagram: request.instagram,
+    birth_date: request.birthDate,
+    city: request.city,
+    gender: null,
+    swim_level: null,
+    waiver_accepted_at: request.requestedAt,
+    privacy_accepted_at: request.requestedAt,
+    avatar_path: null,
+    created_at: request.requestedAt,
+  });
+}
+
+/** מקביל ל-reject_member(): הבקשה נמחקת, בלי ליצור חברות. */
+export function demoRejectMember(profileId: string) {
+  const list = db().pendingMembers;
+  const i = list.findIndex((m) => m.profileId === profileId);
+  if (i !== -1) list.splice(i, 1);
 }
 
 export function demoAddEventPhoto(eventId: string, dataUrl: string) {

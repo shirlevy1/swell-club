@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { demoMode } from "@/lib/config";
+import { approveMemberAction, rejectMemberAction } from "@/lib/demo/actions";
 import { instagramUrl, whatsappUrl } from "@/lib/format";
 import { CheckIcon, InstagramIcon, WhatsAppIcon, XIcon } from "./social-icons";
 import { Notice } from "./ui";
@@ -31,6 +33,12 @@ export function PendingMemberRow({
   async function approve() {
     setError(null);
     setPending("approve");
+    if (demoMode) {
+      await approveMemberAction(profileId);
+      setPending(null);
+      router.refresh();
+      return;
+    }
     const supabase = createClient();
     const { error: rpcError } = await supabase.rpc("approve_member", {
       p_profile_id: profileId,
@@ -43,6 +51,12 @@ export function PendingMemberRow({
   async function reject() {
     setError(null);
     setPending("reject");
+    if (demoMode) {
+      await rejectMemberAction(profileId);
+      setPending(null);
+      router.refresh();
+      return;
+    }
     const supabase = createClient();
     const { error: rpcError } = await supabase.rpc("reject_member", {
       p_profile_id: profileId,
