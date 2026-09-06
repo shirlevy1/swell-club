@@ -3,7 +3,6 @@
 const GENDER_OPTIONS = [
   { value: "female", label: "אישה" },
   { value: "male", label: "גבר" },
-  { value: "other", label: "אחר" },
 ] as const;
 
 export function GenderInput({
