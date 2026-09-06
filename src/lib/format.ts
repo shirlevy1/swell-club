@@ -82,15 +82,22 @@ export function formatDateShort(iso: string): string {
   }).format(d);
 }
 
-/** גיל בשנים מלאות, לפי תאריך לידה (YYYY-MM-DD) והתאריך הנוכחי. */
+/**
+ * גיל בשנים מלאות, לפי תאריך לידה (YYYY-MM-DD) והתאריך הנוכחי.
+ *
+ * "היום" נעול לשעון ישראל, בדיוק כמו כל פונקציה אחרת בקובץ הזה —
+ * לא לשעון המקומי של השרת (getFullYear/getMonth/getDate מחושבים לפי
+ * זה, וב-UTC, שהוא הנפוץ באחסון ענן, זה יכול להיות שונה מישראל
+ * בכמה שעות. בחלון הצר סביב יום ההולדת עצמו זה מספיק כדי לזהות
+ * "היום" הלא נכון ולהחזיר גיל שגוי בשנה אחת).
+ */
 export function ageInYears(birthDate: string | null): number | null {
   if (!birthDate) return null;
-  const b = new Date(birthDate);
-  const now = new Date();
-  let age = now.getFullYear() - b.getFullYear();
-  const hadBirthdayThisYear =
-    now.getMonth() > b.getMonth() ||
-    (now.getMonth() === b.getMonth() && now.getDate() >= b.getDate());
+  const todayISO = new Date().toLocaleDateString("en-CA", { timeZone: TZ });
+  const [by, bm, bd] = birthDate.split("-").map(Number);
+  const [ty, tm, td] = todayISO.split("-").map(Number);
+  let age = ty - by;
+  const hadBirthdayThisYear = tm > bm || (tm === bm && td >= bd);
   if (!hadBirthdayThisYear) age -= 1;
   return age;
 }
