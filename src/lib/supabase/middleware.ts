@@ -1,6 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { demoMode, supabaseAnonKey, supabaseUrl } from "../config";
+import {
+  demoMode,
+  supabaseAnonKey,
+  supabaseUrl,
+  TRUSTED_USER_ID_HEADER,
+} from "../config";
 
 /**
  * מסלולים שנגישים בלי התחברות. /update-password חייב להיות כאן:
@@ -77,5 +82,24 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(to);
   }
 
-  return response;
+  // מעבירים הלאה את הזהות שכבר אימתנו הרגע — כדי ש-getViewer() לא
+  // ישאל את אותה שאלה שוב מול Supabase, נסיעת רשת שנייה ומיותרת על
+  // כל בקשה. תמיד נקבע כאן מחדש (לא רק מתווסף) כדי שערך שהודבק
+  // ידנית בבקשה הנכנסת לעולם לא ישרוד: נדרס בזהות האמיתית, או נמחק
+  // אם אין התחברות בכלל.
+  const headersWithIdentity = new Headers(request.headers);
+  if (user) {
+    headersWithIdentity.set(TRUSTED_USER_ID_HEADER, user.id);
+  } else {
+    headersWithIdentity.delete(TRUSTED_USER_ID_HEADER);
+  }
+  const withIdentity = NextResponse.next({
+    request: { headers: headersWithIdentity },
+  });
+  // שומרים על כל עוגייה שכבר נקבעה על response (למשל ריענון טוקן
+  // שקרה בתוך setAll למעלה) — לא בונים תגובה מאפס.
+  for (const cookie of response.cookies.getAll()) {
+    withIdentity.cookies.set(cookie);
+  }
+  return withIdentity;
 }

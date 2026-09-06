@@ -92,3 +92,17 @@ function assertNotAccidentalDemo(): void {
 assertNotAccidentalDemo();
 
 export const DEFAULT_CLUB_SLUG = "swell";
+
+/**
+ * header פנימי בלבד: ה-proxy (middleware.ts) כבר מאמת "מי זה" מול
+ * Supabase בכל בקשה (וגם מרענן את הטוקן כשצריך) — בלי ה-header הזה,
+ * getViewer() היה שואל את אותה שאלה שוב, נסיעת רשת שנייה ומיותרת
+ * לגמרי, על כל לחיצה בודדת באתר.
+ *
+ * ⚠️ תמיד נכתב מחדש ב-middleware.ts לפני שהבקשה ממשיכה הלאה — לא
+ * ניתן לזיוף מהדפדפן: כל ניסיון להדביק כאן ערך ידני נדרס בערך
+ * המאומת האמיתי (או נמחק, אם אין התחברות בכלל). גם אם הוא היה
+ * שגוי בטעות, שאילתות המסד עדיין מוגנות בנפרד ע"י RLS לפי ה-JWT
+ * האמיתי בעוגייה — לא לפי המחרוזת הזו.
+ */
+export const TRUSTED_USER_ID_HEADER = "x-swell-user-id";

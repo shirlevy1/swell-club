@@ -1,5 +1,6 @@
+import { headers } from "next/headers";
 import { createClient } from "./supabase/server";
-import { demoMode } from "./config";
+import { demoMode, TRUSTED_USER_ID_HEADER } from "./config";
 import { ageInYears } from "./format";
 import type {
   Attendance,
@@ -50,22 +51,32 @@ export async function getViewer(): Promise<Viewer | null> {
   }
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+
+  // proxy.ts (middleware.ts) כבר אימת "מי זה" מול Supabase ברגע הזה
+  // בדיוק, ומרענן טוקן כשצריך — בלי ה-header הזה כל טעינת עמוד הייתה
+  // שואלת את אותה שאלה פעם שנייה, נסיעת רשת מיותרת בכל בקשה. ה-header
+  // תמיד נכתב מחדש שם, ולא ניתן לזיוף מהדפדפן (וגם אם הוא היה שגוי
+  // בטעות, השאילתות למטה עדיין מוגנות בנפרד ע"י RLS לפי ה-JWT האמיתי
+  // בעוגייה, לא לפי המחרוזת הזו) — נופלים חזרה לבדיקה הרגילה רק אם
+  // הוא חסר מסיבה כלשהי.
+  const trustedUserId = (await headers()).get(TRUSTED_USER_ID_HEADER);
+  const userId =
+    trustedUserId ??
+    (await supabase.auth.getUser()).data.user?.id ??
+    null;
+  if (!userId) return null;
 
   const [{ data: profile }, { data: membership }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+    supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
     supabase
       .from("club_members")
       .select("role, status, clubs(*)")
-      .eq("profile_id", user.id)
+      .eq("profile_id", userId)
       .maybeSingle(),
   ]);
 
   return {
-    userId: user.id,
+    userId,
     profile: (profile ?? null) as Profile | null,
     club: (membership?.clubs ?? null) as Club | null,
     role: (membership?.role ?? null) as MemberRole | null,
