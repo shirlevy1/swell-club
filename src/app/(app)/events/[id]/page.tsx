@@ -24,6 +24,7 @@ import { SeaForecast } from "@/components/sea-forecast";
 import { EventAgendaView } from "@/components/event-agenda";
 import { EventPhotoAlbum } from "@/components/event-photo-album";
 import { EditSelfieButton } from "@/components/edit-selfie-button";
+import { ScrollToAttendees } from "@/components/scroll-to-attendees";
 import { DeleteEventButton } from "@/components/delete-event-button";
 import { EventLiveRefresh } from "@/components/event-live-refresh";
 import { AddAttendanceButton } from "@/components/add-attendance-button";
@@ -180,7 +181,12 @@ export default async function EventPage({
           ולכן עדיין קובע את כפתור עריכת הסלפי (אין מה לערוך אם
           לא נכחת) בנפרד מתנאי הראות של הסקשן כולו. */}
       {(hasAttended || isOrganizer) && (
-        <section className="space-y-4">
+        <section id="attendee-grid" className="scroll-mt-20 space-y-4">
+          {/* לא מציג כלום — רק גולל לכאן לבד מיד אחרי צ'ק־אין מוצלח,
+              כשהסקשן הזה נולד בעמוד בפעם הראשונה (ראו scroll-to-
+              attendees.tsx וההערה שם). scroll-mt כדי שהכותרת לא תיחבא
+              מתחת לכותרת העליונה הדביקה (AppHeader). */}
+          <ScrollToAttendees />
           <div className="flex items-center justify-between">
             <h2 className="font-[family-name:var(--font-display)] text-xl font-bold">
               מי היה חלק מהסוואל?

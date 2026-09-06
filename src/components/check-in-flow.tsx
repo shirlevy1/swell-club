@@ -10,6 +10,7 @@ import {
   type Coords,
 } from "@/lib/geo";
 import { checkInErrorMessage } from "@/lib/checkin";
+import { markJustCheckedIn } from "@/lib/checkin-scroll";
 import { demoMode } from "@/lib/config";
 import { checkInAction } from "@/lib/demo/actions";
 import { detectFace } from "@/lib/face-detection";
@@ -222,6 +223,7 @@ export function CheckInFlow({ event }: { event: SwellEvent }) {
         detection.center?.x ?? null,
         detection.center?.y ?? null,
       );
+      markJustCheckedIn();
       setStep("done");
       router.refresh();
       return;
@@ -282,6 +284,7 @@ export function CheckInFlow({ event }: { event: SwellEvent }) {
       return fail(checkInErrorMessage(rpcError.message, event));
     }
 
+    markJustCheckedIn();
     setStep("done");
     router.refresh();
   }
@@ -327,7 +330,7 @@ export function CheckInFlow({ event }: { event: SwellEvent }) {
   }
 
   if (step === "done") {
-    return <Notice tone="good">הייתם איתנו. הרשימה נפתחה למטה.</Notice>;
+    return <Notice tone="good">אתם איתנו. עכשיו אפשר לראות מי עוד כאן.</Notice>;
   }
 
   return (
