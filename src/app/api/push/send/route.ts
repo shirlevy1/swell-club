@@ -6,13 +6,26 @@ import { adminDb, buildReminderPayload } from "@/lib/push-server";
  * שולח תזכורות למפגשים קרובים. נועד להיקרא מתזמן חיצוני (cron) כל 15 דק'.
  *
  * שתי תזכורות לכל מפגש, בעלות היגיון שונה בכוונה:
- *   evening — שעה קבועה בשעון ישראל (20:00), לכל מפגש שקורה למחרת,
- *     לכל חברי הקהילה (גם מי שעוד לא סימן/ה הגעה) — זו הזמנה.
- *   morning — **שעה בדיוק לפני תחילת המפגש עצמו** (לא שעה קבועה), רק
- *     למי שכבר סימן/ה "מגיע/ה" — זו תזכורת לצ'ק־אין, לא הזמנה. נבדק
- *     בכל טיק אילו מפגשים נכנסים לחלון "בעוד שעה" ביחס לרזולוציית
- *     ה-cron (15 דק'), כדי לתפוס גם שעות לא עגולות (מפגש ב-6:45 →
- *     תזכורת ב-5:45), ולא רק שעות עגולות.
+ *   evening — לכל מפגש שקורה למחרת, לכל חברי הקהילה (גם מי שעוד לא
+ *     סימן/ה הגעה) — זו הזמנה.
+ *   morning — קרוב לתחילת המפגש עצמו, רק למי שכבר סימן/ה "מגיע/ה" —
+ *     זו תזכורת לצ'ק־אין, לא הזמנה.
+ *
+ * ⚠️ שתי התזכורות בנויות כ"חלון פתוח, לא טיק מדויק": במקום לבדוק
+ * "האם אנחנו בדיוק עכשיו ברגע הנכון" (ואם הטיק הזה בדיוק מדולג —
+ * התזכורת אבודה לצמיתות, כי אף טיק מאוחר יותר לא "זוכר" לבדוק שוב),
+ * כל טיק בודק "האם המפגש הזה כבר נכנס לחלון שלו, ועדיין לא נשלחה לו
+ * תזכורת" — כך שגם אם GitHub Actions מדלג טיקים או רץ בפערים לא
+ * סדירים (זה קורה בפועל, לא רק תיאורטית — ראו נספח 60 הימים למטה),
+ * הטיק הבא שכן רץ עדיין תופס ושולח, במקום לפספס לצמיתות.
+ * event_reminders (insert-first) עדיין מונע כפילות בדיוק כמו קודם.
+ *
+ * evening: מהרגע שהשעון בישראל עובר 20:00 בערב שלפני המפגש, ועד
+ *   שהמפגש מתחיל — כל טיק בטווח הזה תופס ושולח אם עוד לא נשלח.
+ * morning: משלוש שעות לפני תחילת המפגש ועד תחילתו — טווח רחב בכוונה,
+ *   כדי לספוג פערים של שעות בין טיקים בפועל. "בערך שעה לפני", לא
+ *   בדיוק שעה — זה תואם למה שהוסכם: עדיף תזכורת שמגיעה, גם אם לא
+ *   בדיוק בזמן, על פני תזכורת שלא מגיעה בכלל.
  *
  * kind נשאר 'morning' בקוד ובמסד (constraint קיים ב-event_reminders)
  * גם אחרי השינוי הזה — רק המשמעות/הטריגר שלו השתנו, לא הערך עצמו.
@@ -56,6 +69,35 @@ function israelParts(date: Date) {
   };
 }
 
+/**
+ * הרגע (UTC) של 20:00 בישראל, ביום שלפני התאריך המקומי (בישראל) של
+ * event.starts_at — משמש כתחילת "חלון הערב" של אותו מפגש.
+ *
+ * לא הנחה קבועה של +2/+3 שעות: קוראים את השעון בישראל ברגע המפגש
+ * עצמו (israelParts) כדי לחשב את ההפרש מ-UTC בפועל, כולל שעון קיץ —
+ * "מתרגמים" 20:00 מקומי חזרה ל-UTC לפי אותו הפרש.
+ */
+function eveningThresholdBefore(eventStartsAt: string): Date {
+  const start = new Date(eventStartsAt);
+  const israelNowAtStart = israelParts(start);
+  // הפרש בדקות בין השעון בישראל לבין UTC, ברגע הזה בקירוב (לא משתנה
+  // תוך יום בודד, DST כולל)
+  const asUTC = Date.UTC(
+    Number(israelNowAtStart.dateStr.slice(0, 4)),
+    Number(israelNowAtStart.dateStr.slice(5, 7)) - 1,
+    Number(israelNowAtStart.dateStr.slice(8, 10)),
+    israelNowAtStart.hour,
+    israelNowAtStart.minute,
+  );
+  const offsetMin = Math.round((asUTC - start.getTime()) / 60_000);
+
+  const dayBefore = new Date(start.getTime() - 24 * 3600_000);
+  const { dateStr: dayBeforeStr } = israelParts(dayBefore);
+  const [y, m, d] = dayBeforeStr.split("-").map(Number);
+  // 20:00 מקומי = UTC (20:00 - offset)
+  return new Date(Date.UTC(y, m - 1, d, 0, 0) + (20 * 60 - offsetMin) * 60_000);
+}
+
 export async function POST(request: NextRequest) {
   const secret = process.env.PUSH_CRON_SECRET;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -81,39 +123,31 @@ export async function POST(request: NextRequest) {
   const now = new Date();
   const sent: Record<string, number> = {};
 
-  // ערב לפני — רק בטיק שנופל ב-20:00-20:29 שעון ישראל.
-  const { hour: nowHour, minute: nowMinute } = israelParts(now);
-  if (nowHour === 20 && nowMinute < 30) {
-    const { dateStr: tomorrowStr } = israelParts(
-      new Date(now.getTime() + 24 * 3600_000),
-    );
-    const { data: candidates } = await db
-      .from("events")
-      .select("id, club_id, starts_at, location_name")
-      .gte("starts_at", now.toISOString())
-      .lte("starts_at", new Date(now.getTime() + 48 * 3600_000).toISOString());
-    const tomorrowEvents = (candidates ?? []).filter(
-      (e) => israelParts(new Date(e.starts_at)).dateStr === tomorrowStr,
-    );
-    for (const event of tomorrowEvents) {
+  // ערב לפני — לכל מפגש בטווח, בודקים בנפרד (per-event, לא לפי שעה
+  // גלובלית של "עכשיו") האם כבר עברנו את ה-20:00 בישראל של הערב שלפניו.
+  // כך זה נכון גם לטיק שרץ אחרי חצות (למשל 01:00) בעקבות טיק שדולג
+  // בערך ב-20:00 — "עכשיו >= סף" נשאר אמת גם הרבה אחרי שהסף עבר,
+  // בניגוד לבדיקת "שעה נוכחית === 20" שהייתה מפספסת טיקים כאלה.
+  const { data: eveningCandidates } = await db
+    .from("events")
+    .select("id, club_id, starts_at, location_name")
+    .gt("starts_at", now.toISOString())
+    .lte("starts_at", new Date(now.getTime() + 30 * 3600_000).toISOString());
+  for (const event of eveningCandidates ?? []) {
+    if (now >= eveningThresholdBefore(event.starts_at)) {
       await sendReminder(db, event, "evening", sent);
     }
   }
 
-  // שעה לפני המפגש — מפגשים שנכנסים עכשיו לחלון "בעוד שעה", ביחס
-  // לרזולוציית ה-cron (15 דק'): כל מפגש ש-(שעת ההתחלה שלו - שעה)
-  // נופל בין הטיק הקודם לטיק הזה מקבל את התזכורת עכשיו. כך גם מפגש
-  // ב-6:45 מקבל תזכורת ב-5:45 בדיוק, לא רק שעות עגולות.
-  const REMINDER_LEAD_MS = 60 * 60_000;
-  const TICK_MS = 15 * 60_000;
+  // "בערך שעה לפני" המפגש — בפועל חלון רחב, 3 שעות לפני ועד תחילתו,
+  // כדי לספוג פערים בין טיקים בפועל. ראו ההערה למעלה: עדיפה תזכורת
+  // שמגיעה קצת לא בדיוק בזמן, על פני תזכורת שלא מגיעה בכלל.
+  const REMINDER_WINDOW_MS = 3 * 3600_000;
   const { data: soonCandidates } = await db
     .from("events")
     .select("id, club_id, starts_at, location_name")
-    .gt(
-      "starts_at",
-      new Date(now.getTime() + REMINDER_LEAD_MS - TICK_MS).toISOString(),
-    )
-    .lte("starts_at", new Date(now.getTime() + REMINDER_LEAD_MS).toISOString());
+    .gt("starts_at", now.toISOString())
+    .lte("starts_at", new Date(now.getTime() + REMINDER_WINDOW_MS).toISOString());
   for (const event of soonCandidates ?? []) {
     await sendReminder(db, event, "morning", sent);
   }
