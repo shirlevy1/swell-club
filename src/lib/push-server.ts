@@ -75,7 +75,18 @@ export async function sendPushToProfiles(
         );
       } catch (err) {
         const status = (err as { statusCode?: number })?.statusCode;
-        if (status === 404 || status === 410) dead.push(s.endpoint);
+        if (status === 404 || status === 410) {
+          dead.push(s.endpoint);
+          return;
+        }
+        // כל כשל אחר (לא "המנוי הזה כבר לא קיים") היה נבלע בשקט —
+        // בלי זה, כשל אמיתי בשליחה (למשל מפתחות שגויים, תקלה זמנית
+        // אצל הדפדפן) לא משאיר שום עקבה שאפשר לבדוק אחר כך.
+        console.error("sendPushToProfiles: send failed", {
+          endpoint: s.endpoint,
+          status,
+          message: (err as { message?: string })?.message,
+        });
       }
     }),
   );
