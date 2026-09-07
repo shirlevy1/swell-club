@@ -7,7 +7,10 @@
 כל גודל מסך צריך תמונה בפיקסלים המדויקים שלו — אייפון לא מותח/מקטין
 תמונה אחת לכל המכשירים. פורטרט בלבד, כי האתר נעול לכיוון הזה.
 
-להרצה אחרי שינוי לוגו/טקסט: python3 scripts/generate-splash-images.py
+רק רקע כחול-ים (--color-sky) והלוגו הלבן ממורכז — בלי שום כיתוב, לפי
+בקשה מפורשת של שיר (הוסרה גרסה קודמת עם "from Shir Levy").
+
+להרצה אחרי שינוי לוגו: python3 scripts/generate-splash-images.py
 (דורש: pip3 install --user pillow)
 
 הרשימה למטה מגדירה גם את המערך שצריך להדביק ידנית ב-
@@ -15,16 +18,13 @@ appleWebApp.startupImage ב-src/app/layout.tsx — הסקריפט מדפיס א�
 בסוף, מוכן להעתקה. יש גם רשומה אחת בלי media (ברירת מחדל) — למכשיר
 שהמידה המדויקת שלו לא ברשימה (כולל דגמים עתידיים) — שאותה מוסיפים
 ידנית, הסקריפט לא מדפיס אותה כי היא לא תלויה בגודל ספציפי.
-
-הכיתוב התחתון ("from" + שם) הוא באנגלית בכוונה — בדיוק הסגנון של
-"from Meta" באינסטגרם — ולכן אין כאן שאלת bidi בכלל.
 """
 
 import sys
 from pathlib import Path
 
 try:
-    from PIL import Image, ImageDraw, ImageFont
+    from PIL import Image
 except ImportError:
     sys.exit("חסר Pillow.  התקנה:  pip3 install --user pillow")
 
@@ -35,18 +35,6 @@ OUT_DIR.mkdir(exist_ok=True)
 
 SKY = (146, 173, 197, 255)  # --color-sky, #92adc5 (globals.css)
 WORDMARK = PUBLIC / "logo-wordmark-white-v4.png"
-CREDIT_LABEL = "from"
-CREDIT_NAME = "Shir Levy"
-LABEL_COLOR = (255, 255, 255, 165)   # "from" — עדין יותר, כמו באינסטגרם
-NAME_COLOR = (255, 255, 255, 230)    # השם — בולט יותר
-FONT_CANDIDATES = [
-    r"C:\Windows\Fonts\arial.ttf",
-    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-]
-FONT_BOLD_CANDIDATES = [
-    r"C:\Windows\Fonts\arialbd.ttf",
-    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-]
 
 # (pixel_w, pixel_h, dpr, css_w, css_h) — פורטרט בלבד
 DEVICES = [
@@ -68,11 +56,6 @@ FILL_RATIO = 0.55  # רוחב הוורדמארק יחסית לרוחב המסך
 if not WORDMARK.exists():
     sys.exit(f"לא נמצא {WORDMARK}")
 
-font_path = next((p for p in FONT_CANDIDATES if Path(p).exists()), None)
-bold_font_path = next((p for p in FONT_BOLD_CANDIDATES if Path(p).exists()), None)
-if not font_path or not bold_font_path:
-    sys.exit("לא נמצא גופן זמין (arial.ttf/arialbd.ttf) — עדכנו FONT_CANDIDATES")
-
 wordmark = Image.open(WORDMARK).convert("RGBA")
 
 generated = []
@@ -86,32 +69,6 @@ for (w, h, dpr, css_w, css_h) in DEVICES:
     logo_x = (w - target_w) // 2
     logo_y = (h - target_h) // 2
     canvas.alpha_composite(resized, (logo_x, logo_y))
-
-    # למטה ליד תחתית המסך, שתי שורות — בדיוק כמו "from Meta" באינסטגרם.
-    # הלוגו נשאר ממורכז אנכית באמצע בפני עצמו, לא צמוד לכיתוב.
-    draw = ImageDraw.Draw(canvas)
-    label_font = ImageFont.truetype(font_path, max(14, round(w * 0.028)))
-    name_font = ImageFont.truetype(bold_font_path, max(28, round(w * 0.065)))
-
-    label_bbox = draw.textbbox((0, 0), CREDIT_LABEL, font=label_font)
-    name_bbox = draw.textbbox((0, 0), CREDIT_NAME, font=name_font)
-    label_w = label_bbox[2] - label_bbox[0]
-    label_h = label_bbox[3] - label_bbox[1]
-    name_w = name_bbox[2] - name_bbox[0]
-    name_h = name_bbox[3] - name_bbox[1]
-    line_gap = round(h * 0.008)
-
-    name_y = h - round(h * 0.06) - name_h
-    label_y = name_y - line_gap - label_h
-
-    draw.text(
-        ((w - label_w) // 2 - label_bbox[0], label_y),
-        CREDIT_LABEL, font=label_font, fill=LABEL_COLOR,
-    )
-    draw.text(
-        ((w - name_w) // 2 - name_bbox[0], name_y),
-        CREDIT_NAME, font=name_font, fill=NAME_COLOR,
-    )
 
     filename = f"splash-{w}x{h}.png"
     canvas.convert("RGB").save(OUT_DIR / filename, "PNG")
