@@ -37,6 +37,57 @@ export type PushPayload = {
   url: string;
 };
 
+const TZ = "Asia/Jerusalem";
+
+/** שעה/דקה/תאריך מקומיים בישראל, בלי תלות ב-timezone של השרת. */
+export function israelParts(date: Date) {
+  const fmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone: TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const parts = Object.fromEntries(
+    fmt.formatToParts(date).map((p) => [p.type, p.value]),
+  ) as Record<string, string>;
+  return {
+    dateStr: `${parts.year}-${parts.month}-${parts.day}`,
+    hour: Number(parts.hour),
+    minute: Number(parts.minute),
+  };
+}
+
+/**
+ * הרגע (UTC) של 20:00 בישראל, ביום שלפני התאריך המקומי (בישראל) של
+ * event.starts_at — תחילת "חלון הערב" של אותו מפגש. משותפת בין
+ * api/push/send (בודקת אם הגיע הזמן לשלוח) ו-api/push/notify-new-event
+ * (בודק אם החלון כבר עבר בעת היצירה, כדי לא לשכפל את ההזמנה).
+ *
+ * לא הנחה קבועה של +2/+3 שעות: קוראים את השעון בישראל ברגע המפגש
+ * עצמו כדי לחשב את ההפרש מ-UTC בפועל, כולל שעון קיץ — "מתרגמים" 20:00
+ * מקומי חזרה ל-UTC לפי אותו הפרש.
+ */
+export function eveningThresholdBefore(eventStartsAt: string): Date {
+  const start = new Date(eventStartsAt);
+  const israelAtStart = israelParts(start);
+  const asUTC = Date.UTC(
+    Number(israelAtStart.dateStr.slice(0, 4)),
+    Number(israelAtStart.dateStr.slice(5, 7)) - 1,
+    Number(israelAtStart.dateStr.slice(8, 10)),
+    israelAtStart.hour,
+    israelAtStart.minute,
+  );
+  const offsetMin = Math.round((asUTC - start.getTime()) / 60_000);
+
+  const dayBefore = new Date(start.getTime() - 24 * 3600_000);
+  const { dateStr: dayBeforeStr } = israelParts(dayBefore);
+  const [y, m, d] = dayBeforeStr.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d, 0, 0) + (20 * 60 - offsetMin) * 60_000);
+}
+
 /**
  * שולחת ל-profile_id-ים נתונים, ומנקה מנויים מתים (404/410) — אותו
  * ניקוי בדיוק שכבר קיים ב-send/route.ts. שקטה אם push לא מוגדר, כדי

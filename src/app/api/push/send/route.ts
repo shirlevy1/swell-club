@@ -1,6 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import webpush from "web-push";
-import { adminDb, buildReminderPayload } from "@/lib/push-server";
+import {
+  adminDb,
+  buildReminderPayload,
+  eveningThresholdBefore,
+} from "@/lib/push-server";
 
 /**
  * שולח תזכורות למפגשים קרובים. נועד להיקרא מתזמן חיצוני (cron) כל 15 דק'.
@@ -30,14 +34,17 @@ import { adminDb, buildReminderPayload } from "@/lib/push-server";
  * kind נשאר 'morning' בקוד ובמסד (constraint קיים ב-event_reminders)
  * גם אחרי השינוי הזה — רק המשמעות/הטריגר שלו השתנו, לא הערך עצמו.
  *
+ * מפגש שנוצר **אחרי** שהחלון של תזכורת הערב שלו כבר נפתח (למשל מפגש
+ * שנוצר באותו יום לשעות הערב) לא מקבל תזכורת ערב כפולה: notify-new-
+ * event כבר "תופס" מראש את ה-kind='evening' ב-event_reminders באותו
+ * מקרה, כי ההתראה המיידית על יצירת המפגש כבר משמשת כהזמנה. ראו שם.
+ *
  * ניסוח ה-payload עצמו (כותרת יום|שעה|מקום מודגשת, גוף עם משפט קצר
  * קבוע לפי הסוג) מוגדר פעם אחת ב-buildReminderPayload, ומשותף גם
  * ל-preview העצמי ולשידור לחבר/ה נבחר/ת — ראו lib/push-server.ts.
  */
 
 export const dynamic = "force-dynamic";
-
-const TZ = "Asia/Jerusalem";
 
 type Kind = "evening" | "morning";
 
@@ -47,56 +54,6 @@ type EventRow = {
   starts_at: string;
   location_name: string;
 };
-
-/** שעה/דקה/תאריך מקומיים בישראל, בלי תלות ב-timezone של השרת. */
-function israelParts(date: Date) {
-  const fmt = new Intl.DateTimeFormat("en-CA", {
-    timeZone: TZ,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-  const parts = Object.fromEntries(
-    fmt.formatToParts(date).map((p) => [p.type, p.value]),
-  ) as Record<string, string>;
-  return {
-    dateStr: `${parts.year}-${parts.month}-${parts.day}`,
-    hour: Number(parts.hour),
-    minute: Number(parts.minute),
-  };
-}
-
-/**
- * הרגע (UTC) של 20:00 בישראל, ביום שלפני התאריך המקומי (בישראל) של
- * event.starts_at — משמש כתחילת "חלון הערב" של אותו מפגש.
- *
- * לא הנחה קבועה של +2/+3 שעות: קוראים את השעון בישראל ברגע המפגש
- * עצמו (israelParts) כדי לחשב את ההפרש מ-UTC בפועל, כולל שעון קיץ —
- * "מתרגמים" 20:00 מקומי חזרה ל-UTC לפי אותו הפרש.
- */
-function eveningThresholdBefore(eventStartsAt: string): Date {
-  const start = new Date(eventStartsAt);
-  const israelNowAtStart = israelParts(start);
-  // הפרש בדקות בין השעון בישראל לבין UTC, ברגע הזה בקירוב (לא משתנה
-  // תוך יום בודד, DST כולל)
-  const asUTC = Date.UTC(
-    Number(israelNowAtStart.dateStr.slice(0, 4)),
-    Number(israelNowAtStart.dateStr.slice(5, 7)) - 1,
-    Number(israelNowAtStart.dateStr.slice(8, 10)),
-    israelNowAtStart.hour,
-    israelNowAtStart.minute,
-  );
-  const offsetMin = Math.round((asUTC - start.getTime()) / 60_000);
-
-  const dayBefore = new Date(start.getTime() - 24 * 3600_000);
-  const { dateStr: dayBeforeStr } = israelParts(dayBefore);
-  const [y, m, d] = dayBeforeStr.split("-").map(Number);
-  // 20:00 מקומי = UTC (20:00 - offset)
-  return new Date(Date.UTC(y, m - 1, d, 0, 0) + (20 * 60 - offsetMin) * 60_000);
-}
 
 export async function POST(request: NextRequest) {
   const secret = process.env.PUSH_CRON_SECRET;

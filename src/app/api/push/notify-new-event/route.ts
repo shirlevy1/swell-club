@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { formatDayMonth, formatTime, formatWeekdayName } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
-import { adminDb, sendPushToProfiles } from "@/lib/push-server";
+import {
+  adminDb,
+  eveningThresholdBefore,
+  sendPushToProfiles,
+} from "@/lib/push-server";
 
 /** נקראת מטופס יצירת מפגש (admin/events/new) מיד אחרי יצירה מוצלחת. */
 export async function POST(request: Request) {
@@ -54,6 +58,14 @@ export async function POST(request: Request) {
       url: `/events/${event.id}`,
     },
   );
+
+  // אם חלון תזכורת הערב כבר פתוח ברגע היצירה (מפגש שנוצר לשעות הערב
+  // של אותו יום) — ההתראה המיידית שלמעלה כבר משמשת כהזמנה. "תופסים"
+  // את kind='evening' מראש כדי ש-api/push/send לא ישלח עוד הזמנה
+  // כפולה על אותו מפגש בטיק הבא שלו.
+  if (new Date() >= eveningThresholdBefore(event.starts_at)) {
+    await db.from("event_reminders").insert({ event_id: event.id, kind: "evening" });
+  }
 
   return NextResponse.json({ ok: true });
 }
