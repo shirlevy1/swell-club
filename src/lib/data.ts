@@ -16,6 +16,52 @@ import * as demo from "./demo/store";
 
 const SELFIE_TTL = 60 * 60;
 
+/**
+ * מטמון קישורים חתומים בזיכרון התהליך. לא מובטח אמין: Vercel הוא
+ * serverless, אז בקשה הבאה עשויה לרוץ על instance אחר בלי הזיכרון
+ * הזה — ואז פשוט נופלים ל-fallback הרגיל של יצירת קישור חדש, כמו
+ * שהיה קודם. אין חיסרון, רק סיכוי לחסוך הורדה חוזרת של אותה תמונה
+ * כשהבקשה כן נופלת על instance חם שכבר יצר לה קישור. שולי הביטחון
+ * (SAFETY_MARGIN) מוודא שלא מגישים קישור שעומד לפוג תוך כדי שהדפדפן
+ * עדיין טוען אותו.
+ */
+const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
+const SIGNED_URL_SAFETY_MARGIN_MS = 5 * 60 * 1000;
+
+async function createSignedUrlsCached(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  bucket: "selfies" | "event-photos",
+  paths: string[],
+): Promise<Map<string, string>> {
+  const now = Date.now();
+  const result = new Map<string, string>();
+  const missing: string[] = [];
+
+  for (const path of paths) {
+    const cached = signedUrlCache.get(`${bucket}/${path}`);
+    if (cached && cached.expiresAt > now) {
+      result.set(path, cached.url);
+    } else {
+      missing.push(path);
+    }
+  }
+
+  if (missing.length > 0) {
+    const { data: signed } = await supabase.storage
+      .from(bucket)
+      .createSignedUrls(missing, SELFIE_TTL);
+    const expiresAt = now + SELFIE_TTL * 1000 - SIGNED_URL_SAFETY_MARGIN_MS;
+    for (const s of signed ?? []) {
+      if (!s.error && s.signedUrl && s.path) {
+        result.set(s.path, s.signedUrl);
+        signedUrlCache.set(`${bucket}/${s.path}`, { url: s.signedUrl, expiresAt });
+      }
+    }
+  }
+
+  return result;
+}
+
 export type Viewer = {
   userId: string;
   profile: Profile | null;
@@ -191,15 +237,7 @@ export async function getPendingEventPhotos(
   if (!rows?.length) return [];
 
   const paths = rows.map((r) => r.storage_path);
-  const { data: signed } = await supabase.storage
-    .from("event-photos")
-    .createSignedUrls(paths, SELFIE_TTL);
-
-  const urlByPath = new Map(
-    (signed ?? []).flatMap((s) =>
-      !s.error && s.signedUrl && s.path ? [[s.path, s.signedUrl] as const] : [],
-    ),
-  );
+  const urlByPath = await createSignedUrlsCached(supabase, "event-photos", paths);
 
   return rows.flatMap((r) => {
     const url = urlByPath.get(r.storage_path);
@@ -539,13 +577,7 @@ export async function getSelfieHistory(
   }[];
 
   const paths = rows.map((r) => r.selfie_path).filter(Boolean) as string[];
-  const signed = paths.length
-    ? ((await supabase.storage.from("selfies").createSignedUrls(paths, SELFIE_TTL))
-        .data ?? [])
-    : [];
-  const urlByPath = new Map(
-    signed.map((s) => [s.path ?? "", s.signedUrl] as const),
-  );
+  const urlByPath = await createSignedUrlsCached(supabase, "selfies", paths);
 
   return rows.flatMap((r) =>
     r.events
@@ -844,17 +876,7 @@ export async function getEventDetail(
       profiles: PublicProfile | null;
     })[];
     const paths = rows.map((r) => r.selfie_path).filter(Boolean) as string[];
-
-    const signed = paths.length
-      ? ((
-          await supabase.storage
-            .from("selfies")
-            .createSignedUrls(paths, SELFIE_TTL)
-        ).data ?? [])
-      : [];
-    const urlByPath = new Map(
-      signed.map((s) => [s.path ?? "", s.signedUrl] as const),
-    );
+    const urlByPath = await createSignedUrlsCached(supabase, "selfies", paths);
 
     attendees = rows.flatMap((r) =>
       r.profiles
@@ -885,16 +907,7 @@ export async function getEventDetail(
   const goingPaths = goingRowsTyped
     .map((r) => r.selfie_path)
     .filter(Boolean) as string[];
-  const goingSigned = goingPaths.length
-    ? ((
-        await supabase.storage
-          .from("selfies")
-          .createSignedUrls(goingPaths, SELFIE_TTL)
-      ).data ?? [])
-    : [];
-  const goingUrlByPath = new Map(
-    goingSigned.map((s) => [s.path ?? "", s.signedUrl] as const),
-  );
+  const goingUrlByPath = await createSignedUrlsCached(supabase, "selfies", goingPaths);
 
   const going = goingRowsTyped.map((r) => ({
     profileId: r.profile_id,
@@ -976,16 +989,7 @@ export async function getClubMembersWithLatestSelfie(
   }
 
   const paths = [...latestPathByProfile.values()];
-  const signed = paths.length
-    ? ((
-        await supabase.storage
-          .from("selfies")
-          .createSignedUrls(paths, SELFIE_TTL)
-      ).data ?? [])
-    : [];
-  const urlByPath = new Map(
-    signed.map((s) => [s.path ?? "", s.signedUrl] as const),
-  );
+  const urlByPath = await createSignedUrlsCached(supabase, "selfies", paths);
 
   return (
     (memberRows ?? []) as unknown as {
@@ -1227,16 +1231,7 @@ export async function getAdminData(clubId: string) {
   }
 
   const latestPaths = [...latestPathByProfile.values()];
-  const signedLatest = latestPaths.length
-    ? ((
-        await supabase.storage
-          .from("selfies")
-          .createSignedUrls(latestPaths, SELFIE_TTL)
-      ).data ?? [])
-    : [];
-  const urlByLatestPath = new Map(
-    signedLatest.map((x) => [x.path ?? "", x.signedUrl] as const),
-  );
+  const urlByLatestPath = await createSignedUrlsCached(supabase, "selfies", latestPaths);
 
   const attendedByProfile = new Map<string, number>();
   for (const event of rows) {
