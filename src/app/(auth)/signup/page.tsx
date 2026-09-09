@@ -37,6 +37,7 @@ export default function SignupPage() {
     const instagram = normalizeInstagram(String(form.get("instagram") ?? ""));
     const privacyAccepted = form.get("privacy_accepted") === "on";
     const waiverAccepted = form.get("waiver_accepted") === "on";
+    const termsAccepted = form.get("terms_accepted") === "on";
 
     if (fullName.length < 2) return setError("צריך שם מלא.");
     if (!isHebrewName(fullName))
@@ -52,6 +53,8 @@ export default function SignupPage() {
       return setError("צריך לאשר את הצהרת הפרטיות כדי להצטרף.");
     if (!waiverAccepted)
       return setError("צריך לאשר את כתב הוויתור כדי להצטרף.");
+    if (!termsAccepted)
+      return setError("צריך לאשר את תנאי השימוש כדי להצטרף.");
 
     // בהדגמה אין Supabase לקרוא אליו — הטופס רק מדמה הרשמה אמיתית
     if (demoMode) {
@@ -298,6 +301,42 @@ export default function SignupPage() {
             />
             <span>
               קראתי ואני מאשר/ת את כתב הוויתור שלמעלה. בלי אישור אי אפשר
+              להצטרף לקהילה.
+            </span>
+          </label>
+        </div>
+
+        <div className="space-y-3">
+          <div className="max-h-40 space-y-2 overflow-y-auto rounded-xl border border-(--color-line) bg-(--color-haze) p-4 text-xs leading-relaxed text-(--color-ink-soft)">
+            <p className="font-bold text-(--color-ink)">
+              תנאי שימוש וזכויות יוצרים
+            </p>
+            <p>
+              כל התוכן והעיצוב של Swell Club — לרבות הקוד, המיתוג, הלוגו
+              והממשק — שייכים ל-Swell Club, ואין להעתיק, לשכפל, לבצע
+              הנדסה חוזרת, או ליצור מהם עבודה נגזרת ללא אישור מראש ובכתב.
+            </p>
+            <p>
+              השימוש באתר מותר אך ורק למטרה שלשמה הוא נועד — ניהול נוכחות
+              והיכרות בתוך קהילת השחיינים — ולא לכל מטרה אחרת (לרבות
+              גישה אוטומטית, גריפת מידע, או שימוש מסחרי).
+            </p>
+            <p>
+              השירות ניתן כפי שהוא (&quot;as-is&quot;), בלי התחייבות
+              לזמינות רציפה או להיעדר תקלות. Swell Club אינה אחראית לכל
+              נזק, ישיר או עקיף, הנובע משימוש באתר או מאי-זמינותו.
+            </p>
+          </div>
+
+          <label className="flex items-start gap-2.5 text-sm text-(--color-ink)">
+            <input
+              type="checkbox"
+              name="terms_accepted"
+              required
+              className="mt-0.5 size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
+            />
+            <span>
+              קראתי ואני מאשר/ת את תנאי השימוש שלמעלה. בלי אישור אי אפשר
               להצטרף לקהילה.
             </span>
           </label>
