@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
 import { leaveCommunityAction } from "@/lib/demo/actions";
+import { unsubscribeFromPush } from "@/lib/push-client";
 import { Notice } from "./ui";
 
 /**
@@ -44,6 +45,7 @@ export function LeaveCommunityButton() {
         return;
       }
 
+      await unsubscribeFromPush();
       await fetch("/auth/signout", { method: "POST" });
       // רענון מלא, לא router.push — כדי שלא יישאר שום מטמון RSC ישן
       // מהסשן שהתנתק ממנו הרגע

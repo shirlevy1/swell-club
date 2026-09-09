@@ -7,7 +7,8 @@ import { DemoBadge } from "@/components/demo-badge";
 import { VisibilityRefresh } from "@/components/visibility-refresh";
 import { PullToRefresh } from "@/components/pull-to-refresh";
 import { NotificationPromptBanner } from "@/components/notification-prompt-banner";
-import { Button, Card } from "@/components/ui";
+import { SignOutButton } from "@/components/sign-out-button";
+import { Card } from "@/components/ui";
 
 export default async function AppLayout({
   children,
@@ -47,11 +48,7 @@ export default async function AppLayout({
                   ההרשמה שלכם התקבלה. תנו לנו רגע לעבור עליה, וברגע
                   שתאושרו תוכלו להיכנס ולגלות את המפגשים הקרובים.
                 </p>
-                <form action="/auth/signout" method="post">
-                  <Button type="submit" variant="ghost" className="w-full">
-                    התנתקות
-                  </Button>
-                </form>
+                <SignOutButton />
               </Card>
             </div>
           ) : viewer.status === null ? (
@@ -67,11 +64,7 @@ export default async function AppLayout({
                   החשבון הזה כבר לא חבר בקהילה. אם זה לא צפוי, פנו למנהלת
                   הקהילה.
                 </p>
-                <form action="/auth/signout" method="post">
-                  <Button type="submit" variant="ghost" className="w-full">
-                    התנתקות
-                  </Button>
-                </form>
+                <SignOutButton />
               </Card>
             </div>
           ) : (

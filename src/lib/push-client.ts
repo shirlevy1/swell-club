@@ -97,3 +97,23 @@ export function pushSupported(): boolean {
     "Notification" in window
   );
 }
+
+/**
+ * מבטלת את מנוי ה-push של המכשיר הזה, בלי קשר לחשבון שמחובר. נקראת
+ * לפני התנתקות (ראו sign-out-button.tsx) — המנוי הוא תכונה של
+ * הדפדפן/המכשיר, לא של החשבון, ולכן לא מתבטל לבד רק כי יוצאים
+ * מהחשבון. בלי זה, מכשיר משותף שמתחברים בו אחר כך לחשבון אחר ממשיך
+ * לקבל התראות שנועדו לחשבון הקודם. שקטה בכשלים — זה ניקוי מונע,
+ * לא פעולה קריטית; אם היא נכשלת, השורה הישנה תתנקה ממילא בפעם הבאה
+ * שניסיון שליחה אליה ייכשל (404/410), כמו כל מנוי מת אחר.
+ */
+export async function unsubscribeFromPush(): Promise<void> {
+  if (!pushSupported()) return;
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    const sub = await reg?.pushManager.getSubscription();
+    await sub?.unsubscribe();
+  } catch {
+    // לא קריטי — ראו הערה למעלה.
+  }
+}

@@ -19,7 +19,7 @@ import {
 import { monthAttendanceLine } from "@/lib/attendance-text";
 import { EditIcon, WaveIcon } from "@/components/social-icons";
 import { LeaveCommunityButton } from "@/components/leave-community-button";
-import { Button } from "@/components/ui";
+import { SignOutButton } from "@/components/sign-out-button";
 
 export default async function ProfilePage() {
   const viewer = await getViewer();
@@ -137,13 +137,7 @@ export default async function ProfilePage() {
         הפרטים שלכם גלויים רק למי שהיה איתכם במים.
       </p>
 
-      {!demoMode && (
-        <form action="/auth/signout" method="post">
-          <Button type="submit" variant="ghost" className="w-full">
-            התנתקות
-          </Button>
-        </form>
-      )}
+      {!demoMode && <SignOutButton />}
 
       {/* מנהלת לא יכולה לעזוב ככה — קהילה בלי אף מנהלת נעולה לגמרי.
           נאכף שוב בשרת ב-leave_community(). */}
