@@ -104,7 +104,7 @@ export function RsvpButton({
         {count === 0 ? (
           "תהיו הראשונים לסמן"
         ) : count === 1 ? (
-          "אחד מגיע"
+          "אדם אחד מגיע"
         ) : (
           <>
             <span className="ltr-nums font-bold text-(--color-ink)">
