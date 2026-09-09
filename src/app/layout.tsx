@@ -75,9 +75,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="he"
       dir="rtl"
-      className={`${rubik.variable} ${assistant.variable} h-full antialiased`}
+      className={`${rubik.variable} ${assistant.variable} h-dvh antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      {/* dvh ולא h-full/min-h-full: שרשרת height:100% נכונה רק אם
+          כל האבות בדרך מוגדרים בגובה מפורש, ובנייד (בעיקר ספארי
+          באייפון) 100% נוטה להסתמך על הגובה המלא-כשהעמודה מוסתרת —
+          לא הגובה הנראה בפועל. כשהתוכן קצר מהמסך (למשל אחרי שריכזנו
+          את רשימת המפגשים ל-10 בלבד), זה גורם לעטיפת ה-flex לא
+          למתוח עד תחתית המסך האמיתית — וה-nav הקבוע (position:fixed;
+          bottom:0) שיושב בתוכה "קופץ" לאמצע העמוד במקום להישאר צמוד
+          לתחתית. dvh נועד בדיוק לזה: תמיד הגובה הנראה בפועל. */}
+      <body className="min-h-dvh flex flex-col">{children}</body>
     </html>
   );
 }
