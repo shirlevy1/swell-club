@@ -269,22 +269,28 @@ export async function getUpcomingEvents(clubId: string) {
   return (data ?? []) as SwellEvent[];
 }
 
-/** בלי limit בכוונה — קהילה קטנה, ואין סיבה שמפגש ייעלם משם רק כי עוד נוצרו אחריו. */
-export async function getPastEvents(clubId: string) {
+/**
+ * `limit` אופציונלי: עמוד המפגשים הראשי מבקש רק את האחרונים (עם +1
+ * כדי לדעת אם יש עוד), ועמוד ההיסטוריה המלאה קורא בלי הגבלה.
+ */
+export async function getPastEvents(clubId: string, limit?: number) {
   if (demoMode) {
-    return demo
+    const sorted = demo
       .demoEvents()
       .filter((e) => new Date(e.starts_at).getTime() < Date.now() - RECENT_MS)
       .sort((a, b) => b.starts_at.localeCompare(a.starts_at));
+    return limit ? sorted.slice(0, limit) : sorted;
   }
 
   const supabase = await createClient();
-  const { data } = await supabase
+  let query = supabase
     .from("events")
     .select("*")
     .eq("club_id", clubId)
     .lt("starts_at", new Date(Date.now() - RECENT_MS).toISOString())
     .order("starts_at", { ascending: false });
+  if (limit) query = query.limit(limit);
+  const { data } = await query;
   return (data ?? []) as SwellEvent[];
 }
 

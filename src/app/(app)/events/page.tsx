@@ -9,7 +9,13 @@ import {
 } from "@/lib/data";
 import { EmptyState } from "@/components/ui";
 import { EventCard } from "@/components/event-card";
+import { PastEventsList } from "@/components/past-events-list";
 import { NotificationIconToggle } from "@/components/notification-icon-toggle";
+
+// כמה מפגשי עבר מוצגים בעמוד הראשי לפני שמפנים ל"כל ההיסטוריה" —
+// בלי זה, קהילה עם היסטוריה ארוכה טוענת יותר ויותר עם הזמן בעמוד
+// הכי נצפה באתר.
+const PAST_EVENTS_PAGE_LIMIT = 10;
 
 export default async function EventsPage() {
   const viewer = await getViewer();
@@ -22,12 +28,16 @@ export default async function EventsPage() {
     );
   }
 
-  const [upcoming, past, attended, going] = await Promise.all([
+  const [upcoming, pastPlusOne, attended, going] = await Promise.all([
     getUpcomingEvents(viewer.club.id),
-    getPastEvents(viewer.club.id),
+    getPastEvents(viewer.club.id, PAST_EVENTS_PAGE_LIMIT + 1),
     getMyAttendedEventIds(viewer.userId),
     getMyGoingEventIds(viewer.userId),
   ]);
+  const hasMorePast = pastPlusOne.length > PAST_EVENTS_PAGE_LIMIT;
+  const past = hasMorePast
+    ? pastPlusOne.slice(0, PAST_EVENTS_PAGE_LIMIT)
+    : pastPlusOne;
 
   // רק לקרובים: מי מתכוון להגיע למפגש שהיה לפני שבוע לא מעניין אף אחד
   const goingNames = await getGoingNamesByEvent(
@@ -73,20 +83,19 @@ export default async function EventsPage() {
           <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-ink-faint)">
             מפגשים שהיו
           </h2>
-          <ul className="space-y-3">
-            {past.map((event) => (
-              <li key={event.id}>
-                <Link href={`/events/${event.id}`}>
-                  <EventCard
-                    event={event}
-                    attended={attended.has(event.id)}
-                    gender={viewer.profile?.gender ?? null}
-                    past
-                  />
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <PastEventsList
+            events={past}
+            attended={attended}
+            gender={viewer.profile?.gender ?? null}
+          />
+          {hasMorePast && (
+            <Link
+              href="/events/history"
+              className="block text-center text-sm font-semibold text-(--color-sea)"
+            >
+              כל המפגשים שהיו
+            </Link>
+          )}
         </section>
       )}
     </div>
