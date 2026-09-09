@@ -67,7 +67,7 @@ export default async function Home() {
             <p className="mt-1 text-[0.75rem] leading-relaxed text-(--color-ink-faint)">
               נתונים לדוגמה. מסך ההרשמה/ההתחברות כאן להמחשה בלבד ולא
               נשמר — אפשר להקליד כל דבר. אחרי זה: לסמן הגעה, לצלם סלפי
-              ולראות את רשימת המשתתפים נפתחת.
+              ולראות מי עוד היה שם.
             </p>
           </section>
         ) : (
