@@ -82,33 +82,41 @@ export function ProfileForm({ profile }: { profile: Profile }) {
       return;
     }
 
-    const supabase = createClient();
+    // כשל רשת אמיתי (לא רק שגיאה מסודרת) זורק חריגה במקום להחזיר
+    // error — בלי try/catch הכפתור היה נשאר נעול על "שומרים…" לצמיתות,
+    // עם אובדן מלא של העריכה.
+    try {
+      const supabase = createClient();
 
-    // מוציאים את הפרופיל של עצמכם מהבדיקה — אחרת שמירה בלי לשנות את
-    // הטלפון הייתה נכשלת כי הוא "כבר בשימוש" ע"י השורה של עצמכם.
-    const { data: phoneAvailable, error: phoneCheckError } =
-      await supabase.rpc("is_phone_available", {
-        p_phone: phone,
-        p_exclude_profile_id: profile.id,
-      });
-    if (phoneCheckError) {
+      // מוציאים את הפרופיל של עצמכם מהבדיקה — אחרת שמירה בלי לשנות את
+      // הטלפון הייתה נכשלת כי הוא "כבר בשימוש" ע"י השורה של עצמכם.
+      const { data: phoneAvailable, error: phoneCheckError } =
+        await supabase.rpc("is_phone_available", {
+          p_phone: phone,
+          p_exclude_profile_id: profile.id,
+        });
+      if (phoneCheckError) {
+        setPending(false);
+        return setError("לא הצלחנו לבדוק את מספר הטלפון. נסו שוב.");
+      }
+      if (!phoneAvailable) {
+        setPending(false);
+        return setError("מספר הטלפון הזה כבר משויך לחשבון אחר.");
+      }
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update(patch)
+        .eq("id", profile.id);
       setPending(false);
-      return setError("לא הצלחנו לבדוק את מספר הטלפון. נסו שוב.");
-    }
-    if (!phoneAvailable) {
+
+      if (updateError) return setError("לא הצלחנו לשמור. נסו שוב.");
+      router.push("/profile");
+      router.refresh();
+    } catch {
       setPending(false);
-      return setError("מספר הטלפון הזה כבר משויך לחשבון אחר.");
+      setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
     }
-
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update(patch)
-      .eq("id", profile.id);
-    setPending(false);
-
-    if (updateError) return setError("לא הצלחנו לשמור. נסו שוב.");
-    router.push("/profile");
-    router.refresh();
   }
 
   return (

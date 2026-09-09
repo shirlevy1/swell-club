@@ -226,38 +226,46 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
       return;
     }
 
-    const supabase = createClient();
-    const { error: updateError } = await supabase
-      .from("events")
-      .update(patch)
-      .eq("id", event.id);
-    setPending(false);
+    // כשל רשת אמיתי (לא רק שגיאה מסודרת) זורק חריגה במקום להחזיר
+    // error — בלי try/catch הכפתור היה נשאר נעול על "שומרים…" לצמיתות,
+    // עם אובדן מלא של העריכה.
+    try {
+      const supabase = createClient();
+      const { error: updateError } = await supabase
+        .from("events")
+        .update(patch)
+        .eq("id", event.id);
+      setPending(false);
 
-    if (updateError) return setError("לא הצלחנו לשמור. נסו שוב.");
+      if (updateError) return setError("לא הצלחנו לשמור. נסו שוב.");
 
-    // רק כששעה/תאריך או מיקום השתנו בפועל — לא על כל שמירה — ורק
-    // למי שכבר סימן/ה הגעה, כי אלה תכננו לפי הפרטים הישנים. לא ממתינים
-    // לזה, כמו כל שאר התראות ה-push המיידיות.
-    //
-    // starts_at מושווה כזמן (getTime), לא כמחרוזת: מה שחוזר מ-Supabase
-    // (למשל "2026-08-28T18:00:00+00:00") לא זהה תווית ל-toISOString()
-    // הטרי ("...T18:00:00.000Z"), למרות שזה אותו רגע בדיוק — השוואת
-    // מחרוזות הייתה תמיד יוצאת "שונה" ומוציאה התראה על כל שמירה בכלל.
-    const detailsChanged =
-      new Date(patch.starts_at).getTime() !==
-        new Date(event.starts_at).getTime() ||
-      patch.lat !== event.lat ||
-      patch.lng !== event.lng;
-    if (detailsChanged) {
-      fetch("/api/push/notify-event-changed", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event_id: event.id }),
-      }).catch(() => {});
+      // רק כששעה/תאריך או מיקום השתנו בפועל — לא על כל שמירה — ורק
+      // למי שכבר סימן/ה הגעה, כי אלה תכננו לפי הפרטים הישנים. לא ממתינים
+      // לזה, כמו כל שאר התראות ה-push המיידיות.
+      //
+      // starts_at מושווה כזמן (getTime), לא כמחרוזת: מה שחוזר מ-Supabase
+      // (למשל "2026-08-28T18:00:00+00:00") לא זהה תווית ל-toISOString()
+      // הטרי ("...T18:00:00.000Z"), למרות שזה אותו רגע בדיוק — השוואת
+      // מחרוזות הייתה תמיד יוצאת "שונה" ומוציאה התראה על כל שמירה בכלל.
+      const detailsChanged =
+        new Date(patch.starts_at).getTime() !==
+          new Date(event.starts_at).getTime() ||
+        patch.lat !== event.lat ||
+        patch.lng !== event.lng;
+      if (detailsChanged) {
+        fetch("/api/push/notify-event-changed", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ event_id: event.id }),
+        }).catch(() => {});
+      }
+
+      router.push(`/events/${event.id}`);
+      router.refresh();
+    } catch {
+      setPending(false);
+      setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
     }
-
-    router.push(`/events/${event.id}`);
-    router.refresh();
   }
 
   return (

@@ -166,6 +166,10 @@ export function CheckInFlow({ event }: { event: SwellEvent }) {
     stopCamera();
     setStep("idle");
     setError(message);
+    // בלי זה, כישלון אחרי זיהוי פנים מוצלח (העלאה/check_in) משאיר את
+    // "בודקים…" נעול על כפתור הצילום בפעם הבאה שהמצלמה נפתחת — בדיוק
+    // אותו סוג תקיעות שהפונקציה הזו נועדה למנוע, רק דרך משתנה אחר.
+    setCheckingFace(false);
   }
 
   // --- שלב 3: צילום, דחיסה, העלאה, אימות ---

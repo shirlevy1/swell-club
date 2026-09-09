@@ -264,53 +264,61 @@ export default function NewEventPage() {
 
     const supabase = createClient();
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    // היה כאן `user!.id`. סשן שפג בין טעינת העמוד לשליחה הפיל את
-    // ה-handler באמצע, ולכן `setPending(false)` לא רץ — הכפתור נשאר
-    // "יוצרים…" לנצח, בלי שום הודעה.
-    if (!user) {
+    // כשל רשת אמיתי (לא רק שגיאה מסודרת) זורק חריגה במקום להחזיר
+    // error — בלי try/catch הכפתור היה נשאר נעול על "יוצרים…" לצמיתות,
+    // עם אובדן מלא של כל מה שמולא בטופס.
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      // היה כאן `user!.id`. סשן שפג בין טעינת העמוד לשליחה הפיל את
+      // ה-handler באמצע, ולכן `setPending(false)` לא רץ — הכפתור נשאר
+      // "יוצרים…" לנצח, בלי שום הודעה.
+      if (!user) {
+        setPending(false);
+        return setError("הסשן פג. התחברו מחדש ונסו שוב.");
+      }
+
+      const { data: membership } = await supabase
+        .from("club_members")
+        .select("club_id")
+        .eq("profile_id", user.id)
+        .maybeSingle();
+
+      if (!membership) {
+        setPending(false);
+        return setError("לא מצאנו את הקהילה שלכם.");
+      }
+
+      const { data, error: insertError } = await supabase
+        .from("events")
+        .insert({
+          ...draft,
+          club_id: membership.club_id,
+          created_by: user.id,
+        })
+        .select()
+        .single();
+
       setPending(false);
-      return setError("הסשן פג. התחברו מחדש ונסו שוב.");
-    }
+      if (insertError || !data) {
+        return setError("לא הצלחנו ליצור את המפגש. נסו שוב.");
+      }
 
-    const { data: membership } = await supabase
-      .from("club_members")
-      .select("club_id")
-      .eq("profile_id", user.id)
-      .maybeSingle();
+      // לא ממתינים לזה — התראה לחברי הקהילה לא צריכה לעכב את הניווט,
+      // ואם היא נכשלת (למשל אף אחד לא הפעיל תזכורות) המפגש עדיין נוצר
+      fetch("/api/push/notify-new-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event_id: data.id }),
+      }).catch(() => {});
 
-    if (!membership) {
+      router.push(`/events/${data.id}`);
+      router.refresh();
+    } catch {
       setPending(false);
-      return setError("לא מצאנו את הקהילה שלכם.");
+      setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
     }
-
-    const { data, error: insertError } = await supabase
-      .from("events")
-      .insert({
-        ...draft,
-        club_id: membership.club_id,
-        created_by: user.id,
-      })
-      .select()
-      .single();
-
-    setPending(false);
-    if (insertError || !data) {
-      return setError("לא הצלחנו ליצור את המפגש. נסו שוב.");
-    }
-
-    // לא ממתינים לזה — התראה לחברי הקהילה לא צריכה לעכב את הניווט,
-    // ואם היא נכשלת (למשל אף אחד לא הפעיל תזכורות) המפגש עדיין נוצר
-    fetch("/api/push/notify-new-event", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event_id: data.id }),
-    }).catch(() => {});
-
-    router.push(`/events/${data.id}`);
-    router.refresh();
   }
 
   return (
