@@ -446,7 +446,7 @@ export default async function AdminPage() {
             return (
               <div
                 key={m.profile.id}
-                className="flex items-center gap-3 px-4 py-3 transition hover:bg-(--color-haze)/60"
+                className="flex flex-wrap items-center gap-3 px-4 py-3 transition hover:bg-(--color-haze)/60"
               >
                 {/* קישור לפרופיל רק על פנים+שם — כפתורי וואטסאפ/אינסטגרם
                     בהמשך השורה הם קישורים בפני עצמם, ועוגן בתוך עוגן
@@ -478,16 +478,17 @@ export default async function AdminPage() {
                   </p>
                 </Link>
 
-                {/* תג הרמה מוקטן כדי שיהיה מקום לשם המלא באותה שורה —
-                    אייקוני וואטסאפ/אינסטגרם בגודל הרגיל שלהם. */}
+                {/* השם לא מתקצר לעולם, אז לשם ארוך אין תמיד מקום לשורה
+                    הזו באותה שורה — flex-wrap למעלה נותן לה לרדת לשורה
+                    שנייה במקום להיחתך/לדחוף את שאר השורה החוצה. */}
                 <div className="ms-auto flex shrink-0 items-center gap-1.5">
                   {m.profile.swim_level && (
                     <span
-                      className="flex shrink-0 items-center gap-0.5 rounded-full border px-1 py-0.5 text-[0.58rem] font-semibold text-(--color-ink)"
+                      className="flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-[0.72rem] font-semibold text-(--color-ink)"
                       style={swimLevelBadgeStyle(m.profile.swim_level)}
                     >
                       <WaveIcon
-                        className="size-2"
+                        className="size-2.5"
                         style={{ color: SWIM_LEVEL_COLOR[m.profile.swim_level] }}
                       />
                       {swimLevelLabel(m.profile.swim_level)}
