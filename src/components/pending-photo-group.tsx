@@ -30,20 +30,24 @@ export function PendingPhotoGroup({
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   async function approvePhotos(toApprove: PendingEventPhoto[]) {
-    if (demoMode) {
-      await Promise.all(toApprove.map((p) => approveEventPhotoAction(eventId, p.id)));
-    } else {
-      const supabase = createClient();
-      const { error: updateError } = await supabase
-        .from("event_photos")
-        .update({ status: "approved" })
-        .in(
-          "id",
-          toApprove.map((p) => p.id),
-        );
-      if (updateError) return false;
+    try {
+      if (demoMode) {
+        await Promise.all(toApprove.map((p) => approveEventPhotoAction(eventId, p.id)));
+      } else {
+        const supabase = createClient();
+        const { error: updateError } = await supabase
+          .from("event_photos")
+          .update({ status: "approved" })
+          .in(
+            "id",
+            toApprove.map((p) => p.id),
+          );
+        if (updateError) return false;
+      }
+      return true;
+    } catch {
+      return false;
     }
-    return true;
   }
 
   async function approveAll() {
@@ -69,24 +73,28 @@ export function PendingPhotoGroup({
   }
 
   async function rejectPhotos(toReject: PendingEventPhoto[]) {
-    if (demoMode) {
-      await Promise.all(toReject.map((p) => deleteEventPhotoAction(eventId, p.id)));
-    } else {
-      const supabase = createClient();
-      const paths = toReject.flatMap((p) => (p.storagePath ? [p.storagePath] : []));
-      if (paths.length) {
-        await supabase.storage.from("event-photos").remove(paths);
+    try {
+      if (demoMode) {
+        await Promise.all(toReject.map((p) => deleteEventPhotoAction(eventId, p.id)));
+      } else {
+        const supabase = createClient();
+        const paths = toReject.flatMap((p) => (p.storagePath ? [p.storagePath] : []));
+        if (paths.length) {
+          await supabase.storage.from("event-photos").remove(paths);
+        }
+        const { error: deleteError } = await supabase
+          .from("event_photos")
+          .delete()
+          .in(
+            "id",
+            toReject.map((p) => p.id),
+          );
+        if (deleteError) return false;
       }
-      const { error: deleteError } = await supabase
-        .from("event_photos")
-        .delete()
-        .in(
-          "id",
-          toReject.map((p) => p.id),
-        );
-      if (deleteError) return false;
+      return true;
+    } catch {
+      return false;
     }
-    return true;
   }
 
   async function rejectAll() {

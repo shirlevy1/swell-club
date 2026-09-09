@@ -248,17 +248,22 @@ export function EventPhotoAlbum({
 
   async function onApprove(photoId: string) {
     setBusyId(photoId);
-    if (demoMode) {
-      await approveEventPhotoAction(eventId, photoId);
-    } else {
-      const supabase = createClient();
-      await supabase
-        .from("event_photos")
-        .update({ status: "approved" })
-        .eq("id", photoId);
+    try {
+      if (demoMode) {
+        await approveEventPhotoAction(eventId, photoId);
+      } else {
+        const supabase = createClient();
+        await supabase
+          .from("event_photos")
+          .update({ status: "approved" })
+          .eq("id", photoId);
+      }
+      setBusyId(null);
+      router.refresh();
+    } catch {
+      setBusyId(null);
+      setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
     }
-    setBusyId(null);
-    router.refresh();
   }
 
   async function onDelete(photo: EventPhoto) {
@@ -267,24 +272,29 @@ export function EventPhotoAlbum({
     if (!window.confirm("למחוק את התמונה הזו? הפעולה לא הפיכה.")) return;
 
     setBusyId(photo.id);
-    if (demoMode) {
-      await deleteEventPhotoAction(eventId, photo.id);
-    } else {
-      const supabase = createClient();
-      if (photo.storagePath) {
-        await supabase.storage.from("event-photos").remove([photo.storagePath]);
+    try {
+      if (demoMode) {
+        await deleteEventPhotoAction(eventId, photo.id);
+      } else {
+        const supabase = createClient();
+        if (photo.storagePath) {
+          await supabase.storage.from("event-photos").remove([photo.storagePath]);
+        }
+        await supabase.from("event_photos").delete().eq("id", photo.id);
       }
-      await supabase.from("event_photos").delete().eq("id", photo.id);
+      setSelected((s) => {
+        if (!s.has(photo.id)) return s;
+        const next = new Set(s);
+        next.delete(photo.id);
+        return next;
+      });
+      setViewerIndex(null);
+      setBusyId(null);
+      router.refresh();
+    } catch {
+      setBusyId(null);
+      setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
     }
-    setSelected((s) => {
-      if (!s.has(photo.id)) return s;
-      const next = new Set(s);
-      next.delete(photo.id);
-      return next;
-    });
-    setViewerIndex(null);
-    setBusyId(null);
-    router.refresh();
   }
 
   function toggleSelected(photoId: string) {

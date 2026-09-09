@@ -39,13 +39,18 @@ export function PendingMemberRow({
       router.refresh();
       return;
     }
-    const supabase = createClient();
-    const { error: rpcError } = await supabase.rpc("approve_member", {
-      p_profile_id: profileId,
-    });
-    setPending(null);
-    if (rpcError) return setError("לא הצלחנו לאשר. נסו שוב.");
-    router.refresh();
+    try {
+      const supabase = createClient();
+      const { error: rpcError } = await supabase.rpc("approve_member", {
+        p_profile_id: profileId,
+      });
+      setPending(null);
+      if (rpcError) return setError("לא הצלחנו לאשר. נסו שוב.");
+      router.refresh();
+    } catch {
+      setPending(null);
+      setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
+    }
   }
 
   async function reject() {
@@ -62,13 +67,18 @@ export function PendingMemberRow({
       router.refresh();
       return;
     }
-    const supabase = createClient();
-    const { error: rpcError } = await supabase.rpc("reject_member", {
-      p_profile_id: profileId,
-    });
-    setPending(null);
-    if (rpcError) return setError("לא הצלחנו לדחות. נסו שוב.");
-    router.refresh();
+    try {
+      const supabase = createClient();
+      const { error: rpcError } = await supabase.rpc("reject_member", {
+        p_profile_id: profileId,
+      });
+      setPending(null);
+      if (rpcError) return setError("לא הצלחנו לדחות. נסו שוב.");
+      router.refresh();
+    } catch {
+      setPending(null);
+      setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
+    }
   }
 
   return (

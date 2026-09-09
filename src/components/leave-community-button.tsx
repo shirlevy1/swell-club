@@ -36,18 +36,23 @@ export function LeaveCommunityButton() {
       return;
     }
 
-    const { error: rpcError } = await createClient().rpc("leave_community");
-    if (rpcError) {
-      setError("לא הצלחנו לעזוב את הקהילה. נסו שוב.");
-      setPending(false);
-      return;
-    }
+    try {
+      const { error: rpcError } = await createClient().rpc("leave_community");
+      if (rpcError) {
+        setError("לא הצלחנו לעזוב את הקהילה. נסו שוב.");
+        setPending(false);
+        return;
+      }
 
-    await fetch("/auth/signout", { method: "POST" });
-    // רענון מלא, לא router.push — כדי שלא יישאר שום מטמון RSC ישן
-    // מהסשן שהתנתק ממנו הרגע
-    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-    window.location.href = "/";
+      await fetch("/auth/signout", { method: "POST" });
+      // רענון מלא, לא router.push — כדי שלא יישאר שום מטמון RSC ישן
+      // מהסשן שהתנתק ממנו הרגע
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.href = "/";
+    } catch {
+      setPending(false);
+      setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
+    }
   }
 
   return (

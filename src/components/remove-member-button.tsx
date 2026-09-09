@@ -39,15 +39,20 @@ export function RemoveMemberButton({
       return;
     }
 
-    const { error: rpcError } = await createClient().rpc("remove_member", {
-      p_profile_id: profileId,
-    });
-    setPending(false);
-    if (rpcError) {
-      setError("לא הצלחנו להסיר. נסו שוב.");
-      return;
+    try {
+      const { error: rpcError } = await createClient().rpc("remove_member", {
+        p_profile_id: profileId,
+      });
+      setPending(false);
+      if (rpcError) {
+        setError("לא הצלחנו להסיר. נסו שוב.");
+        return;
+      }
+      router.refresh();
+    } catch {
+      setPending(false);
+      setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
     }
-    router.refresh();
   }
 
   return (

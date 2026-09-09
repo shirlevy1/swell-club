@@ -24,18 +24,23 @@ export function DeleteEventButton({ eventId }: { eventId: string }) {
 
     setError(null);
     setPending(true);
-    const { error } = await createClient()
-      .from("events")
-      .delete()
-      .eq("id", eventId);
+    try {
+      const { error } = await createClient()
+        .from("events")
+        .delete()
+        .eq("id", eventId);
 
-    if (error) {
-      setError("לא הצלחנו למחוק את המפגש. נסו שוב.");
+      if (error) {
+        setError("לא הצלחנו למחוק את המפגש. נסו שוב.");
+        setPending(false);
+        return;
+      }
+
+      router.push("/events");
+    } catch {
       setPending(false);
-      return;
+      setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
     }
-
-    router.push("/events");
   }
 
   return (

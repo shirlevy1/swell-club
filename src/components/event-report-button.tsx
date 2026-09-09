@@ -24,32 +24,37 @@ export function EventReportButton({
   async function download() {
     setPending(true);
     setError(null);
-    const result = await getEventAttendanceReportAction(eventId);
-    setPending(false);
-    if (!result.ok) {
-      setError(result.error);
-      return;
+    try {
+      const result = await getEventAttendanceReportAction(eventId);
+      setPending(false);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+
+      const rows = [
+        [
+          "שם",
+          "סימנו שמגיעים?",
+          "הגיעו בפועל?",
+          "נוכחות נוספה ידנית ע״י המנהלת?",
+        ],
+        ...result.rows.map((r) => [
+          r.fullName,
+          r.going ? "כן" : "לא",
+          r.attended ? "כן" : "לא",
+          r.addedManually ? "כן" : "לא",
+        ]),
+      ];
+
+      downloadCsv(
+        rows,
+        `swell-${eventTitle}-${formatDayMonth(eventStartsAt)}.csv`,
+      );
+    } catch {
+      setPending(false);
+      setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
     }
-
-    const rows = [
-      [
-        "שם",
-        "סימנו שמגיעים?",
-        "הגיעו בפועל?",
-        "נוכחות נוספה ידנית ע״י המנהלת?",
-      ],
-      ...result.rows.map((r) => [
-        r.fullName,
-        r.going ? "כן" : "לא",
-        r.attended ? "כן" : "לא",
-        r.addedManually ? "כן" : "לא",
-      ]),
-    ];
-
-    downloadCsv(
-      rows,
-      `swell-${eventTitle}-${formatDayMonth(eventStartsAt)}.csv`,
-    );
   }
 
   return (

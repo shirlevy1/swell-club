@@ -40,13 +40,18 @@ export function AddAttendanceButton({
     if (members) return;
     setLoading(true);
     setError(null);
-    const result = await getMembersForAttendanceAction();
-    if (!result.ok) {
-      setError(result.error);
-    } else {
-      setMembers(result.members);
+    try {
+      const result = await getMembersForAttendanceAction();
+      if (!result.ok) {
+        setError(result.error);
+      } else {
+        setMembers(result.members);
+      }
+    } catch {
+      setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   async function addMember(profileId: string) {
