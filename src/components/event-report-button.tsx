@@ -37,7 +37,7 @@ export function EventReportButton({
           "שם",
           "סימנו שמגיעים?",
           "הגיעו בפועל?",
-          "נוכחות נוספה ידנית ע״י המנהלת?",
+          "הגעה נוספה ידנית ע״י המנהלת?",
         ],
         ...result.rows.map((r) => [
           r.fullName,
