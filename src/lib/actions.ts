@@ -158,6 +158,7 @@ export async function searchLocationAction(
       display_name: string;
       lat: string;
       lon: string;
+      name?: string;
       address?: {
         road?: string;
         house_number?: string;
@@ -175,7 +176,12 @@ export async function searchLocationAction(
         const addr = r.address ?? {};
         const street = [addr.road, addr.house_number].filter(Boolean).join(" ");
         const city = addr.city ?? addr.town ?? addr.village ?? addr.suburb ?? addr.county;
-        const shortLabel = [street, city].filter(Boolean).join(", ") || r.display_name;
+        // מקום בעל שם בלי כתובת רחוב (חוף, פארק, אתר) — Nominatim מחזיר
+        // את השם שלו ב-r.name, לא תחת road/house_number. בלי הנפילה
+        // הזו ל-r.name, shortLabel היה מאבד את השם לגמרי ונשאר עם
+        // שם העיר בלבד (זה מה שקרה בפועל עם "חוף מציצים" → "תל אביב").
+        const primary = street || r.name;
+        const shortLabel = [primary, city].filter(Boolean).join(", ") || r.display_name;
         return {
           label: r.display_name,
           shortLabel,
