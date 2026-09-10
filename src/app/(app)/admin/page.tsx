@@ -528,6 +528,7 @@ export default async function AdminPage() {
                     <RemoveMemberButton
                       profileId={m.profile.id}
                       fullName={m.profile.full_name}
+                      gender={m.profile.gender}
                     />
                   )}
                 </div>

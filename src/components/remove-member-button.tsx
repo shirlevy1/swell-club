@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
 import { removeMemberAction } from "@/lib/demo/actions";
+import { byGender } from "@/lib/format";
+import type { Gender } from "@/lib/types";
 import { XIcon } from "./social-icons";
 
 /**
@@ -15,9 +17,11 @@ import { XIcon } from "./social-icons";
 export function RemoveMemberButton({
   profileId,
   fullName,
+  gender,
 }: {
   profileId: string;
   fullName: string;
+  gender: Gender | null;
 }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -25,7 +29,7 @@ export function RemoveMemberButton({
 
   async function handleRemove() {
     const ok = window.confirm(
-      `להסיר את ${fullName} מהקהילה? הם לא יראו יותר מפגשים או אנשים באפליקציה. אין דרך אוטומטית לחזור — רק הרשמה כמשתמש/ת חדש/ה לגמרי.`,
+      `להסיר את ${fullName} מהקהילה? הם לא יראו יותר מפגשים או אנשים באפליקציה. אין דרך אוטומטית לחזור — רק הרשמה כ${byGender(gender, "משתמש חדש", "משתמשת חדשה")} לגמרי.`,
     );
     if (!ok) return;
 
