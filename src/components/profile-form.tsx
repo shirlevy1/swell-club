@@ -34,8 +34,6 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     const birthDate = String(form.get("birth_date") ?? "").trim();
     const city = String(form.get("city") ?? "").trim();
     const swimLevel = String(form.get("swim_level") ?? "").trim();
-    const privacyAccepted = form.get("privacy_accepted") === "on";
-    const waiverAccepted = form.get("waiver_accepted") === "on";
 
     if (fullName.length < 2) return setError("צריך שם מלא.");
     if (!isHebrewName(fullName))
@@ -46,16 +44,22 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     if (!birthDate) return setError("צריך תאריך לידה.");
     if (!city) return setError("צריך לבחור עיר מגורים.");
     if (!swimLevel) return setError("צריך לבחור מה הכי מתאר אתכם במים.");
-    if (!privacyAccepted)
+    // התיבות עצמן כבר לא ניתנות לעריכה כשכבר אושרו (ראו למטה) — האישור
+    // נדרש רק כאן, בפעם היחידה שבה יש בכלל תיבה להציג (חשבון ישן שנוצר
+    // לפני שהשדה הזה נוסף, ראו migration 0016). בכל מקרה אחר profile.*_at
+    // כבר קיים, ואין תיבה בטופס בכלל לבדוק.
+    if (!profile.privacy_accepted_at && form.get("privacy_accepted") !== "on") {
       return setError("צריך לאשר את הצהרת הפרטיות כדי לשמור.");
-    if (!waiverAccepted)
+    }
+    if (!profile.waiver_accepted_at && form.get("waiver_accepted") !== "on") {
       return setError("צריך לאשר את כתב הוויתור כדי לשמור.");
+    }
 
     // waiver/privacy_accepted_at לא נדרסים כאן אם כבר יש להם ערך — הם
-    // מתעדים מתי אושר לראשונה, לא מתי נערך הפרופיל. התיבה היא בעיקרה
-    // שער לשמירה, לא כתיבה מחדש. אבל אם עדיין null (חשבון ישן, שאושר
-    // הרגע לראשונה), חייבים כן לכתוב — אחרת האישור הזה אף פעם לא
-    // נשמר בפועל, והתיבה תיראה ריקה בכל עריכה הבאה לנצח.
+    // מתעדים מתי אושר לראשונה, לא מתי נערך הפרופיל. גם המסד עצמו נועל
+    // את זה עכשיו (טריגר, migration 0031) — זו רק שכבת נוחות, לא ההגנה
+    // היחידה. אבל אם עדיין null (חשבון ישן, שאושר הרגע לראשונה), חייבים
+    // כן לכתוב — אחרת האישור הזה אף פעם לא נשמר בפועל.
     const patch: Partial<Profile> = {
       full_name: fullName,
       gender: gender as Gender,
@@ -182,79 +186,87 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           .
         </p>
 
-        <div className="space-y-3">
-          <div className="max-h-40 space-y-2 overflow-y-auto rounded-xl border border-(--color-line) bg-(--color-haze) p-4 text-xs leading-relaxed text-(--color-ink-soft)">
-            <p className="font-bold text-(--color-ink)">הצהרת פרטיות</p>
-            <p>
-              אנחנו אוספים את הפרטים שאתם ממלאים בטופס, סלפי בכל
-              צ׳ק־אין, ותמונות שמועלות לאלבום המפגשים. בזמן צ׳ק־אין
-              נאסף גם מיקום, כדי לוודא שבאמת הגעתם.
-            </p>
-            <p>
-              השם שלכם גלוי לכל חברי הקהילה. התמונות, הטלפון
-              והאינסטגרם גלויים רק למי שהיה איתכם באותו מפגש. מנהלת
-              הקהילה רואה הכל, תמיד.
-            </p>
-            <p>המידע נשמר אצל Supabase, בתשתית מאובטחת.</p>
+        {/* אחרי שכבר אושר פעם אחת, אין יותר תיבה לגעת בה כאן בכלל —
+            לא רק לא מסומנת: לא ניתנת לעריכה, לא מוצגת. חותמת הזמן
+            נועדה לתעד מתי אושר לראשונה, לא להישאר "פתוחה" לשינוי.
+            נשאר רק כדרך "להשלים" אישור לחשבון ישן שנוצר לפני שהשדה
+            הזה נוסף לאתר (migration 0016) ומעולם לא אושר בפועל. */}
+        {!profile.privacy_accepted_at && (
+          <div className="space-y-3">
+            <div className="max-h-40 space-y-2 overflow-y-auto rounded-xl border border-(--color-line) bg-(--color-haze) p-4 text-xs leading-relaxed text-(--color-ink-soft)">
+              <p className="font-bold text-(--color-ink)">הצהרת פרטיות</p>
+              <p>
+                אנחנו אוספים את הפרטים שאתם ממלאים בטופס, סלפי בכל
+                צ׳ק־אין, ותמונות שמועלות לאלבום המפגשים. בזמן צ׳ק־אין
+                נאסף גם מיקום, כדי לוודא שבאמת הגעתם.
+              </p>
+              <p>
+                השם שלכם גלוי לכל חברי הקהילה. התמונות, הטלפון
+                והאינסטגרם גלויים רק למי שהיה איתכם באותו מפגש. מנהלת
+                הקהילה רואה הכל, תמיד.
+              </p>
+              <p>המידע נשמר אצל Supabase, בתשתית מאובטחת.</p>
+            </div>
+
+            <label className="flex items-start gap-2.5 text-sm text-(--color-ink)">
+              <input
+                type="checkbox"
+                name="privacy_accepted"
+                required
+                className="mt-0.5 size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
+              />
+              <span>
+                קראתי ואני {byGender(profile.gender, "מאשר", "מאשרת")} את
+                הצהרת הפרטיות שלמעלה. בלי אישור אי אפשר לשמור.
+              </span>
+            </label>
           </div>
+        )}
 
-          <label className="flex items-start gap-2.5 text-sm text-(--color-ink)">
-            <input
-              type="checkbox"
-              name="privacy_accepted"
-              required
-              defaultChecked={!!profile.privacy_accepted_at}
-              className="mt-0.5 size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
-            />
-            <span>
-              קראתי ואני {byGender(profile.gender, "מאשר", "מאשרת")} את
-              הצהרת הפרטיות שלמעלה. בלי אישור אי אפשר לשמור.
-            </span>
-          </label>
-        </div>
+        {!profile.waiver_accepted_at && (
+          <div className="space-y-3">
+            <div className="max-h-40 space-y-2 overflow-y-auto rounded-xl border border-(--color-line) bg-(--color-haze) p-4 text-xs leading-relaxed text-(--color-ink-soft)">
+              <p className="font-bold text-(--color-ink)">
+                כתב ויתור – השתתפות על אחריות אישית בלבד
+              </p>
+              <p>
+                בהצטרפות לכל פעילות של Swell Club (לרבות שחייה משותפת, מפגשים
+                ואירועים), אני {byGender(profile.gender, "מאשר", "מאשרת")} כי
+                השתתפותי היא מרצוני החופשי ועל אחריותי האישית בלבד.
+              </p>
+              <p>
+                ידוע לי כי שחייה במים פתוחים כרוכה בסיכונים, לרבות תנאי ים
+                משתנים, זרמים, גלים וסיכונים נוספים הנובעים מהשהייה בים.
+              </p>
+              <p>
+                אני {byGender(profile.gender, "מצהיר", "מצהירה")} כי אני{" "}
+                {byGender(profile.gender, "אחראי", "אחראית")} לוודא שמצבי
+                הבריאותי, הכושר הגופני והיכולת האישית שלי מתאימים להשתתפות
+                בפעילות, וכי אני{" "}
+                {byGender(profile.gender, "מתחייב", "מתחייבת")} לפעול בהתאם
+                להנחיות צוות Swell Club במהלך המפגשים.
+              </p>
+              <p>
+                אני {byGender(profile.gender, "מבין", "מבינה")} כי צוות Swell
+                Club אינו אחראי לכל פגיעה, נזק, אובדן או הוצאה שעלולים
+                להיגרם לפני, במהלך או לאחר הפעילות, בכפוף לכל דין.
+              </p>
+            </div>
 
-        <div className="space-y-3">
-          <div className="max-h-40 space-y-2 overflow-y-auto rounded-xl border border-(--color-line) bg-(--color-haze) p-4 text-xs leading-relaxed text-(--color-ink-soft)">
-            <p className="font-bold text-(--color-ink)">
-              כתב ויתור – השתתפות על אחריות אישית בלבד
-            </p>
-            <p>
-              בהצטרפות לכל פעילות של Swell Club (לרבות שחייה משותפת, מפגשים
-              ואירועים), אני {byGender(profile.gender, "מאשר", "מאשרת")} כי
-              השתתפותי היא מרצוני החופשי ועל אחריותי האישית בלבד.
-            </p>
-            <p>
-              ידוע לי כי שחייה במים פתוחים כרוכה בסיכונים, לרבות תנאי ים
-              משתנים, זרמים, גלים וסיכונים נוספים הנובעים מהשהייה בים.
-            </p>
-            <p>
-              אני {byGender(profile.gender, "מצהיר", "מצהירה")} כי אני{" "}
-              {byGender(profile.gender, "אחראי", "אחראית")} לוודא שמצבי
-              הבריאותי, הכושר הגופני והיכולת האישית שלי מתאימים להשתתפות
-              בפעילות, וכי אני {byGender(profile.gender, "מתחייב", "מתחייבת")}{" "}
-              לפעול בהתאם להנחיות צוות Swell Club במהלך המפגשים.
-            </p>
-            <p>
-              אני {byGender(profile.gender, "מבין", "מבינה")} כי צוות Swell
-              Club אינו אחראי לכל פגיעה, נזק, אובדן או הוצאה שעלולים
-              להיגרם לפני, במהלך או לאחר הפעילות, בכפוף לכל דין.
-            </p>
+            <label className="flex items-start gap-2.5 text-sm text-(--color-ink)">
+              <input
+                type="checkbox"
+                name="waiver_accepted"
+                required
+                className="mt-0.5 size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
+              />
+              <span>
+                קראתי ואני {byGender(profile.gender, "מאשר", "מאשרת")} את כתב
+                הוויתור שלמעלה. בלי אישור אי אפשר לשמור.
+              </span>
+            </label>
           </div>
-
-          <label className="flex items-start gap-2.5 text-sm text-(--color-ink)">
-            <input
-              type="checkbox"
-              name="waiver_accepted"
-              required
-              defaultChecked={!!profile.waiver_accepted_at}
-              className="mt-0.5 size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
-            />
-            <span>
-              קראתי ואני {byGender(profile.gender, "מאשר", "מאשרת")} את כתב
-              הוויתור שלמעלה. בלי אישור אי אפשר לשמור.
-            </span>
-          </label>
-        </div>
+        )}
 
         {error && <Notice tone="error">{error}</Notice>}
 
