@@ -19,6 +19,7 @@ export function NotificationDevicesList() {
   const [devices, setDevices] = useState<Device[] | null>(null);
   const [currentEndpoint, setCurrentEndpoint] = useState<string | null>(null);
   const [removing, setRemoving] = useState<string | null>(null);
+  const [removingAll, setRemovingAll] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -74,18 +75,55 @@ export function NotificationDevicesList() {
     }
   }
 
+  async function removeAllOthers() {
+    const others = (devices ?? []).filter((d) => d.endpoint !== currentEndpoint);
+    if (others.length === 0) return;
+    setError(null);
+    setRemovingAll(true);
+    try {
+      const { error: deleteError } = await createClient()
+        .from("push_subscriptions")
+        .delete()
+        .in(
+          "endpoint",
+          others.map((d) => d.endpoint),
+        );
+      if (deleteError) throw deleteError;
+      setDevices((list) =>
+        (list ?? []).filter((d) => d.endpoint === currentEndpoint),
+      );
+    } catch {
+      setError("לא הצלחנו להסיר את המכשירים. נסו שוב.");
+    } finally {
+      setRemovingAll(false);
+    }
+  }
+
   if (!devices || devices.length === 0) return null;
+  const hasOthers = devices.some((d) => d.endpoint !== currentEndpoint);
 
   return (
     <section className="space-y-3">
-      <div className="space-y-0.5">
-        <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
-          מכשירים עם התראות
-        </h2>
-        <p className="text-xs text-(--color-ink-faint)">
-          כל מכשיר שהפעלתם בו תזכורות מקבל אותן בנפרד. מכשיר שכבר לא
-          בשימוש כדאי להסיר, כדי שלא ימשיך לקבל התראות.
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-0.5">
+          <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
+            מכשירים עם התראות
+          </h2>
+          <p className="text-xs text-(--color-ink-faint)">
+            כל מכשיר שהפעלתם בו תזכורות מקבל אותן בנפרד. מכשיר שכבר לא
+            בשימוש כדאי להסיר, כדי שלא ימשיך לקבל התראות.
+          </p>
+        </div>
+        {hasOthers && (
+          <button
+            type="button"
+            onClick={removeAllOthers}
+            disabled={removingAll || removing !== null}
+            className="shrink-0 text-xs font-semibold whitespace-nowrap text-(--color-fail) underline underline-offset-4 disabled:opacity-40"
+          >
+            {removingAll ? "מסירים…" : "הסרת כל השאר"}
+          </button>
+        )}
       </div>
       <ul className="space-y-2">
         {devices.map((d) => (
@@ -101,7 +139,7 @@ export function NotificationDevicesList() {
             <button
               type="button"
               onClick={() => remove(d.endpoint)}
-              disabled={removing === d.endpoint}
+              disabled={removing === d.endpoint || removingAll}
               className="text-sm font-semibold text-(--color-fail) underline underline-offset-4 disabled:opacity-40"
             >
               {removing === d.endpoint ? "מסירים…" : "הסרה"}
