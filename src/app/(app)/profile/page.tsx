@@ -38,7 +38,7 @@ export default async function ProfilePage() {
   const albumsByEvent = await getEventPhotoCollages(shots.map((s) => s.eventId));
   // הנוכחויות כבר כאן — אין צורך בשאילתה נוספת בשביל הרצף
   const streak = attendanceStreak(shots.map((s) => s.startsAt));
-  const fullName = viewer.profile?.full_name ?? "הפרופיל שלי";
+  const fullName = viewer.profile?.full_name ?? "חבר קהילה";
   // הסלפי האחרון שלך — shots כבר ממוינים מהאחרון לראשון
   const latestSelfie = shots[0]?.selfieUrl ?? null;
   const latestSelfiePosition = facePositionStyle(
