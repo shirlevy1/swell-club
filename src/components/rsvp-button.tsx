@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
@@ -29,11 +29,16 @@ export function RsvpButton({
   const [pending, startTransition] = useTransition();
   // נעילה מיידית משלה, לא רק pending (שנהיה true רק בסוף התהליך,
   // ב-startTransition) — כדי שלחיצה כפולה מהירה (ידיים רטובות בחוף)
-  // לא תפעיל שני עדכונים חופפים.
+  // לא תפעיל שני עדכונים חופפים. ref ולא state: שתי לחיצות שקורות
+  // ממש קרוב יכולות שתיהן לרוץ לפני ש-React מעדכן state, ואז שתיהן
+  // עוברות את הבדיקה ושתיהן שולחות התראת RSVP בנפרד — זה בדיוק מה
+  // שקרה בפועל. ref מתעדכן מיידית, בלי לחכות לרינדור מחדש.
+  const submittingRef = useRef(false);
   const [submitting, setSubmitting] = useState(false);
 
   async function toggle() {
-    if (submitting) return;
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setSubmitting(true);
 
     const next = !going;
@@ -83,6 +88,7 @@ export function RsvpButton({
       setCount((c) => Math.max(0, c + (next ? -1 : 1)));
       setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
   }
