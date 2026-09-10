@@ -20,7 +20,6 @@ import { monthAttendanceLine } from "@/lib/attendance-text";
 import { EditIcon, WaveIcon } from "@/components/social-icons";
 import { LeaveCommunityButton } from "@/components/leave-community-button";
 import { SignOutButton } from "@/components/sign-out-button";
-import { NotificationDevicesList } from "@/components/notification-devices-list";
 
 export default async function ProfilePage() {
   const viewer = await getViewer();
@@ -137,8 +136,6 @@ export default async function ProfilePage() {
       <p className="text-center text-xs leading-relaxed text-(--color-ink-faint)">
         הפרטים שלכם גלויים רק למי שהיה איתכם במים.
       </p>
-
-      {!demoMode && <NotificationDevicesList />}
 
       {!demoMode && <SignOutButton />}
 

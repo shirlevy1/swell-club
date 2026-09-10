@@ -45,6 +45,29 @@ export function hasDecidedAboutPush(): boolean {
   }
 }
 
+const DEVICE_ID_KEY = "swell-push-device-id";
+
+/**
+ * מזהה יציב למכשיר הפיזי הזה, נשמר בדפדפן ולא במסד — כדי לזהות "אותו
+ * מכשיר" גם אחרי שה-endpoint של המנוי משתנה (למשל התקנה מחדש של
+ * האייקון למסך הבית באייפון, שיוצרת מנוי push חדש לגמרי). שורד הסרה
+ * והוספה מחדש של האייקון, כי localStorage שייך למקור (origin) ולא
+ * לקיצור הדרך במסך הבית.
+ */
+function getOrCreateDeviceId(): string {
+  try {
+    const existing = localStorage.getItem(DEVICE_ID_KEY);
+    if (existing) return existing;
+    const id = crypto.randomUUID();
+    localStorage.setItem(DEVICE_ID_KEY, id);
+    return id;
+  } catch {
+    // localStorage חסום (למשל גלישה פרטית) — מזהה חד-פעמי; לא ישרוד
+    // בין ביקורים, אבל לא שובר את ההרשמה עצמה
+    return crypto.randomUUID();
+  }
+}
+
 function urlBase64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
   const padded = (base64 + "=".repeat((4 - (base64.length % 4)) % 4))
     .replace(/-/g, "+")
@@ -76,16 +99,29 @@ export async function subscribeToPush(vapidPublicKey: string): Promise<void> {
   } = await supabase.auth.getUser();
   if (!user) throw new Error("no session");
 
+  const deviceId = getOrCreateDeviceId();
   const { error } = await supabase.from("push_subscriptions").upsert(
     {
       endpoint: sub.endpoint,
       profile_id: user.id,
       p256dh: json.keys?.p256dh ?? "",
       auth: json.keys?.auth ?? "",
+      device_id: deviceId,
     },
     { onConflict: "endpoint" },
   );
   if (error) throw error;
+
+  // מנקה מנויים קודמים של אותו מכשיר פיזי בדיוק (endpoint שונה,
+  // device_id זהה) — זה בדיוק מה שקורה אחרי התקנה מחדש של האייקון
+  // למסך הבית, שיוצרת מנוי חדש בלי למחוק את הישן מעצמה. בלעדי זה,
+  // כל התקנה מחדש כזו מצטברת כשורה נוספת שממשיכה לקבל התראות לנצח.
+  await supabase
+    .from("push_subscriptions")
+    .delete()
+    .eq("device_id", deviceId)
+    .neq("endpoint", sub.endpoint);
+
   window.dispatchEvent(new Event(PUSH_SUBSCRIBED_EVENT));
 }
 
