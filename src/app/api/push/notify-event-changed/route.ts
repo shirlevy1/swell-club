@@ -32,12 +32,16 @@ export async function POST(request: Request) {
   }
   if (!event) return NextResponse.json({ error: "not_found" }, { status: 404 });
 
-  // רק חבר/ה באותה קהילה יכול/ה להפעיל את זה — לא כל משתמש מחובר
+  // רק מנהלת של אותה קהילה יכולה להפעיל את זה — לא כל חבר/ה, כי
+  // המסלול הזה שולח לכל מי שסימן/ה הגעה, ואמור לרוץ רק בעקבות עריכת
+  // מפגש אמיתית ע"י מנהלת (edit-event-schedule-form), לא בקריאה
+  // ישירה מכל אחד/ת
   const { data: membership } = await supabase
     .from("club_members")
     .select("profile_id")
     .eq("club_id", event.club_id)
     .eq("profile_id", user.id)
+    .eq("role", "organizer")
     .maybeSingle();
   if (!membership) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
