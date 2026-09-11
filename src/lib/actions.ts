@@ -25,7 +25,10 @@ export async function resolveMapsLinkAction(
   rawUrl: string,
 ): Promise<ResolveMapsLinkResult> {
   const viewer = await getViewer();
-  if (!viewer) return { ok: false, error: "צריך להתחבר." };
+  // קיים רק לתמיכה בטופס "מפגש חדש" (מנהלת בלבד) — לא כל חבר/ה מחובר/ת
+  if (viewer?.role !== "organizer") {
+    return { ok: false, error: "רק מנהלת קהילה יכולה לסמן מיקום מפגש." };
+  }
 
   const url = rawUrl.trim();
   if (!isGoogleMapsUrl(url)) {
@@ -127,7 +130,10 @@ export async function searchLocationAction(
   query: string,
 ): Promise<LocationSearchResult> {
   const viewer = await getViewer();
-  if (!viewer) return { ok: false, error: "צריך להתחבר." };
+  // קיים רק לתמיכה בטופס "מפגש חדש" (מנהלת בלבד) — לא כל חבר/ה מחובר/ת
+  if (viewer?.role !== "organizer") {
+    return { ok: false, error: "רק מנהלת קהילה יכולה לחפש מיקום מפגש." };
+  }
 
   const q = query.trim();
   if (q.length < 3) return { ok: true, suggestions: [] };
