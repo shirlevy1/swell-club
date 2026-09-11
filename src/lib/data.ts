@@ -373,13 +373,17 @@ export async function getRecentMonthStats(
   const ids = (events ?? []).map((e) => e.id as string);
   if (ids.length === 0) return { attended: 0, total: 0 };
 
-  const { data: attendances } = await supabase
-    .from("attendances")
-    .select("event_id")
-    .eq("profile_id", userId)
-    .in("event_id", ids);
+  // לא שאילתה ישירה על attendances: ה-RLS שם מרשה לקרוא שורת נוכחות
+  // רק למי שנכח/ה באותו מפגש בעצמו/ה (has_attended), לא לפי profile_id
+  // שמבקשים — שאילתה ישירה הייתה מחזירה בטעות "כמה מפגשים גם אני וגם
+  // userId נכחנו בהם ביחד", לא את הנוכחות האמיתית של userId. אותה
+  // מחלה בדיוק שכבר טופלה ב-person_card(), ואותו פתרון: security definer.
+  const { data: attended } = await supabase.rpc(
+    "person_month_attendance_count",
+    { p_profile_id: userId, p_club_id: clubId },
+  );
 
-  return { total: ids.length, attended: (attendances ?? []).length };
+  return { total: ids.length, attended: attended ?? 0 };
 }
 
 export async function getEvent(eventId: string) {
