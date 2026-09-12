@@ -3,23 +3,30 @@ import { getViewer, getRemovedMembers, getAdminData } from "@/lib/data";
 import type { RemovedReason } from "@/lib/data";
 import {
   ageInYears,
+  byGender,
   formatDate,
   formatDateShort,
   formatPhone,
   genderLabel,
   normalizeInstagram,
 } from "@/lib/format";
+import type { Gender } from "@/lib/types";
 import { checkInWindow } from "@/lib/checkin";
 import { swimLevelLabel } from "@/lib/swim-level";
 import { BackLink, Card, EmptyState } from "@/components/ui";
 import { ExportButton } from "@/components/export-button";
 import { RestoreMemberButton } from "@/components/restore-member-button";
 
-const REASON_LABEL: Record<RemovedReason, string> = {
-  left: "עזב/ה בעצמו/ה",
-  removed: "הוסר/ה ע״י מנהלת",
-  rejected: "בקשת הצטרפות נדחתה",
-};
+function reasonLabel(reason: RemovedReason, gender: Gender | null): string {
+  switch (reason) {
+    case "left":
+      return byGender(gender, "עזב בעצמו", "עזבה בעצמה");
+    case "removed":
+      return byGender(gender, "הוסר ע״י מנהלת", "הוסרה ע״י מנהלת");
+    case "rejected":
+      return "בקשת הצטרפות נדחתה";
+  }
+}
 
 /**
  * מי שכבר לא בקהילה (הוסרו, עזבו, או נדחו) — תצוגה נפרדת ומכוונת
@@ -78,7 +85,7 @@ export default async function RemovedMembersPage() {
       m.privacyAcceptedAt ? "כן" : "",
       m.attendedDates.map((d) => formatDate(d)).join(", "),
       m.removedAt ? formatDate(m.removedAt) : "",
-      m.removedReason ? REASON_LABEL[m.removedReason] : "",
+      m.removedReason ? reasonLabel(m.removedReason, m.gender) : "",
     ]),
   ];
 
@@ -124,7 +131,7 @@ export default async function RemovedMembersPage() {
                 {m.removedAt && (
                   <p className="text-xs text-(--color-ink-faint)">
                     לא בקהילה מאז {formatDateShort(m.removedAt)}
-                    {m.removedReason && ` · ${REASON_LABEL[m.removedReason]}`}
+                    {m.removedReason && ` · ${reasonLabel(m.removedReason, m.gender)}`}
                   </p>
                 )}
               </div>
