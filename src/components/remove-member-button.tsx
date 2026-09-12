@@ -30,7 +30,7 @@ export function RemoveMemberButton({
 
   async function handleRemove() {
     const ok = window.confirm(
-      `להסיר את ${fullName} מהקהילה? ${byGender(gender, "הוא לא יראה", "היא לא תראה")} יותר מפגשים או אנשים באפליקציה. אפשר לשחזר את החברות בכל שלב מ"מי שכבר לא בקהילה" בעמוד הניהול.`,
+      `להסיר את ${fullName} מ־Swell Club?\n${byGender(gender, "הוא לא יראה", "היא לא תראה")} יותר מפגשים או אנשים בקהילה.\nאפשר להחזיר ${byGender(gender, "אותו", "אותה")} לגל בכל שלב דרך "מי שכבר לא בקהילה" בעמוד הניהול.`,
     );
     if (!ok) return;
 
