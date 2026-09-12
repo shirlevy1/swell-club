@@ -50,6 +50,12 @@ export function CheckInFlow({ event }: { event: SwellEvent }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const cameraCardRef = useRef<HTMLDivElement>(null);
+  // נעילה מיידית משלה, לא רק checkingFace (state) — לחיצה כפולה מהירה
+  // (ידיים רטובות בחוף) יכולה לקרות לפני ש-React מעדכן את ה-state,
+  // ואז שתי הלחיצות עוברות את הבדיקה ומריצות runCapture() במקביל.
+  // ref מתעדכן מיידית, בלי לחכות לרינדור מחדש — אותו פתרון בדיוק
+  // כמו ב-rsvp-button.tsx.
+  const capturingRef = useRef(false);
 
   const [step, setStep] = useState<Step>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -174,11 +180,18 @@ export function CheckInFlow({ event }: { event: SwellEvent }) {
 
   // --- שלב 3: צילום, דחיסה, העלאה, אימות ---
   async function capture() {
+    if (capturingRef.current) return;
+    capturingRef.current = true;
     try {
       await runCapture();
     } catch {
       // רשת שנופלת באמצע זורקת, ולא מחזירה שגיאה מסודרת
       fail("משהו השתבש. נסו שוב.");
+    } finally {
+      // גם ל-runCapture() יש כמה יציאות מוקדמות (return שקט, בלי
+      // fail()) — finally מבטיח שהנעילה תמיד תשתחרר, בלי צורך לזכור
+      // לאפס אותה בכל נקודת יציאה בנפרד.
+      capturingRef.current = false;
     }
   }
 
