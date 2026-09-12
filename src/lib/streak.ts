@@ -43,8 +43,6 @@ export type Streak = {
   weeks: boolean[];
   /** שבועות רצופים עד עכשיו */
   current: number;
-  /** בכמה מתוך חלון השבועות הייתה נוכחות */
-  attendedWeeks: number;
   windowWeeks: number;
 };
 
@@ -77,7 +75,6 @@ export function attendanceStreak(
   return {
     weeks,
     current,
-    attendedWeeks: weeks.filter(Boolean).length,
     windowWeeks,
   };
 }

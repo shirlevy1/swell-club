@@ -16,7 +16,7 @@ export function StreakCard({
   streak: Streak;
   gender: Gender | null;
 }) {
-  const { weeks, current, attendedWeeks, windowWeeks } = streak;
+  const { weeks, current, windowWeeks } = streak;
 
   // מד רצף אישי, לא לוח שבועות קלנדרי: כל אחד מתחיל את העיגול הראשון
   // מימין. אם המשתמשת לא הייתה בכלל שבוע שעבר אבל כן השבוע, הרצף שלה
@@ -27,14 +27,9 @@ export function StreakCard({
 
   return (
     <Card className="space-y-3">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
-          הסוואל שלך
-        </h2>
-        <p className="text-xs text-(--color-ink-faint)">
-          {attendedWeeks} מתוך {windowWeeks} השבועות האחרונים
-        </p>
-      </div>
+      <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
+        הסוואל שלך
+      </h2>
 
       <div className="flex items-center gap-3">
         <div className="grid size-11 shrink-0 place-items-center rounded-full bg-(--color-sea)/12 text-(--color-sea)">
