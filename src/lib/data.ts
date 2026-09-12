@@ -139,10 +139,26 @@ export type PendingMember = {
   instagram: string | null;
 };
 
+/** "left" = עזב/ה בעצמו/ה, "removed" = הוסר/ה ע"י מנהלת, "rejected" =
+ * בקשת הצטרפות נדחתה מלכתחילה (אף פעם לא הייתה חברות מאושרת). */
+export type RemovedReason = "left" | "removed" | "rejected";
+
 export type RemovedMember = {
   profileId: string;
   fullName: string;
+  gender: Gender | null;
+  birthDate: string | null;
+  city: string | null;
+  phone: string | null;
+  instagram: string | null;
+  swimLevel: SwimLevel | null;
+  createdAt: string;
+  waiverAcceptedAt: string | null;
+  privacyAcceptedAt: string | null;
   removedAt: string | null;
+  removedReason: RemovedReason | null;
+  /** תאריכי כל המפגשים שבהם האדם נכח בפועל בזמן שהיה/הייתה חבר/ה. */
+  attendedDates: string[];
 };
 
 /**
@@ -193,8 +209,9 @@ export async function getPendingMembers(
 /**
  * מי שכבר לא בקהילה (הוסרו, עזבו, או נדחו) — מחיקה רכה בלבד
  * (status='removed', migration 0036), לא מחיקת שורה. רק המנהלת רואה
- * משהו — RPC חוסם אחרת. משמשת את התצוגה הנפרדת ב-/admin/removed,
- * שמאפשרת שחזור חברות בלי הרשמה מחדש עם אימייל אחר.
+ * משהו — RPC חוסם אחרת. משמשת את התצוגה הנפרדת ב-/admin/removed
+ * (שמאפשרת שחזור חברות בלי הרשמה מחדש עם אימייל אחר) וגם את ייצוא
+ * האקסל שם — לכן הפרטים המלאים כאן, לא רק שם ותאריך.
  */
 export async function getRemovedMembers(
   clubId: string,
@@ -211,13 +228,35 @@ export async function getRemovedMembers(
   const rows = (data ?? []) as {
     profile_id: string;
     full_name: string;
+    gender: Gender | null;
+    birth_date: string | null;
+    city: string | null;
+    phone: string | null;
+    instagram: string | null;
+    swim_level: SwimLevel | null;
+    created_at: string;
+    waiver_accepted_at: string | null;
+    privacy_accepted_at: string | null;
     removed_at: string | null;
+    removed_reason: RemovedReason | null;
+    attended_dates: string[] | null;
   }[];
 
   return rows.map((row) => ({
     profileId: row.profile_id,
     fullName: row.full_name,
+    gender: row.gender,
+    birthDate: row.birth_date,
+    city: row.city,
+    phone: row.phone,
+    instagram: row.instagram,
+    swimLevel: row.swim_level,
+    createdAt: row.created_at,
+    waiverAcceptedAt: row.waiver_accepted_at,
+    privacyAcceptedAt: row.privacy_accepted_at,
     removedAt: row.removed_at,
+    removedReason: row.removed_reason,
+    attendedDates: row.attended_dates ?? [],
   }));
 }
 

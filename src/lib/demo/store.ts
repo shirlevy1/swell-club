@@ -295,10 +295,12 @@ type DemoDb = {
   // כי זה הצד שיש בו יותר להראות.
   myRole: MemberRole;
   // מי שהוסר/ה או עזב/ה את הקהילה — מקביל ל-status='removed' האמיתי
-  // (מחיקה רכה, migration 0036), לא למחיקת שורה. הפרופיל עצמו תמיד
-  // נשאר ב-profiles, כדי שהיסטוריית נוכחות ישנה תמשיך להציג את
-  // השם/הסלפי שלו/ה. הערך הוא זמן ההסרה (ISO), לתצוגה במסך השחזור.
-  removedMemberIds: Map<string, string>;
+  // (מחיקה רכה, migration 0036/0037), לא למחיקת שורה. הפרופיל עצמו
+  // תמיד נשאר ב-profiles, כדי שהיסטוריית נוכחות ישנה תמשיך להציג את
+  // השם/הסלפי שלו/ה. removedAt לתצוגה במסך השחזור; reason מבחין בין
+  // עזיבה עצמית להסרה ע"י מנהלת (דחייה לא מגיעה לכאן בהדגמה — ראו
+  // demoRejectMember).
+  removedMemberIds: Map<string, { removedAt: string; reason: "left" | "removed" }>;
 };
 
 function seed(): DemoDb {
@@ -554,26 +556,55 @@ export function demoSetMyRole(role: MemberRole) {
  * "אני" — בהדגמה רק "אני" יכול/ה להיות מנהל/ת, ואי אפשר להסיר מנהלת. */
 export function demoRemoveMember(profileId: string) {
   if (profileId === ME_ID) return;
-  db().removedMemberIds.set(profileId, new Date().toISOString());
+  db().removedMemberIds.set(profileId, {
+    removedAt: new Date().toISOString(),
+    reason: "removed",
+  });
 }
 
 /** מקביל ל-leave_community() בשרת: עזיבה עצמית. חסום כשאני מנהלת,
  * בדיוק כמו החסימה בשרת. */
 export function demoLeaveCommunity() {
   if (demoMyRole() === "organizer") return;
-  db().removedMemberIds.set(ME_ID, new Date().toISOString());
+  db().removedMemberIds.set(ME_ID, {
+    removedAt: new Date().toISOString(),
+    reason: "left",
+  });
 }
 
-/** מקביל ל-list_removed_members() ב-RPC האמיתי. */
+/** מקביל ל-list_removed_members() ב-RPC האמיתי — כולל כל הפרטים
+ * הדרושים לייצוא האקסל, לא רק שם ותאריך. */
 export function demoListRemovedMembers() {
   const profileById = new Map(db().profiles.map((p) => [p.id, p]));
+  const eventStartById = new Map(
+    demoEvents().map((e) => [e.id, e.starts_at]),
+  );
   return [...db().removedMemberIds.entries()]
-    .map(([profileId, removedAt]) => ({
-      profileId,
-      fullName: profileById.get(profileId)?.full_name ?? "חבר קהילה",
-      removedAt,
-    }))
-    .sort((a, b) => b.removedAt.localeCompare(a.removedAt));
+    .map(([profileId, { removedAt, reason }]) => {
+      const profile = profileById.get(profileId);
+      const attendedDates = db()
+        .attendances.filter((a) => a.profileId === profileId)
+        .map((a) => eventStartById.get(a.eventId))
+        .filter((d): d is string => !!d)
+        .sort();
+      return {
+        profileId,
+        fullName: profile?.full_name ?? "חבר קהילה",
+        gender: profile?.gender ?? null,
+        birthDate: profile?.birth_date ?? null,
+        city: profile?.city ?? null,
+        phone: profile?.phone ?? null,
+        instagram: profile?.instagram ?? null,
+        swimLevel: profile?.swim_level ?? null,
+        createdAt: profile?.created_at ?? removedAt,
+        waiverAcceptedAt: profile?.waiver_accepted_at ?? null,
+        privacyAcceptedAt: profile?.privacy_accepted_at ?? null,
+        removedAt,
+        removedReason: reason,
+        attendedDates,
+      };
+    })
+    .sort((a, b) => (b.removedAt ?? "").localeCompare(a.removedAt ?? ""));
 }
 
 /** מקביל ל-restore_member() בשרת: חוזר/ת ל"ממתין/ה לאישור" — לא ישר
