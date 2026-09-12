@@ -67,7 +67,7 @@ export async function POST(request: Request) {
         התחברו לאתר והגישו שוב בקשה להצטרף לקהילה. מנהלת הקהילה תאשר
         את הבקשה, ואז תחזרו לראות הכל כרגיל.
       </p>`,
-      buttonText: "התחברות ל-Swell Club",
+      buttonText: "התחברות",
       buttonUrl: loginUrl(),
     }),
   );
