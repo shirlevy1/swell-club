@@ -60,10 +60,12 @@ export async function POST(request: Request) {
       bodyHtml: `<p style="direction:rtl; text-align:right; font-family:'Assistant', -apple-system, 'Segoe UI', Arial, sans-serif; font-size:15px; line-height:1.7; color:#42596e; margin:0 0 12px;">
         שלום ${profile?.full_name ?? ""},
       </p>
+      <p style="direction:rtl; text-align:right; font-family:'Assistant', -apple-system, 'Segoe UI', Arial, sans-serif; font-size:15px; line-height:1.7; color:#42596e; margin:0 0 12px;">
+        טוב שחזרתם.
+      </p>
       <p style="direction:rtl; text-align:right; font-family:'Assistant', -apple-system, 'Segoe UI', Arial, sans-serif; font-size:15px; line-height:1.7; color:#42596e; margin:0 0 24px;">
-        החשבון שלכם ב-Swell Club שוחזר. התחברו לאתר כדי להמשיך — הבקשה
-        שלכם תעבור עוד פעם קצרה לאישור מנהלת הקהילה, ואז תחזרו לראות
-        הכל כרגיל.
+        התחברו לאתר והגישו שוב בקשה להצטרף לקהילה. מנהלת הקהילה תאשר
+        את הבקשה, ואז תחזרו לראות הכל כרגיל.
       </p>`,
       buttonText: "התחברות ל-Swell Club",
       buttonUrl: loginUrl(),
