@@ -95,13 +95,15 @@ export default async function RemovedMembersPage() {
       <BackLink href="/admin">לניהול</BackLink>
 
       <div className="flex items-start justify-between gap-3">
-        <div className="space-y-0.5">
+        <div className="space-y-1.5">
           <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold">
             מי שכבר לא בקהילה
           </h1>
           <p className="text-sm text-(--color-ink-soft)">
-            הוסרו, עזבו, או שהבקשה שלהם נדחתה. שחזור מחזיר אותם ל&quot;ממתין/ה
-            לאישור&quot; — לא ישר לחברות מלאה.
+            הוסרו, עזבו, או שהבקשה שלהם להצטרף נדחתה.
+          </p>
+          <p className="text-sm text-(--color-ink-soft)">
+            שחזור מחזיר אותם ל&quot;ממתין/ה לאישור&quot;, ולא ישר לחברות מלאה.
           </p>
         </div>
         {removed.length > 0 && (
