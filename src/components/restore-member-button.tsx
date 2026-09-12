@@ -13,6 +13,10 @@ import { Notice } from "./ui";
  * חוזר/ת ל"ממתין/ה לאישור" ועובר/ת שוב את אותו תהליך אישור כמו כל
  * בקשת הצטרפות חדשה. בלי אישור נוסף לפני לחיצה, בדיוק כמו כפתור
  * האישור ב-pending-member-row — זו לא פעולה הרסנית.
+ *
+ * אחרי שחזור מוצלח (מצב אמיתי בלבד) נשלח גם מייל "החשבון שלכם שוחזר"
+ * (api/email/notify-restored) — האדם לא מחובר יותר בשלב הזה, ובלי
+ * מייל אין לו/ה שום דרך לגלות שיש למה לחזור.
  */
 export function RestoreMemberButton({
   profileId,
@@ -43,6 +47,13 @@ export function RestoreMemberButton({
       });
       setPending(false);
       if (rpcError) return setError("לא הצלחנו לשחזר. נסו שוב.");
+
+      fetch("/api/email/notify-restored", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile_id: profileId }),
+      }).catch(() => {});
+
       router.refresh();
     } catch {
       setPending(false);
