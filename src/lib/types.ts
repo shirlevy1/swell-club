@@ -1,5 +1,5 @@
 export type MemberRole = "member" | "organizer";
-export type MemberStatus = "pending" | "approved";
+export type MemberStatus = "pending" | "approved" | "removed";
 export type Gender = "female" | "male" | "other";
 export type SwimLevel = "entering" | "flowing" | "deepening";
 

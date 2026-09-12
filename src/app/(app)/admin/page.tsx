@@ -5,6 +5,7 @@ import {
   getAdminData,
   getPendingMembers,
   getPendingEventPhotos,
+  getRemovedMembers,
   type PendingEventPhoto,
 } from "@/lib/data";
 import {
@@ -91,12 +92,13 @@ export default async function AdminPage() {
   const viewer = await getViewer();
   if (!viewer?.club || viewer.role !== "organizer") redirect("/events");
 
-  // שלוש שאילתות בלתי-תלויות זו בזו — בבת אחת, לא ברצף
-  const [{ events, members }, pendingMembers, pendingPhotos] =
+  // ארבע שאילתות בלתי-תלויות זו בזו — בבת אחת, לא ברצף
+  const [{ events, members }, pendingMembers, pendingPhotos, removedMembers] =
     await Promise.all([
       getAdminData(viewer.club.id),
       getPendingMembers(viewer.club.id),
       getPendingEventPhotos(viewer.club.id),
+      getRemovedMembers(viewer.club.id),
     ]);
   const pendingPhotosByEvent = groupPendingPhotos(pendingPhotos);
 
@@ -536,6 +538,16 @@ export default async function AdminPage() {
             );
           })}
         </Card>
+        )}
+
+        {removedMembers.length > 0 && (
+          <Link
+            href="/admin/removed"
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-(--color-haze) px-3 text-xs font-semibold text-(--color-sea) transition hover:bg-(--color-sky)/30"
+          >
+            מי שכבר לא בקהילה (
+            <span className="ltr-nums">{removedMembers.length}</span>)
+          </Link>
         )}
       </section>
     </div>

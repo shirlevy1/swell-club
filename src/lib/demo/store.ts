@@ -294,11 +294,11 @@ type DemoDb = {
   // מנהלת קהילה מול חבר רגיל — באותה הדגמה. ברירת המחדל היא מנהלת,
   // כי זה הצד שיש בו יותר להראות.
   myRole: MemberRole;
-  // מי שהוסר/ה או עזב/ה את הקהילה. הפרופיל עצמו נשאר ב-profiles (בדיוק
-  // כמו במסד האמיתי, שם רק שורת club_members נמחקת) — כדי שהיסטוריית
-  // נוכחות ישנה תמשיך להציג את השם/הסלפי שלו/ה. רק "מי חברה בקהילה
-  // עכשיו" מתעלם ממי שכאן.
-  removedMemberIds: Set<string>;
+  // מי שהוסר/ה או עזב/ה את הקהילה — מקביל ל-status='removed' האמיתי
+  // (מחיקה רכה, migration 0036), לא למחיקת שורה. הפרופיל עצמו תמיד
+  // נשאר ב-profiles, כדי שהיסטוריית נוכחות ישנה תמשיך להציג את
+  // השם/הסלפי שלו/ה. הערך הוא זמן ההסרה (ISO), לתצוגה במסך השחזור.
+  removedMemberIds: Map<string, string>;
 };
 
 function seed(): DemoDb {
@@ -365,7 +365,7 @@ function seed(): DemoDb {
       uploadedBy: others[0]?.id ?? ME_ID,
     })),
     myRole: "organizer",
-    removedMemberIds: new Set(),
+    removedMemberIds: new Map(),
     pendingMembers: pendingMembers(),
   };
 }
@@ -554,14 +554,46 @@ export function demoSetMyRole(role: MemberRole) {
  * "אני" — בהדגמה רק "אני" יכול/ה להיות מנהל/ת, ואי אפשר להסיר מנהלת. */
 export function demoRemoveMember(profileId: string) {
   if (profileId === ME_ID) return;
-  db().removedMemberIds.add(profileId);
+  db().removedMemberIds.set(profileId, new Date().toISOString());
 }
 
 /** מקביל ל-leave_community() בשרת: עזיבה עצמית. חסום כשאני מנהלת,
  * בדיוק כמו החסימה בשרת. */
 export function demoLeaveCommunity() {
   if (demoMyRole() === "organizer") return;
-  db().removedMemberIds.add(ME_ID);
+  db().removedMemberIds.set(ME_ID, new Date().toISOString());
+}
+
+/** מקביל ל-list_removed_members() ב-RPC האמיתי. */
+export function demoListRemovedMembers() {
+  const profileById = new Map(db().profiles.map((p) => [p.id, p]));
+  return [...db().removedMemberIds.entries()]
+    .map(([profileId, removedAt]) => ({
+      profileId,
+      fullName: profileById.get(profileId)?.full_name ?? "חבר קהילה",
+      removedAt,
+    }))
+    .sort((a, b) => b.removedAt.localeCompare(a.removedAt));
+}
+
+/** מקביל ל-restore_member() בשרת: חוזר/ת ל"ממתין/ה לאישור" — לא ישר
+ * לחברות מלאה — ועובר/ת שוב את אותו תהליך אישור כמו כל בקשה חדשה. */
+export function demoRestoreMember(profileId: string) {
+  const removed = db().removedMemberIds;
+  if (!removed.has(profileId)) return;
+  const profile = db().profiles.find((p) => p.id === profileId);
+  if (!profile) return;
+
+  removed.delete(profileId);
+  db().pendingMembers.push({
+    profileId: profile.id,
+    fullName: profile.full_name,
+    instagram: profile.instagram,
+    city: profile.city ?? "",
+    birthDate: profile.birth_date ?? "",
+    phone: profile.phone ?? "",
+    requestedAt: new Date().toISOString(),
+  });
 }
 
 /** מקביל ל-approve_member(): הבקשה הופכת לחברה/חבר קהילה לכל דבר. */
@@ -586,7 +618,13 @@ export function demoApproveMember(profileId: string) {
   });
 }
 
-/** מקביל ל-reject_member(): הבקשה נמחקת, בלי ליצור חברות. */
+/** מקביל ל-reject_member() האמיתית מבחינת האפקט הנראה (הבקשה נעלמת
+ * מהתור), אבל לא זהה לגמרי: בשרת דחייה גם היא הופכת ל-status='removed'
+ * וניתנת לשחזור (אוחדה עם remove_member, migration 0036) — כאן היא
+ * נמחקת סופית. הסיבה: בהדגמה בקשה ממתינה היא רק רשומה קלה
+ * (DemoPendingMember, בלי Profile מלא) עד לאישור בפועל, אז אין עדיין
+ * "פרופיל" אמיתי לשחזר אליו. שדרוג ההדגמה לתמוך גם בזה לא נדרש כרגע —
+ * ההבדל מכוון, לא פער שנשכח. */
 export function demoRejectMember(profileId: string) {
   const list = db().pendingMembers;
   const i = list.findIndex((m) => m.profileId === profileId);

@@ -51,10 +51,11 @@ export default async function AppLayout({
                 <SignOutButton />
               </Card>
             </div>
-          ) : viewer.status === null ? (
-            // הוסרו מהקהילה, או עזבו בעצמם — club_members כבר לא קיימת,
-            // אבל החשבון עדיין מחובר. בלי המסך הזה כל שאר העמודים
-            // מניחים viewer.club לא ריק ומתרסקים.
+          ) : viewer.status === "removed" || viewer.status === null ? (
+            // הוסרו מהקהילה, עזבו בעצמם, או נדחו — club_members קיימת
+            // עם status='removed' (מחיקה רכה, ראו migration 0036),
+            // או שאין שורה בכלל (חשבון ישן/מקרה תיאורטי). בלי המסך
+            // הזה כל שאר העמודים מניחים viewer.club לא ריק ומתרסקים.
             <div className="flex flex-1 items-center pt-10">
               <Card className="space-y-4 text-center">
                 <h1 className="font-[family-name:var(--font-display)] text-xl font-bold">
@@ -76,7 +77,9 @@ export default async function AppLayout({
         </PullToRefresh>
       </main>
 
-      {viewer.status !== "pending" && viewer.status !== null && (
+      {viewer.status !== "pending" &&
+        viewer.status !== "removed" &&
+        viewer.status !== null && (
         <AppNav
           isOrganizer={viewer.role === "organizer"}
           clubId={viewer.club?.id ?? null}

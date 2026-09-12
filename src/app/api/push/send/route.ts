@@ -132,7 +132,11 @@ async function sendReminder(
       .select("profile_id")
       .eq("event_id", event.id)
       .eq("going", true),
-    db.from("club_members").select("profile_id").eq("club_id", event.club_id),
+    db
+      .from("club_members")
+      .select("profile_id")
+      .eq("club_id", event.club_id)
+      .eq("status", "approved"),
   ]);
 
   // ערב לפני — כולם, גם מי שעוד לא סימן/ה שמגיע/ה (זו הזמנה).

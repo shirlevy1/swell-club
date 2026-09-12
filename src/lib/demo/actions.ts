@@ -14,6 +14,7 @@ import {
   demoLeaveCommunity,
   demoRejectMember,
   demoRemoveMember,
+  demoRestoreMember,
   demoSetMyRole,
   demoToggleRsvp,
   demoUpdateEventSchedule,
@@ -154,6 +155,13 @@ export async function removeMemberAction(profileId: string) {
   guard();
   demoRemoveMember(profileId);
   revalidatePath("/admin");
+}
+
+export async function restoreMemberAction(profileId: string) {
+  guard();
+  demoRestoreMember(profileId);
+  revalidatePath("/admin");
+  revalidatePath("/admin/removed");
 }
 
 export async function leaveCommunityAction() {

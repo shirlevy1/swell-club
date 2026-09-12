@@ -52,6 +52,7 @@ export async function POST(request: Request) {
       .select("profile_id")
       .eq("club_id", event.club_id)
       .eq("profile_id", user.id)
+      .eq("status", "approved")
       .maybeSingle(),
     supabase
       .from("rsvps")

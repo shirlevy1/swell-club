@@ -139,6 +139,12 @@ export type PendingMember = {
   instagram: string | null;
 };
 
+export type RemovedMember = {
+  profileId: string;
+  fullName: string;
+  removedAt: string | null;
+};
+
 /**
  * ממתינים לאישור בקהילה. רק המנהלת רואה משהו — RPC חוסם אחרת.
  *
@@ -181,6 +187,37 @@ export async function getPendingMembers(
     ageYears: ageInYears(row.birth_date),
     phone: row.phone,
     instagram: row.instagram,
+  }));
+}
+
+/**
+ * מי שכבר לא בקהילה (הוסרו, עזבו, או נדחו) — מחיקה רכה בלבד
+ * (status='removed', migration 0036), לא מחיקת שורה. רק המנהלת רואה
+ * משהו — RPC חוסם אחרת. משמשת את התצוגה הנפרדת ב-/admin/removed,
+ * שמאפשרת שחזור חברות בלי הרשמה מחדש עם אימייל אחר.
+ */
+export async function getRemovedMembers(
+  clubId: string,
+): Promise<RemovedMember[]> {
+  if (demoMode) {
+    return demo.demoListRemovedMembers();
+  }
+
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("list_removed_members", {
+    p_club_id: clubId,
+  });
+
+  const rows = (data ?? []) as {
+    profile_id: string;
+    full_name: string;
+    removed_at: string | null;
+  }[];
+
+  return rows.map((row) => ({
+    profileId: row.profile_id,
+    fullName: row.full_name,
+    removedAt: row.removed_at,
   }));
 }
 
