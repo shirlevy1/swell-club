@@ -478,6 +478,19 @@ export async function getEvent(eventId: string) {
   return (data ?? null) as SwellEvent | null;
 }
 
+/** כמה נוכחויות כבר נאספו למפגש הזה — לאזהרה בטופס עריכת מיקום/רדיוס. */
+export async function getEventAttendanceCount(eventId: string): Promise<number> {
+  if (demoMode) {
+    return demo.demoAttendances().filter((a) => a.eventId === eventId).length;
+  }
+
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("event_attendance_count", {
+    p_event_id: eventId,
+  });
+  return data ?? 0;
+}
+
 export async function getMyAttendedEventIds(userId: string) {
   if (demoMode) {
     return new Set(

@@ -48,7 +48,13 @@ function minutesField(raw: FormDataEntryValue | null): number {
  * הטופס כאן בעצם זהה לטופס "מפגש חדש" (admin/events/new/page.tsx),
  * רק ממולא מהמפגש הקיים ושומר עם update() במקום insert().
  */
-export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
+export function EditEventScheduleForm({
+  event,
+  attendanceCount,
+}: {
+  event: SwellEvent;
+  attendanceCount: number;
+}) {
   const router = useRouter();
 
   // מחושב פעם אחת (lazy initializer, לא בכל רינדור) — EventDateTimeInput
@@ -405,6 +411,16 @@ export function EditEventScheduleForm({ event }: { event: SwellEvent }) {
           הקלידו כתובת או שם מקום — הבחירה מהרשימה קובעת גם את המיקום
           במפה וגם את קישור הניווט, לא רק את השם.
         </p>
+
+        {attendanceCount > 0 && (
+          <Notice tone="warn">
+            {attendanceCount === 1
+              ? "כבר יש נוכחות אחת רשומה למפגש הזה."
+              : `כבר יש ${attendanceCount} נוכחויות רשומות למפגש הזה.`}{" "}
+            שינוי המיקום או הרדיוס כאן לא משנה את הרשומות ההיסטוריות
+            שכבר נשמרו — רק את התנאים לצ׳ק־אין מעכשיו והלאה.
+          </Notice>
+        )}
 
         <div className="relative z-20">
           <Field label="מיקום המפגש" hint="איך אנשים מכירים את המקום">

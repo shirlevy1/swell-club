@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { getViewer, getEvent } from "@/lib/data";
+import { getViewer, getEvent, getEventAttendanceCount } from "@/lib/data";
 import { BackLink } from "@/components/ui";
 import { EditEventScheduleForm } from "@/components/edit-event-schedule-form";
 
@@ -14,6 +14,7 @@ export default async function EditEventSchedulePage({
 
   const event = await getEvent(id);
   if (!event) notFound();
+  const attendanceCount = await getEventAttendanceCount(id);
 
   return (
     <div className="space-y-6">
@@ -23,7 +24,7 @@ export default async function EditEventSchedulePage({
         עריכת מפגש
       </h1>
 
-      <EditEventScheduleForm event={event} />
+      <EditEventScheduleForm event={event} attendanceCount={attendanceCount} />
     </div>
   );
 }
