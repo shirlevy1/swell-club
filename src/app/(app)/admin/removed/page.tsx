@@ -130,7 +130,7 @@ export default async function RemovedMembersPage() {
       {removed.length === 0 ? (
         <EmptyState
           title="אין כאן אף אחד"
-          body="מי שיוסר/תוסר או יעזוב/תעזוב מהקהילה יופיע/תופיע כאן, עם אפשרות לשחזור."
+          body="כשמישהו יעזוב או יוסר מהקהילה, הוא יופיע כאן ותוכלו לשחזר אותו בכל שלב."
         />
       ) : (
         <Card className="divide-y divide-(--color-line)/50 p-0">
