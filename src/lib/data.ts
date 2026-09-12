@@ -1203,7 +1203,7 @@ export async function getAdminData(clubId: string) {
     const eventOrder = new Map(
       demo.demoEvents().map((e) => [e.id, e.starts_at]),
     );
-    const members: AdminMember[] = demo.demoActiveProfiles().map((profile) => {
+    const toAdminMember = (profile: Profile): AdminMember => {
       const mine = attendances
         .filter((a) => a.profileId === profile.id)
         .sort((x, y) =>
@@ -1220,9 +1220,20 @@ export async function getAdminData(clubId: string) {
         latestFaceX: latest?.faceX ?? null,
         latestFaceY: latest?.faceY ?? null,
       };
-    });
+    };
 
-    return { events, members };
+    // demoProfiles() כולל גם מי שכבר הוסר/עזב (הפרופיל לא נמחק, ראו
+    // הערה על removedMemberIds ב-lib/demo/store.ts) — בדיוק הקבוצה
+    // הדרושה לדוחות ההיסטוריים. demoActiveProfiles() מסנן אותם/ן
+    // החוצה, לרשימת "חברי הקהילה" הפעילה בלבד.
+    const members: AdminMember[] = demo
+      .demoActiveProfiles()
+      .map(toAdminMember);
+    const historicalMembers: AdminMember[] = demo
+      .demoProfiles()
+      .map(toAdminMember);
+
+    return { events, members, historicalMembers };
   }
 
   const supabase = await createClient();
@@ -1236,11 +1247,14 @@ export async function getAdminData(clubId: string) {
       .order("starts_at", { ascending: false }),
     supabase
       .from("club_members")
-      .select("profile_id, role, profiles(*)")
-      .eq("club_id", clubId)
+      .select("profile_id, role, status, profiles(*)")
       // ממתינים לאישור לא "חברים" עדיין — יש להם סעיף נפרד
       // (getPendingMembers) עם כפתורי אישור/דחייה, לא רשימה עם 0 נוכחויות.
-      .eq("status", "approved"),
+      // מי שהוסר/ה כן נכלל/ת כאן (לא מסונן/ת ב-SQL) — צריך אותם/ן
+      // בהמשך לדוחות ההיסטוריים (attendanceMatrixCsv), גם אם לא ברשימת
+      // "חברי הקהילה" הפעילה עצמה. הסינון בפועל קורה למטה, בקוד.
+      .eq("club_id", clubId)
+      .neq("status", "pending"),
   ]);
 
   const rows = (eventRows ?? []) as unknown as (SwellEvent & {
@@ -1295,35 +1309,51 @@ export async function getAdminData(clubId: string) {
     attendedProfileIds: e.attendances.map((a) => a.profile_id),
   }));
 
-  const members: AdminMember[] = (
-    (memberRows ?? []) as unknown as {
-      profile_id: string;
-      role: MemberRole;
-      profiles: Profile | null;
-    }[]
-  )
-    .flatMap((m) =>
-      m.profiles
-        ? [
-            {
-              profile: m.profiles,
-              role: m.role,
-              attendedCount: attendedByProfile.get(m.profile_id) ?? 0,
-              latestSelfieUrl: (() => {
-                const path = latestPathByProfile.get(m.profile_id);
-                return path ? (urlByLatestPath.get(path) ?? null) : null;
-              })(),
-              latestFaceX: latestFaceByProfile.get(m.profile_id)?.x ?? null,
-              latestFaceY: latestFaceByProfile.get(m.profile_id)?.y ?? null,
-            },
-          ]
-        : [],
-    )
-    // club_members לא מגיעה עם order() — בלי מיון מפורש הסדר תלוי
-    // בהתנהגות פנימית של Postgres, לא בהצטרפות בפועל. החדשים קודם.
-    .sort((a, b) => b.profile.created_at.localeCompare(a.profile.created_at));
+  const memberRowsTyped = (memberRows ?? []) as unknown as {
+    profile_id: string;
+    role: MemberRole;
+    status: MemberStatus;
+    profiles: Profile | null;
+  }[];
 
-  return { events, members };
+  const toAdminMember = (m: (typeof memberRowsTyped)[number]): AdminMember[] =>
+    m.profiles
+      ? [
+          {
+            profile: m.profiles,
+            role: m.role,
+            attendedCount: attendedByProfile.get(m.profile_id) ?? 0,
+            latestSelfieUrl: (() => {
+              const path = latestPathByProfile.get(m.profile_id);
+              return path ? (urlByLatestPath.get(path) ?? null) : null;
+            })(),
+            latestFaceX: latestFaceByProfile.get(m.profile_id)?.x ?? null,
+            latestFaceY: latestFaceByProfile.get(m.profile_id)?.y ?? null,
+          },
+        ]
+      : [];
+
+  // club_members לא מגיעה עם order() — בלי מיון מפורש הסדר תלוי
+  // בהתנהגות פנימית של Postgres, לא בהצטרפות בפועל. החדשים קודם.
+  const byJoinDateDesc = (a: AdminMember, b: AdminMember) =>
+    b.profile.created_at.localeCompare(a.profile.created_at);
+
+  // "חברי הקהילה" הפעילים — הרשימה בעמוד עצמו, וגם ייצוא ה"חברים"
+  // (פרטי קשר של מי שבאמת חבר/ה היום, לא מי שכבר עזב/הוסר).
+  const members: AdminMember[] = memberRowsTyped
+    .filter((m) => m.status === "approved")
+    .flatMap(toAdminMember)
+    .sort(byJoinDateDesc);
+
+  // חברים פעילים + מי שהוסר/עזב — למטריצת הנוכחות ההיסטורית
+  // (attendanceMatrixCsv) ולדוח נוכחות למפגש ספציפי. מי שנכח/ה בעבר
+  // אמור/ה להישאר בדוחות האלה גם אחרי שכבר לא חבר/ה בקהילה — אחרת
+  // ההיסטוריה נעלמת מהדוחות בדיוק כמו שכמעט נעלמה מעמוד הפרופיל (BIZ-1).
+  const historicalMembers: AdminMember[] = memberRowsTyped
+    .flatMap(toAdminMember)
+    .sort(byJoinDateDesc);
+
+  return { events, members, historicalMembers };
 }
 
 export type EventAttendanceReportRow = {
@@ -1364,11 +1394,14 @@ export async function getEventAttendanceReport(
   const supabase = await createClient();
   const [{ data: memberRows }, { data: rsvpRows }, { data: attendanceRows }] =
     await Promise.all([
+      // מי שהוסר/ה מהקהילה בינתיים עדיין נכלל/ת — דוח מפגש הוא רשומה
+      // היסטורית, ומי שבאמת נכח/ה אז לא אמור/ה להיעלם מהדוח רק כי
+      // כבר לא חבר/ה היום (אותו עיקרון כמו attendanceMatrixCsv).
       supabase
         .from("club_members")
         .select("profile_id, profiles(full_name)")
         .eq("club_id", clubId)
-        .eq("status", "approved"),
+        .neq("status", "pending"),
       supabase
         .from("rsvps")
         .select("profile_id, going")

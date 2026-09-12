@@ -93,8 +93,12 @@ export default async function AdminPage() {
   if (!viewer?.club || viewer.role !== "organizer") redirect("/events");
 
   // ארבע שאילתות בלתי-תלויות זו בזו — בבת אחת, לא ברצף
-  const [{ events, members }, pendingMembers, pendingPhotos, removedMembers] =
-    await Promise.all([
+  const [
+    { events, members, historicalMembers },
+    pendingMembers,
+    pendingPhotos,
+    removedMembers,
+  ] = await Promise.all([
       getAdminData(viewer.club.id),
       getPendingMembers(viewer.club.id),
       getPendingEventPhotos(viewer.club.id),
@@ -153,12 +157,13 @@ export default async function AdminPage() {
   const eventsChronological = [...events].sort(
     (a, b) => a.starts_at.localeCompare(b.starts_at),
   );
-  // חברי הקהילה (מאושרים) שכבר היו חלק ממנה ביום נתון — פרופיל ותא
-  // חברות נוצרים באותה טרנזקציה בהרשמה (handle_new_user()), ולכן
+  // מי שכבר היה חלק מהקהילה ביום נתון — כולל מי שכבר עזב/הוסר מאז,
+  // כי זה גודל הקהילה שהיה נכון היסטורית באותו תאריך, לא היום. פרופיל
+  // ותא חברות נוצרים באותה טרנזקציה בהרשמה (handle_new_user()), ולכן
   // created_at הוא גם בפועל תאריך ההצטרפות לקהילה, בלי צורך בשאילתה
   // נפרדת ל-club_members.joined_at.
   const memberCountAtDate = (iso: string) =>
-    members.filter((m) => m.profile.created_at <= iso).length;
+    historicalMembers.filter((m) => m.profile.created_at <= iso).length;
 
   const eventsCsv = [
     [
@@ -202,16 +207,17 @@ export default async function AdminPage() {
     }),
   ];
 
-  // מטריצת נוכחות: שורה לכל חבר/ה, עמודה לכל מפגש, "כן" איפה שנכח/ה
-  // בפועל (כולל הוספה ידנית) — כדי לראות בבת אחת מי הגיע/ה לאילו
-  // מפגשים לאורך זמן, לא רק סיכום לפי מפגש בודד.
+  // מטריצת נוכחות: שורה לכל מי שהיה/הייתה חבר/ה אי-פעם (גם מי שכבר
+  // עזב/הוסר, לא רק חברים פעילים היום), עמודה לכל מפגש, "כן" איפה
+  // שנכח/ה בפועל (כולל הוספה ידנית) — כדי לראות בבת אחת מי הגיע/ה
+  // לאילו מפגשים לאורך זמן, בלי שההיסטוריה תיעלם כשמישהו/י עוזב/ת.
   const attendanceMatrixCsv = [
     [
       "שם",
       "טלפון",
       ...eventsChronological.map((e) => formatDayMonth(e.starts_at)),
     ],
-    ...members.map((m) => [
+    ...historicalMembers.map((m) => [
       m.profile.full_name,
       formatPhone(m.profile.phone) ?? "",
       ...eventsChronological.map((e) =>
