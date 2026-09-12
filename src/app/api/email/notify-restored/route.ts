@@ -1,12 +1,19 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { adminDb } from "@/lib/push-server";
-import { sendEmail, loginUrl, buildEmailHtml } from "@/lib/email-server";
+import { sendEmail, updatePasswordUrl, buildEmailHtml } from "@/lib/email-server";
 
 /**
  * נקראת מ-RestoreMemberButton מיד אחרי restore_member() מוצלח. זה
  * המייל היחיד באתר שהוא לא מייל מערכת של Supabase Auth — "שוחזרת"
  * הוא תוכן חופשי שאין לו תבנית מובנית בהתחברות/איפוס סיסמה.
+ *
+ * כפתור "התחברות" הוא לא קישור ל-/login רגיל, אלא קישור איפוס סיסמה
+ * אמיתי (בדיוק כמו "שכחתי סיסמה") — לפי בקשת שיר, כי מי שהיה/הייתה
+ * מחוץ לקהילה זמן־מה כנראה לא זוכר/ת את הסיסמה שלו/ה. update-password
+ * (אחרי שמירת סיסמה חדשה) הוא גם המקום ששולח את התראת "ביקש/ה
+ * להצטרף לקהילה" למנהלת — לא כאן, וגם לא ברגע לחיצת "שחזור" עצמה,
+ * כי אז המנהלת כבר יודעת. כך המנהלת נודעת רק כשהאדם באמת חוזר.
  */
 export async function POST(request: Request) {
   const { profile_id } = await request.json().catch(() => ({}));
@@ -52,6 +59,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   }
 
+  const { data: linkData, error: linkError } = await db.auth.admin.generateLink({
+    type: "recovery",
+    email,
+    options: { redirectTo: updatePasswordUrl() },
+  });
+  const actionLink = linkData?.properties?.action_link;
+  if (linkError || !actionLink) {
+    console.error("notify-restored: generateLink failed", linkError);
+    return NextResponse.json({ ok: true });
+  }
+
   await sendEmail(
     email,
     "החשבון שלכם שוחזר",
@@ -68,7 +86,7 @@ export async function POST(request: Request) {
         את הבקשה, ואז תחזרו לראות הכל כרגיל.
       </p>`,
       buttonText: "התחברות",
-      buttonUrl: loginUrl(),
+      buttonUrl: actionLink,
     }),
   );
 
