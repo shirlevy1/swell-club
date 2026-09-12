@@ -68,6 +68,7 @@ export type Viewer = {
   club: Club | null;
   role: MemberRole | null;
   status: MemberStatus | null;
+  joinedAt: string | null;
 };
 
 /** הזהות של מי שמסתכל. כל עמוד ב-(app) מתחיל מכאן. */
@@ -82,6 +83,7 @@ export async function getViewer(): Promise<Viewer | null> {
         club: null,
         role: null,
         status: null,
+        joinedAt: null,
       };
     }
     return {
@@ -93,6 +95,7 @@ export async function getViewer(): Promise<Viewer | null> {
       role: demo.demoMyRole(),
       // בהדגמה אין מסך "ממתין לאישור" — הכל תמיד מאושר.
       status: "approved",
+      joinedAt: null,
     };
   }
 
@@ -116,7 +119,7 @@ export async function getViewer(): Promise<Viewer | null> {
     supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
     supabase
       .from("club_members")
-      .select("role, status, clubs(*)")
+      .select("role, status, joined_at, clubs(*)")
       .eq("profile_id", userId)
       .maybeSingle(),
   ]);
@@ -127,6 +130,7 @@ export async function getViewer(): Promise<Viewer | null> {
     club: (membership?.clubs ?? null) as Club | null,
     role: (membership?.role ?? null) as MemberRole | null,
     status: (membership?.status ?? null) as MemberStatus | null,
+    joinedAt: (membership?.joined_at ?? null) as string | null,
   };
 }
 

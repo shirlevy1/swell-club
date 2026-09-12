@@ -45,6 +45,20 @@ export function hasDecidedAboutPush(): boolean {
   }
 }
 
+/** true אם יש כרגע מנוי push פעיל בפועל — לא רק "הרשאה ניתנה". הרשאת
+ * הדפדפן יכולה להישאר "granted" גם אחרי שהמנוי עצמו בוטל (למשל
+ * עזיבת קהילה, ראו unsubscribeFromPush), אז זו בדיקה נפרדת. */
+export async function hasActiveSubscription(): Promise<boolean> {
+  if (!pushSupported()) return false;
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    const sub = await reg?.pushManager.getSubscription();
+    return !!sub;
+  } catch {
+    return false;
+  }
+}
+
 const DEVICE_ID_KEY = "swell-push-device-id";
 
 /**

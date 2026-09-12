@@ -18,6 +18,19 @@ export default async function AppLayout({
   const viewer = await getViewer();
   if (!viewer) redirect("/login");
 
+  // חברות ששוחזרה (restore_member(), migration 0036) מאפסת joined_at
+  // להיום, בזמן ש-profiles.created_at נשאר תאריך ההרשמה המקורי —
+  // בהרשמה חדשה רגילה שני התאריכים נוצרים באותה טרנזקציה בדיוק
+  // (handle_new_user()), אז הפער ביניהם תמיד כמעט אפס. פער אמיתי
+  // מזהה במדויק "זה שחזור", בלי טור/דגל נפרד — ראו NotificationPromptBanner.
+  const recentlyRestored = !!(
+    viewer.joinedAt &&
+    viewer.profile?.created_at &&
+    new Date(viewer.joinedAt).getTime() -
+      new Date(viewer.profile.created_at).getTime() >
+      60_000
+  );
+
   return (
     <div className="relative isolate flex flex-1 flex-col">
       <div
@@ -72,7 +85,7 @@ export default async function AppLayout({
             </div>
           ) : (
             <>
-              <NotificationPromptBanner />
+              <NotificationPromptBanner recentlyRestored={recentlyRestored} />
               {children}
             </>
           )}
