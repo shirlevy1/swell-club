@@ -420,10 +420,13 @@ export function demoProfiles() {
 /** רק מי שעדיין חבר/ת קהילה בפועל — כמו .eq("status","approved") האמיתי.
  * להשתמש בזה בכל מקום שמונה "חברי קהילה עכשיו" (רשימת ניהול, בורר
  * הוספת נוכחות ידנית); לא בשאילתות היסטוריות, ששם מי שכבר עזב/ה עדיין
- * אמור/ה להופיע (ראו הערה על removedMemberIds למעלה). */
+ * אמור/ה להופיע (ראו הערה על removedMemberIds למעלה). מוציאה גם מי
+ * ששוחזר/ה אבל עוד לא אושר/ה מחדש — הוא/היא "ממתין/ה", לא חבר/ה פעיל/ה,
+ * אחרת הוא/היא היה/הייתה מופיע/ה גם ברשימת הממתינים וגם כאן בו-זמנית. */
 export function demoActiveProfiles() {
   const removed = db().removedMemberIds;
-  return db().profiles.filter((p) => !removed.has(p.id));
+  const pending = new Set(db().pendingMembers.map((m) => m.profileId));
+  return db().profiles.filter((p) => !removed.has(p.id) && !pending.has(p.id));
 }
 
 /** מקביל ל-list_pending_members() ב-RPC האמיתי. */
@@ -647,12 +650,24 @@ export function demoRestoreMember(profileId: string) {
   });
 }
 
-/** מקביל ל-approve_member(): הבקשה הופכת לחברה/חבר קהילה לכל דבר. */
+/** מקביל ל-approve_member(): הבקשה הופכת לחברה/חבר קהילה לכל דבר.
+ * מי ששוחזר/ה (demoRestoreMember) כבר יש לו/ה פרופיל מלא מהחברות
+ * הקודמת — מעדכנים אותו במקום ליצור פרופיל חדש מאפס, אחרת היו נמחקים
+ * לו/ה מגדר, רמת שחייה, ותאריך ההצטרפות/ההסכמות המקוריים. */
 export function demoApproveMember(profileId: string) {
   const list = db().pendingMembers;
   const i = list.findIndex((m) => m.profileId === profileId);
   if (i === -1) return;
   const [request] = list.splice(i, 1);
+  const existing = db().profiles.find((p) => p.id === request.profileId);
+  if (existing) {
+    existing.full_name = request.fullName;
+    existing.phone = request.phone;
+    existing.instagram = request.instagram;
+    existing.birth_date = request.birthDate;
+    existing.city = request.city;
+    return;
+  }
   db().profiles.push({
     id: request.profileId,
     full_name: request.fullName,
