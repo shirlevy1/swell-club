@@ -62,8 +62,10 @@ export default async function AppLayout({
                   כבר לא חלק מהקהילה
                 </h1>
                 <p className="text-sm leading-relaxed text-(--color-ink-soft)">
-                  החשבון הזה כבר לא חבר בקהילה. אם זה לא צפוי, פנו למנהלת
-                  הקהילה.
+                  החשבון הזה כבר לא חבר בקהילה.
+                </p>
+                <p className="text-sm leading-relaxed text-(--color-ink-soft)">
+                  אם זה לא צפוי, פנו למנהלת הקהילה.
                 </p>
                 <SignOutButton />
               </Card>
