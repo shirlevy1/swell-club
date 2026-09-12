@@ -552,6 +552,24 @@ export function demoSetMyRole(role: MemberRole) {
   db().myRole = role;
 }
 
+/** מוחקת סימוני "מגיע/ה" (RSVP) למפגשים עתידיים בלבד — מקביל למחיקה
+ * שקורית בתוך remove_member()/leave_community() האמיתיות. RSVP
+ * למפגשים שכבר עברו נשאר, כחלק מההיסטוריה. */
+function clearFutureRsvps(profileId: string) {
+  const now = new Date().toISOString();
+  const futureEventIds = new Set(
+    demoEvents()
+      .filter((e) => e.starts_at > now)
+      .map((e) => e.id),
+  );
+  const rows = db().rsvps;
+  const kept = rows.filter(
+    (r) => !(r.profileId === profileId && futureEventIds.has(r.eventId)),
+  );
+  rows.length = 0;
+  rows.push(...kept);
+}
+
 /** מקביל ל-remove_member() בשרת: מנהלת מסירה חבר/ה אחר/ת. חוסמת הסרת
  * "אני" — בהדגמה רק "אני" יכול/ה להיות מנהל/ת, ואי אפשר להסיר מנהלת. */
 export function demoRemoveMember(profileId: string) {
@@ -560,6 +578,7 @@ export function demoRemoveMember(profileId: string) {
     removedAt: new Date().toISOString(),
     reason: "removed",
   });
+  clearFutureRsvps(profileId);
 }
 
 /** מקביל ל-leave_community() בשרת: עזיבה עצמית. חסום כשאני מנהלת,
@@ -570,6 +589,7 @@ export function demoLeaveCommunity() {
     removedAt: new Date().toISOString(),
     reason: "left",
   });
+  clearFutureRsvps(ME_ID);
 }
 
 /** מקביל ל-list_removed_members() ב-RPC האמיתי — כולל כל הפרטים
