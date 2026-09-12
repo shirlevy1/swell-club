@@ -70,6 +70,29 @@ export function formatDate(iso: string): string {
   }).format(new Date(iso));
 }
 
+/**
+ * "18.8.2026 06:45" — תאריך מספרי מלא + שעה, לעמודות אקסל שבהן אסור
+ * שתי שורות זהות ייראו כמו כפילות: יום עם כמה מפגשים (בוקר/צהריים/
+ * ערב) מציג formatDate לבד כאותו תאריך בדיוק בכל שורה, בלי דרך להבחין
+ * ביניהם.
+ */
+export function formatDateTimeNumeric(iso: string): string {
+  const date = new Date(iso);
+  const day = new Intl.DateTimeFormat("he-IL", {
+    day: "numeric",
+    timeZone: TZ,
+  }).format(date);
+  const month = new Intl.DateTimeFormat("he-IL", {
+    month: "numeric",
+    timeZone: TZ,
+  }).format(date);
+  const year = new Intl.DateTimeFormat("he-IL", {
+    year: "numeric",
+    timeZone: TZ,
+  }).format(date);
+  return `${day}.${month}.${year} ${formatTime(iso)}`;
+}
+
 /** כמו formatDate, בלי השנה כשהיא השנה הנוכחית — פחות רעש בכרטיס */
 export function formatDateShort(iso: string): string {
   const d = new Date(iso);
