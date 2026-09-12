@@ -45,10 +45,6 @@ export function loginUrl(): string {
   return `${SITE_URL}/login`;
 }
 
-export function updatePasswordUrl(): string {
-  return `${SITE_URL}/update-password`;
-}
-
 /**
  * עטיפת HTML משותפת, באותו סגנון בדיוק כמו תבניות המייל של
  * Supabase (איפוס סיסמה/אימות הרשמה) — אותם טוקנים כמו האתר עצמו

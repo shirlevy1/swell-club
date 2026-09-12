@@ -20,7 +20,6 @@ export default function UpdatePasswordPage() {
   // היה מתגלה רק אחרי לחיצה על "שמירה" — בשגיאה אנגלית גולמית.
   const [checking, setChecking] = useState(!demoMode);
   const [linkValid, setLinkValid] = useState(demoMode);
-  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     if (demoMode) return;
@@ -30,7 +29,6 @@ export default function UpdatePasswordPage() {
       .then(({ data }) => {
         if (cancelled) return;
         setLinkValid(!!data.user);
-        setUserId(data.user?.id ?? null);
         setChecking(false);
       })
       .catch(() => {
@@ -65,19 +63,6 @@ export default function UpdatePasswordPage() {
         return setError(
           authErrorMessage(updateError, "לא הצלחנו לעדכן את הסיסמה. נסו שוב."),
         );
-      }
-
-      // מכסה גם את מי שחוזר/ת דרך מייל שחזור חברות (הכפתור שם הוא
-      // בעצם קישור איפוס סיסמה) — הנתיב היחיד שיודע להודיע למנהלת
-      // שהאדם באמת ניסה לחזור. הבדיקה שהחברות עדיין 'ממתין/ה' כבר
-      // קיימת בתוך ה-route עצמו, אז למי שסתם שכח/ה סיסמה (וכבר
-      // מאושר/ת) זה לא שולח שום התראה.
-      if (userId) {
-        fetch("/api/push/notify-new-member", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ profile_id: userId }),
-        }).catch(() => {});
       }
 
       router.push("/events");

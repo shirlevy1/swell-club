@@ -54,10 +54,11 @@ function LoginForm() {
     // להחזיר error מסודר — בלי try/catch הכפתור היה נשאר נעול על
     // "רגע…" לצמיתות, בלי שום הודעה.
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: String(form.get("email") ?? "").trim(),
-        password: String(form.get("password") ?? ""),
-      });
+      const { data: signInData, error: signInError } =
+        await supabase.auth.signInWithPassword({
+          email: String(form.get("email") ?? "").trim(),
+          password: String(form.get("password") ?? ""),
+        });
       setPending(false);
 
       if (signInError) {
@@ -65,6 +66,18 @@ function LoginForm() {
           authErrorMessage(signInError, "לא הצלחנו להתחבר. נסו שוב."),
         );
         return;
+      }
+
+      // מכסה גם מי שחוזר/ת אחרי שחזור חברות — זה הרגע היחיד שבו
+      // המנהלת נודעת שהאדם באמת ניסה להתחבר מחדש, לא כשהיא עצמה
+      // לוחצת "שחזור". ה-route בודק בעצמו שהחברות עדיין 'ממתין/ה',
+      // אז למי שכבר מאושר/ת (התחברות רגילה) זה לא שולח שום התראה.
+      if (signInData.user) {
+        fetch("/api/push/notify-new-member", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ profile_id: signInData.user.id }),
+        }).catch(() => {});
       }
 
       router.push(safeNext(params.get("next")));
