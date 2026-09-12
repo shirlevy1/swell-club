@@ -40,7 +40,7 @@ export default async function AppLayout({
               עמודים — לפני שמנהלת אישרה, אין כלום לנווט אליו בכל מקרה. */}
           {viewer.status === "pending" ? (
             <div className="flex flex-1 items-center pt-10">
-              <Card className="space-y-4 text-center">
+              <Card className="w-full space-y-4 text-center">
                 <h1 className="font-[family-name:var(--font-display)] text-xl font-bold">
                   עוד רגע אתם איתנו במים
                 </h1>
@@ -57,7 +57,7 @@ export default async function AppLayout({
             // או שאין שורה בכלל (חשבון ישן/מקרה תיאורטי). בלי המסך
             // הזה כל שאר העמודים מניחים viewer.club לא ריק ומתרסקים.
             <div className="flex flex-1 items-center pt-10">
-              <Card className="space-y-4 text-center">
+              <Card className="w-full space-y-4 text-center">
                 <h1 className="font-[family-name:var(--font-display)] text-xl font-bold">
                   כבר לא חלק מהקהילה
                 </h1>
