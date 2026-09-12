@@ -44,3 +44,8 @@ export async function sendEmail(
 export function loginUrl(): string {
   return `${SITE_URL}/login`;
 }
+
+/** אותו קובץ לוגו אמיתי שמוצג באתר עצמו (public/logo.png) — לא שחזור. */
+export function logoUrl(): string {
+  return `${SITE_URL}/logo.png`;
+}

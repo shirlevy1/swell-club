@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { adminDb } from "@/lib/push-server";
-import { sendEmail, loginUrl } from "@/lib/email-server";
+import { sendEmail, loginUrl, logoUrl } from "@/lib/email-server";
 
 /**
  * נקראת מ-RestoreMemberButton מיד אחרי restore_member() מוצלח. זה
@@ -55,12 +55,17 @@ export async function POST(request: Request) {
   await sendEmail(
     email,
     "החשבון שלכם שוחזר",
-    `<p>שלום ${profile?.full_name ?? ""},</p>
+    `<div dir="rtl" style="font-family:Arial,sans-serif;">
+<div style="text-align:center;margin-bottom:24px;">
+  <img src="${logoUrl()}" alt="Swell Club" width="64" height="64" style="border-radius:12px;" />
+</div>
+<p>שלום ${profile?.full_name ?? ""},</p>
 <p>החשבון שלכם ב-Swell Club שוחזר. התחברו לאתר כדי להמשיך — הבקשה
 שלכם תעבור עוד פעם קצרה לאישור מנהלת הקהילה, ואז תחזרו לראות הכל
 כרגיל.</p>
 <p><a href="${loginUrl()}">התחברות ל-Swell Club</a></p>
-<p>בגלים,<br>צוות Swell Club</p>`,
+<p>בגלים,<br>צוות Swell Club</p>
+</div>`,
   );
 
   return NextResponse.json({ ok: true });
