@@ -14,8 +14,9 @@ import { Notice } from "./ui";
  * (ראו remove-member-button). מנהלת יכולה לשחזר את החברות בכל שלב
  * מ"מי שכבר לא בקהילה" — אין דרך עצמית לחזור, רק דרך המנהלת.
  *
- * במצב אמיתי מתנתקים אחרי העזיבה — אין טעם להשאיר מחוברים למסך
- * "כבר לא חלק מהקהילה" כשאפשר פשוט לסיים שם.
+ * לפי בקשת שיר: לא מתנתקים אוטומטית אחרי העזיבה — נשארים מחוברים
+ * ורואים מיד את מסך "כבר לא חלק מהקהילה" (דרך שער הסטטוס ב-layout),
+ * עם אפשרות להתנתק משם ביוזמתם/ן, או להתחבר מחדש דרך מייל השחזור.
  */
 export function LeaveCommunityButton() {
   const router = useRouter();
@@ -46,11 +47,7 @@ export function LeaveCommunityButton() {
       }
 
       await unsubscribeFromPush();
-      await fetch("/auth/signout", { method: "POST" });
-      // רענון מלא, לא router.push — כדי שלא יישאר שום מטמון RSC ישן
-      // מהסשן שהתנתק ממנו הרגע
-      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-      window.location.href = "/";
+      router.refresh();
     } catch {
       setPending(false);
       setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
