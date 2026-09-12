@@ -5,7 +5,7 @@ import {
   ageInYears,
   byGender,
   formatDate,
-  formatDateShort,
+  formatDateNumericPadded,
   formatDateTimeNumeric,
   formatPhone,
   genderLabel,
@@ -26,6 +26,18 @@ function reasonLabel(reason: RemovedReason, gender: Gender | null): string {
       return byGender(gender, "הוסר ע״י מנהלת", "הוסרה ע״י מנהלת");
     case "rejected":
       return "בקשת הצטרפות נדחתה";
+  }
+}
+
+/** ניסוח קצר לשורה בכרטיס — "הוסר ב-12.09.2026", לא "לא בקהילה מאז...". */
+function removalVerb(reason: RemovedReason, gender: Gender | null): string {
+  switch (reason) {
+    case "left":
+      return byGender(gender, "עזב", "עזבה");
+    case "removed":
+      return byGender(gender, "הוסר", "הוסרה");
+    case "rejected":
+      return byGender(gender, "נדחה", "נדחתה");
   }
 }
 
@@ -131,10 +143,9 @@ export default async function RemovedMembersPage() {
                 <p className="truncate text-sm font-semibold">
                   {m.fullName}
                 </p>
-                {m.removedAt && (
+                {m.removedAt && m.removedReason && (
                   <p className="text-xs text-(--color-ink-faint)">
-                    לא בקהילה מאז {formatDateShort(m.removedAt)}
-                    {m.removedReason && ` · ${reasonLabel(m.removedReason, m.gender)}`}
+                    {`${removalVerb(m.removedReason, m.gender)} ב-${formatDateNumericPadded(m.removedAt)}`}
                   </p>
                 )}
               </div>

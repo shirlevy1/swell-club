@@ -93,6 +93,16 @@ export function formatDateTimeNumeric(iso: string): string {
   return `${day}.${month}.${year} ${formatTime(iso)}`;
 }
 
+/** "12.09.2026" — תאריך מספרי עם אפסים מובילים, לשורות קצרות כמו "הוסר ב-...". */
+export function formatDateNumericPadded(iso: string): string {
+  return new Intl.DateTimeFormat("he-IL", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: TZ,
+  }).format(new Date(iso));
+}
+
 /** כמו formatDate, בלי השנה כשהיא השנה הנוכחית — פחות רעש בכרטיס */
 export function formatDateShort(iso: string): string {
   const d = new Date(iso);
