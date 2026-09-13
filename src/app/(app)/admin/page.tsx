@@ -232,10 +232,25 @@ export default async function AdminPage() {
 
       <PageHeader
         title="ניהול"
-        subtitle={[
-          members.length === 1 ? "חבר אחד" : `${members.length} חברים`,
-          events.length === 1 ? "מפגש אחד" : `${events.length} מפגשים`,
-        ].join(" · ")}
+        subtitle={
+          <>
+            {members.length === 1 ? (
+              "חבר אחד"
+            ) : (
+              <>
+                <span className="ltr-nums">{members.length}</span> חברים
+              </>
+            )}{" "}
+            ·{" "}
+            {events.length === 1 ? (
+              "מפגש אחד"
+            ) : (
+              <>
+                <span className="ltr-nums">{events.length}</span> מפגשים
+              </>
+            )}
+          </>
+        }
         action={
           <LinkButton href="/admin/events/new" className="min-h-10 px-4 text-sm">
             מפגש חדש
@@ -246,9 +261,14 @@ export default async function AdminPage() {
       {pendingMembers.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
-            {pendingMembers.length === 1
-              ? "בקשת הצטרפות אחת ממתינה"
-              : `${pendingMembers.length} בקשות הצטרפות ממתינות`}
+            {pendingMembers.length === 1 ? (
+              "בקשת הצטרפות אחת ממתינה"
+            ) : (
+              <>
+                <span className="ltr-nums">{pendingMembers.length}</span>{" "}
+                בקשות הצטרפות ממתינות
+              </>
+            )}
           </h2>
           <Card className="divide-y divide-(--color-line)/50 p-0">
             {pendingMembers.map((m) => (

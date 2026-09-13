@@ -40,7 +40,12 @@ export function StreakCard({
             ? byGender(gender, "מתחיל מחדש", "מתחילה מחדש")
             : current === 1
               ? "שבוע אחד ברצף על הגל"
-              : `${current} שבועות ברצף על הגל`}
+              : (
+                  <>
+                    <span className="ltr-nums">{current}</span> שבועות ברצף
+                    על הגל
+                  </>
+                )}
         </p>
       </div>
 

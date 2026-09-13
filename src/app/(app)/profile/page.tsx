@@ -99,7 +99,12 @@ export default async function ProfilePage() {
                   ? "עוד לא הייתם איתנו באף מפגש"
                   : count === 1
                     ? "הייתם איתנו במפגש אחד"
-                    : `הייתם איתנו ב־${count} מפגשים`}
+                    : (
+                        <>
+                          הייתם איתנו ב־<span className="ltr-nums">{count}</span>{" "}
+                          מפגשים
+                        </>
+                      )}
             </p>
           </div>
         </div>

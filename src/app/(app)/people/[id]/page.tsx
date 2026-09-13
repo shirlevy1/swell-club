@@ -123,10 +123,12 @@ export default async function PersonPage({
                 ? byGender(person.gender, "עוד לא היה איתנו", "עוד לא הייתה איתנו")
                 : person.attendedCount === 1
                   ? byGender(person.gender, "היה איתנו במפגש אחד", "הייתה איתנו במפגש אחד")
-                  : byGender(
-                      person.gender,
-                      `היה איתנו ב־${person.attendedCount} מפגשים`,
-                      `הייתה איתנו ב־${person.attendedCount} מפגשים`,
+                  : (
+                      <>
+                        {byGender(person.gender, "היה איתנו", "הייתה איתנו")} ב־
+                        <span className="ltr-nums">{person.attendedCount}</span>{" "}
+                        מפגשים
+                      </>
                     )}
           </p>
         </div>
