@@ -1,17 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
 import { createEventAction } from "@/lib/demo/actions";
-import {
-  resolveMapsLinkAction,
-  searchLocationAction,
-  type LocationSuggestion,
-} from "@/lib/actions";
 import { DEFAULT_EVENT_LOCATION } from "@/lib/maps";
+import { minutesField, useEventLocation } from "@/lib/use-event-location";
 import {
   defaultAgendaText,
   defaultEquipmentHeading,
@@ -19,6 +15,7 @@ import {
   defaultEventTitle,
 } from "@/lib/agenda";
 import { EventDateTimeInput } from "@/components/event-datetime-input";
+import { LocationSuggestions } from "@/components/location-suggestions";
 import { Button, Card, Field, Input, Notice, Textarea } from "@/components/ui";
 
 // Leaflet ניגש ל-window בזמן הטעינה — חייב להיטען רק בדפדפן
@@ -31,13 +28,6 @@ const MapPicker = dynamic(
     ),
   },
 );
-
-/** `min`/`max` ב-HTML הם הצעה בלבד. הטווח נאכף גם כאן וגם ב-constraint. */
-function minutesField(raw: FormDataEntryValue | null): number {
-  const n = Number(String(raw ?? "").trim());
-  if (!Number.isFinite(n)) return 30;
-  return Math.min(180, Math.max(0, Math.round(n)));
-}
 
 /** עכשיו, מעוגל כלפי מעלה לשעה העגולה הקרובה — 19:48 הופך ל-20:00. */
 function roundedNow(): Date {
@@ -52,16 +42,14 @@ function roundedNow(): Date {
 
 export default function NewEventPage() {
   const router = useRouter();
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>({
+  const location = useEventLocation({
+    locationName: DEFAULT_EVENT_LOCATION.name,
     lat: DEFAULT_EVENT_LOCATION.lat,
     lng: DEFAULT_EVENT_LOCATION.lng,
+    mapsUrl: DEFAULT_EVENT_LOCATION.mapsUrl,
+    skipInitialSearch: false,
   });
-  const [locationName, setLocationName] = useState<string>(
-    DEFAULT_EVENT_LOCATION.name,
-  );
-  const [mapsUrl, setMapsUrl] = useState<string | null>(
-    DEFAULT_EVENT_LOCATION.mapsUrl,
-  );
+  const [radius, setRadius] = useState(150);
 
   // null בהתחלה כדי שלא יהיה פער בין מה שהשרת רינדר למה שהדפדפן
   // מחשב (לשעה המקומית) — מתמלא ברגע שהעמוד עולה בדפדפן.
@@ -101,113 +89,12 @@ export default function NewEventPage() {
     if (!agendaTouched) setAgendaText(defaultAgendaText(date.toISOString()));
   }
 
-  // חיפוש מיקום תוך כדי הקלדה בשדה "שם המקום" עצמו — זו הדרך
-  // הראשית לקבוע מיקום. הבחירה ממלאת גם את הקואורדינטות וגם קישור
-  // מפות, לא רק את השם.
-  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
-  const [searching, setSearching] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
-  // איזו הצעה מודגשת כרגע כשמנווטים עם חצי המקלדת. -1 = כלום מודגש.
-  const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  // בחירת הצעה גם היא משנה את locationName — בלי הדגל הזה הבחירה
-  // הייתה מפעילה חיפוש חדש על השם שהיא עצמה קבעה.
-  const skipNextSearch = useRef(false);
-  // עולה בכל פעם שהמיקום נקבע פרוגרמטית (בחירה מהרשימה, קישור שהודבק) —
-  // כדי שהמפה תזוז לשם. לא עולה בלחיצה ידנית על המפה, כי שם המשתמשת
-  // כבר רואה בדיוק את הנקודה שבה היא לחצה.
-  const [focusSignal, setFocusSignal] = useState(0);
-
-  useEffect(() => {
-    if (skipNextSearch.current) {
-      skipNextSearch.current = false;
-      return;
-    }
-    const query = locationName.trim();
-    setHighlightedIndex(-1);
-    if (query.length < 3) {
-      setSuggestions([]);
-      setSearchError(null);
-      setSearching(false);
-      return;
-    }
-    setSearching(true);
-    setSearchError(null);
-    // נראה מיד עם תחילת החיפוש (לא רק כשהוא מסתיים) — כדי שתמיד יהיה
-    // ברור שמשהו קורה, במקום מסך ריק בזמן ההמתנה.
-    setShowSuggestions(true);
-    const id = setTimeout(async () => {
-      const result = await searchLocationAction(query);
-      if (result.ok) {
-        setSuggestions(result.suggestions);
-      } else {
-        setSuggestions([]);
-        setSearchError(result.error);
-      }
-      setSearching(false);
-    }, 400);
-    return () => clearTimeout(id);
-  }, [locationName]);
-
-  function chooseSuggestion(s: LocationSuggestion) {
-    skipNextSearch.current = true;
-    setLocationName(s.shortLabel);
-    setCoords({ lat: s.lat, lng: s.lng });
-    // חיפוש טקסטואלי, לא נ.צ גולמי — כתובת פותחת דף מקום אמיתי
-    // (עם תמונה, Street View וכו'), נ.צ פותח סתם סיכה עם קואורדינטות
-    setMapsUrl(
-      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.shortLabel)}`,
-    );
-    setSuggestions([]);
-    setShowSuggestions(false);
-    setHighlightedIndex(-1);
-    setFocusSignal((n) => n + 1);
-  }
-
-  // --- גיבוי ידני: הדבקת קישור Google Maps, למקרה שהחיפוש לא מצא
-  // בדיוק את הנקודה הנכונה ---
-  const [mapsLinkInput, setMapsLinkInput] = useState("");
-  const [resolvingLink, setResolvingLink] = useState(false);
-  const [linkError, setLinkError] = useState<string | null>(null);
-  const [radius, setRadius] = useState(150);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  async function onResolveMapsLink() {
-    if (!mapsLinkInput.trim()) return;
-    setLinkError(null);
-    setResolvingLink(true);
-
-    let result;
-    try {
-      result = await resolveMapsLinkAction(mapsLinkInput.trim());
-    } catch {
-      // כשל רשת אמיתי זורק חריגה במקום להחזיר error מסודר — בלי
-      // try/catch הכפתור היה נשאר נעול על "מאתרים…" לצמיתות.
-      setResolvingLink(false);
-      setLinkError("לא הצלחנו לפתוח את הקישור. בדקו את החיבור ונסו שוב.");
-      return;
-    }
-    setResolvingLink(false);
-
-    if (!result.ok) {
-      setLinkError(result.error);
-      return;
-    }
-
-    setCoords({ lat: result.lat, lng: result.lng });
-    setMapsUrl(result.url);
-    if (result.name) {
-      skipNextSearch.current = true;
-      setLocationName(result.name);
-    }
-    setFocusSignal((n) => n + 1);
-  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    if (!coords) return setError("סמנו על המפה איפה נפגשים.");
 
     const form = new FormData(e.currentTarget);
     const startsAtLocal = String(form.get("starts_at") ?? "");
@@ -235,11 +122,11 @@ export default function NewEventPage() {
     const draft = {
       title: String(form.get("title") ?? "").trim(),
       starts_at: startsAtISO,
-      location_name: locationName.trim(),
-      lat: coords.lat,
-      lng: coords.lng,
+      location_name: location.locationName.trim(),
+      lat: location.coords.lat,
+      lng: location.coords.lng,
       // ברירת המחדל, או קישור ה-Maps שנקבע מהחיפוש/הקישור שהודבק
-      maps_url: mapsUrl,
+      maps_url: location.mapsUrl,
       checkin_radius_m: radius,
       // `?? 15` לא עוזר: שדה שרוקן מחזיר מחרוזת ריקה ולא null, ו-Number("")
       // הוא 0 — כלומר החלון נפתח בדיוק בשעת ההתחלה, בשקט.
@@ -488,97 +375,30 @@ export default function NewEventPage() {
                 name="location_name"
                 required
                 autoComplete="off"
-                value={locationName}
-                onChange={(e) => {
-                  setLocationName(e.target.value);
-                  // עריכה חופשית אחרי שנבחר משהו כבר לא קשורה לקישור
-                  // הישן — הוא כבר לא בהכרח מתאר את מה שכתוב עכשיו
-                  setMapsUrl(null);
-                }}
-                onKeyDown={(e) => {
-                  if (!showSuggestions) return;
-                  // ESC סוגר תמיד כשהרשימה פתוחה — גם בזמן חיפוש וגם
-                  // כשאין תוצאות. הוא היה תקוע מאחורי הבדיקה של
-                  // suggestions.length, ולכן לא עשה כלום כשהיו הצעות.
-                  if (e.key === "Escape") {
-                    setShowSuggestions(false);
-                    return;
-                  }
-                  if (suggestions.length === 0) return;
-                  if (e.key === "ArrowDown") {
-                    e.preventDefault();
-                    setHighlightedIndex((i) =>
-                      i < suggestions.length - 1 ? i + 1 : 0,
-                    );
-                  } else if (e.key === "ArrowUp") {
-                    e.preventDefault();
-                    setHighlightedIndex((i) =>
-                      i > 0 ? i - 1 : suggestions.length - 1,
-                    );
-                  } else if (e.key === "Enter") {
-                    if (highlightedIndex >= 0) {
-                      e.preventDefault();
-                      chooseSuggestion(suggestions[highlightedIndex]);
-                    }
-                  }
-                }}
+                value={location.locationName}
+                onChange={(e) => location.setLocationName(e.target.value)}
+                onKeyDown={location.onLocationInputKeyDown}
               />
             </Field>
 
-            {showSuggestions &&
-              (searching || suggestions.length > 0 || searchError) && (
-                <ul className="absolute z-[1200] mt-1 w-full overflow-hidden rounded-xl border border-(--color-line) bg-(--color-surface) shadow-lg">
-                  {searching && (
-                    <li className="px-4 py-2.5 text-sm text-(--color-ink-faint)">
-                      מחפשים…
-                    </li>
-                  )}
-                  {!searching && searchError && (
-                    <li className="px-4 py-2.5 text-sm text-(--color-fail)">
-                      {searchError} אפשר להשתמש בכלים הידניים למטה.
-                    </li>
-                  )}
-                  {!searching &&
-                    !searchError &&
-                    suggestions.length === 0 && (
-                      <li className="px-4 py-2.5 text-sm text-(--color-ink-faint)">
-                        לא נמצאה התאמה. אפשר להשתמש בכלים הידניים למטה.
-                      </li>
-                    )}
-                  {!searching &&
-                    suggestions.map((s, i) => (
-                      <li key={`${s.lat},${s.lng},${i}`}>
-                        <button
-                          type="button"
-                          onClick={() => chooseSuggestion(s)}
-                          onMouseEnter={() => setHighlightedIndex(i)}
-                          className={
-                            "block w-full px-4 py-2.5 text-start text-sm " +
-                            (i === highlightedIndex
-                              ? "bg-(--color-haze)"
-                              : "hover:bg-(--color-haze)")
-                          }
-                        >
-                          {s.label}
-                        </button>
-                      </li>
-                    ))}
-                </ul>
-              )}
+            <LocationSuggestions
+              show={location.showSuggestions}
+              searching={location.searching}
+              searchError={location.searchError}
+              suggestions={location.suggestions}
+              highlightedIndex={location.highlightedIndex}
+              onHighlight={location.setHighlightedIndex}
+              onChoose={location.chooseSuggestion}
+            />
           </div>
 
           <div className="relative z-0">
             <MapPicker
-              lat={coords?.lat ?? null}
-              lng={coords?.lng ?? null}
+              lat={location.coords.lat}
+              lng={location.coords.lng}
               radiusM={radius}
-              focusSignal={focusSignal}
-              onChange={(c) => {
-                setCoords(c);
-                // סימון ידני מבטל את הקישור שנשמר — הוא כבר לא מתאר את
-                // הנקודה שנבחרה בפועל
-                setMapsUrl(null);
-              }}
+              focusSignal={location.focusSignal}
+              onChange={location.setCoords}
             />
           </div>
 
@@ -611,21 +431,23 @@ export default function NewEventPage() {
                 type="url"
                 dir="ltr"
                 placeholder="https://maps.app.goo.gl/…"
-                value={mapsLinkInput}
-                onChange={(e) => setMapsLinkInput(e.target.value)}
+                value={location.mapsLinkInput}
+                onChange={(e) => location.setMapsLinkInput(e.target.value)}
                 className="text-left"
               />
               <Button
                 type="button"
                 variant="secondary"
-                disabled={resolvingLink || !mapsLinkInput.trim()}
-                onClick={onResolveMapsLink}
+                disabled={location.resolvingLink || !location.mapsLinkInput.trim()}
+                onClick={location.onResolveMapsLink}
                 className="shrink-0"
               >
-                {resolvingLink ? "מאתרים…" : "עדכון מיקום"}
+                {location.resolvingLink ? "מאתרים…" : "עדכון מיקום"}
               </Button>
             </div>
-            {linkError && <p className="text-xs text-(--color-fail)">{linkError}</p>}
+            {location.linkError && (
+              <p className="text-xs text-(--color-fail)">{location.linkError}</p>
+            )}
           </div>
         </Card>
 

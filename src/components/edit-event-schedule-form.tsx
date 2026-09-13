@@ -1,16 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
 import { updateEventScheduleAction } from "@/lib/demo/actions";
-import {
-  resolveMapsLinkAction,
-  searchLocationAction,
-  type LocationSuggestion,
-} from "@/lib/actions";
+import { minutesField, useEventLocation } from "@/lib/use-event-location";
 import {
   defaultAgendaText,
   defaultEquipmentHeading,
@@ -21,6 +17,7 @@ import {
 } from "@/lib/agenda";
 import type { SwellEvent } from "@/lib/types";
 import { EventDateTimeInput } from "./event-datetime-input";
+import { LocationSuggestions } from "./location-suggestions";
 import { Button, Card, Field, Input, Notice, Textarea } from "./ui";
 
 // Leaflet ניגש ל-window בזמן הטעינה — חייב להיטען רק בדפדפן
@@ -33,13 +30,6 @@ const MapPicker = dynamic(
     ),
   },
 );
-
-/** `min`/`max` ב-HTML הם הצעה בלבד. הטווח נאכף גם כאן וגם ב-constraint. */
-function minutesField(raw: FormDataEntryValue | null): number {
-  const n = Number(String(raw ?? "").trim());
-  if (!Number.isFinite(n)) return 30;
-  return Math.min(180, Math.max(0, Math.round(n)));
-}
 
 /**
  * עריכת מפגש קיים — כל השדות, לא רק תיאור/לו״ז/ציוד. עד כאן היה
@@ -63,12 +53,14 @@ export function EditEventScheduleForm({
   // אחר בטופס (תיאור, מיקום וכו'), ומוחק שינוי שעה/תאריך שכבר נבחר.
   const [startsAtDefault] = useState(() => new Date(event.starts_at));
 
-  const [locationName, setLocationName] = useState(event.location_name);
-  const [coords, setCoords] = useState<{ lat: number; lng: number }>({
+  const location = useEventLocation({
+    locationName: event.location_name,
     lat: event.lat,
     lng: event.lng,
+    mapsUrl: event.maps_url,
+    // המיקום כבר נכון (זה מפגש קיים) — אין צורך לחפש עליו מיד.
+    skipInitialSearch: true,
   });
-  const [mapsUrl, setMapsUrl] = useState<string | null>(event.maps_url);
   const [radius, setRadius] = useState(event.checkin_radius_m);
 
   const [description, setDescription] = useState(event.description ?? "");
@@ -102,93 +94,8 @@ export function EditEventScheduleForm({
     setAgendaText(defaultAgendaText(date.toISOString()));
   }
 
-  // חיפוש מיקום תוך כדי הקלדה — אותה לוגיקה בדיוק כמו בטופס "מפגש חדש"
-  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
-  const [searching, setSearching] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
-  const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const skipNextSearch = useRef(true); // הערך ההתחלתי כבר נכון — לא לחפש עליו מיד
-  const [focusSignal, setFocusSignal] = useState(0);
-
-  useEffect(() => {
-    if (skipNextSearch.current) {
-      skipNextSearch.current = false;
-      return;
-    }
-    const query = locationName.trim();
-    setHighlightedIndex(-1);
-    if (query.length < 3) {
-      setSuggestions([]);
-      setSearchError(null);
-      setSearching(false);
-      return;
-    }
-    setSearching(true);
-    setSearchError(null);
-    setShowSuggestions(true);
-    const id = setTimeout(async () => {
-      const result = await searchLocationAction(query);
-      if (result.ok) {
-        setSuggestions(result.suggestions);
-      } else {
-        setSuggestions([]);
-        setSearchError(result.error);
-      }
-      setSearching(false);
-    }, 400);
-    return () => clearTimeout(id);
-  }, [locationName]);
-
-  function chooseSuggestion(s: LocationSuggestion) {
-    skipNextSearch.current = true;
-    setLocationName(s.shortLabel);
-    setCoords({ lat: s.lat, lng: s.lng });
-    setMapsUrl(
-      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.shortLabel)}`,
-    );
-    setSuggestions([]);
-    setShowSuggestions(false);
-    setHighlightedIndex(-1);
-    setFocusSignal((n) => n + 1);
-  }
-
-  const [mapsLinkInput, setMapsLinkInput] = useState("");
-  const [resolvingLink, setResolvingLink] = useState(false);
-  const [linkError, setLinkError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  async function onResolveMapsLink() {
-    if (!mapsLinkInput.trim()) return;
-    setLinkError(null);
-    setResolvingLink(true);
-
-    let result;
-    try {
-      result = await resolveMapsLinkAction(mapsLinkInput.trim());
-    } catch {
-      // כשל רשת אמיתי זורק חריגה במקום להחזיר error מסודר — בלי
-      // try/catch הכפתור היה נשאר נעול על "מאתרים…" לצמיתות.
-      setResolvingLink(false);
-      setLinkError("לא הצלחנו לפתוח את הקישור. בדקו את החיבור ונסו שוב.");
-      return;
-    }
-    setResolvingLink(false);
-
-    if (!result.ok) {
-      setLinkError(result.error);
-      return;
-    }
-
-    setCoords({ lat: result.lat, lng: result.lng });
-    setMapsUrl(result.url);
-    if (result.name) {
-      skipNextSearch.current = true;
-      setLocationName(result.name);
-    }
-    setFocusSignal((n) => n + 1);
-  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -215,10 +122,10 @@ export function EditEventScheduleForm({
     const patch = {
       title: String(form.get("title") ?? "").trim(),
       starts_at: startsAtISO,
-      location_name: locationName.trim(),
-      lat: coords.lat,
-      lng: coords.lng,
-      maps_url: mapsUrl,
+      location_name: location.locationName.trim(),
+      lat: location.coords.lat,
+      lng: location.coords.lng,
+      maps_url: location.mapsUrl,
       checkin_radius_m: radius,
       checkin_opens_before_min: minutesField(form.get("opens_before")),
       checkin_closes_after_min: minutesField(form.get("closes_after")),
@@ -438,90 +345,30 @@ export function EditEventScheduleForm({
               name="location_name"
               required
               autoComplete="off"
-              value={locationName}
-              onChange={(e) => {
-                setLocationName(e.target.value);
-                setMapsUrl(null);
-              }}
-              onKeyDown={(e) => {
-                if (!showSuggestions) return;
-                if (e.key === "Escape") {
-                  setShowSuggestions(false);
-                  return;
-                }
-                if (suggestions.length === 0) return;
-                if (e.key === "ArrowDown") {
-                  e.preventDefault();
-                  setHighlightedIndex((i) =>
-                    i < suggestions.length - 1 ? i + 1 : 0,
-                  );
-                } else if (e.key === "ArrowUp") {
-                  e.preventDefault();
-                  setHighlightedIndex((i) =>
-                    i > 0 ? i - 1 : suggestions.length - 1,
-                  );
-                } else if (e.key === "Enter") {
-                  if (highlightedIndex >= 0) {
-                    e.preventDefault();
-                    chooseSuggestion(suggestions[highlightedIndex]);
-                  }
-                }
-              }}
+              value={location.locationName}
+              onChange={(e) => location.setLocationName(e.target.value)}
+              onKeyDown={location.onLocationInputKeyDown}
             />
           </Field>
 
-          {showSuggestions &&
-            (searching || suggestions.length > 0 || searchError) && (
-              <ul className="absolute z-[1200] mt-1 w-full overflow-hidden rounded-xl border border-(--color-line) bg-(--color-surface) shadow-lg">
-                {searching && (
-                  <li className="px-4 py-2.5 text-sm text-(--color-ink-faint)">
-                    מחפשים…
-                  </li>
-                )}
-                {!searching && searchError && (
-                  <li className="px-4 py-2.5 text-sm text-(--color-fail)">
-                    {searchError} אפשר להשתמש בכלים הידניים למטה.
-                  </li>
-                )}
-                {!searching &&
-                  !searchError &&
-                  suggestions.length === 0 && (
-                    <li className="px-4 py-2.5 text-sm text-(--color-ink-faint)">
-                      לא נמצאה התאמה. אפשר להשתמש בכלים הידניים למטה.
-                    </li>
-                  )}
-                {!searching &&
-                  suggestions.map((s, i) => (
-                    <li key={`${s.lat},${s.lng},${i}`}>
-                      <button
-                        type="button"
-                        onClick={() => chooseSuggestion(s)}
-                        onMouseEnter={() => setHighlightedIndex(i)}
-                        className={
-                          "block w-full px-4 py-2.5 text-start text-sm " +
-                          (i === highlightedIndex
-                            ? "bg-(--color-haze)"
-                            : "hover:bg-(--color-haze)")
-                        }
-                      >
-                        {s.label}
-                      </button>
-                    </li>
-                  ))}
-              </ul>
-            )}
+          <LocationSuggestions
+            show={location.showSuggestions}
+            searching={location.searching}
+            searchError={location.searchError}
+            suggestions={location.suggestions}
+            highlightedIndex={location.highlightedIndex}
+            onHighlight={location.setHighlightedIndex}
+            onChoose={location.chooseSuggestion}
+          />
         </div>
 
         <div className="relative z-0">
           <MapPicker
-            lat={coords.lat}
-            lng={coords.lng}
+            lat={location.coords.lat}
+            lng={location.coords.lng}
             radiusM={radius}
-            focusSignal={focusSignal}
-            onChange={(c) => {
-              setCoords(c);
-              setMapsUrl(null);
-            }}
+            focusSignal={location.focusSignal}
+            onChange={location.setCoords}
           />
         </div>
 
@@ -553,21 +400,23 @@ export function EditEventScheduleForm({
               type="url"
               dir="ltr"
               placeholder="https://maps.app.goo.gl/…"
-              value={mapsLinkInput}
-              onChange={(e) => setMapsLinkInput(e.target.value)}
+              value={location.mapsLinkInput}
+              onChange={(e) => location.setMapsLinkInput(e.target.value)}
               className="text-left"
             />
             <Button
               type="button"
               variant="secondary"
-              disabled={resolvingLink || !mapsLinkInput.trim()}
-              onClick={onResolveMapsLink}
+              disabled={location.resolvingLink || !location.mapsLinkInput.trim()}
+              onClick={location.onResolveMapsLink}
               className="shrink-0"
             >
-              {resolvingLink ? "מאתרים…" : "עדכון מיקום"}
+              {location.resolvingLink ? "מאתרים…" : "עדכון מיקום"}
             </Button>
           </div>
-          {linkError && <p className="text-xs text-(--color-fail)">{linkError}</p>}
+          {location.linkError && (
+            <p className="text-xs text-(--color-fail)">{location.linkError}</p>
+          )}
         </div>
       </Card>
 
