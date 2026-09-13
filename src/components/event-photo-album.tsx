@@ -191,6 +191,7 @@ export function EventPhotoAlbum({
     // "הכול נכשל" גורפת שיכולה להיות שגויה (חלק כן הועלו בהצלחה).
     let succeeded = 0;
     let failed = 0;
+    let approvedByOrganizer = 0;
 
     for (const file of files) {
       try {
@@ -226,11 +227,23 @@ export function EventPhotoAlbum({
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ photo_id: photoRow.id }),
           }).catch(() => {});
+        } else if (photoRow?.status === "approved") {
+          approvedByOrganizer++;
         }
         succeeded++;
       } catch {
         failed++;
       }
+    }
+
+    // התראה אחת לכל סבב העלאה של המנהלת, לא אחת לכל תמונה — גם אם
+    // הועלו כמה תמונות ברצף. לא ממתינים לזה, זה לא חוסם את ההעלאה.
+    if (approvedByOrganizer > 0) {
+      fetch("/api/push/notify-photos-added", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event_id: eventId, count: approvedByOrganizer }),
+      }).catch(() => {});
     }
 
     if (failed > 0) {
