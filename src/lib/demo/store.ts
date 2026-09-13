@@ -520,8 +520,10 @@ export function demoCheckIn(
 }
 
 /** אותו רעיון בדיוק כמו admin_add_attendance() בשרת: בלי סלפי,
- * ומתעלם בשקט אם האדם כבר מסומן כנוכח (on conflict do nothing). */
+ * ומתעלם בשקט אם האדם כבר מסומן כנוכח (on conflict do nothing).
+ * מוגבל-מנהלת, כמו בשרת — לא רק הסתרת כפתור בממשק. */
 export function demoAddManualAttendance(eventId: string, profileId: string) {
+  if (demoMyRole() !== "organizer") return;
   const rows = db().attendances;
   if (rows.some((a) => a.eventId === eventId && a.profileId === profileId)) return;
   rows.push({
@@ -582,6 +584,7 @@ function clearFutureRsvps(profileId: string) {
 /** מקביל ל-remove_member() בשרת: מנהלת מסירה חבר/ה אחר/ת. חוסמת הסרת
  * "אני" — בהדגמה רק "אני" יכול/ה להיות מנהל/ת, ואי אפשר להסיר מנהלת. */
 export function demoRemoveMember(profileId: string) {
+  if (demoMyRole() !== "organizer") return;
   if (profileId === ME_ID) return;
   db().removedMemberIds.set(profileId, {
     removedAt: new Date().toISOString(),
@@ -639,6 +642,7 @@ export function demoListRemovedMembers() {
 /** מקביל ל-restore_member() בשרת: חוזר/ת ל"ממתין/ה לאישור" — לא ישר
  * לחברות מלאה — ועובר/ת שוב את אותו תהליך אישור כמו כל בקשה חדשה. */
 export function demoRestoreMember(profileId: string) {
+  if (demoMyRole() !== "organizer") return;
   const removed = db().removedMemberIds;
   if (!removed.has(profileId)) return;
   const profile = db().profiles.find((p) => p.id === profileId);
@@ -661,6 +665,7 @@ export function demoRestoreMember(profileId: string) {
  * הקודמת — מעדכנים אותו במקום ליצור פרופיל חדש מאפס, אחרת היו נמחקים
  * לו/ה מגדר, רמת שחייה, ותאריך ההצטרפות/ההסכמות המקוריים. */
 export function demoApproveMember(profileId: string) {
+  if (demoMyRole() !== "organizer") return;
   const list = db().pendingMembers;
   const i = list.findIndex((m) => m.profileId === profileId);
   if (i === -1) return;
@@ -698,6 +703,7 @@ export function demoApproveMember(profileId: string) {
  * "פרופיל" אמיתי לשחזר אליו. שדרוג ההדגמה לתמוך גם בזה לא נדרש כרגע —
  * ההבדל מכוון, לא פער שנשכח. */
 export function demoRejectMember(profileId: string) {
+  if (demoMyRole() !== "organizer") return;
   const list = db().pendingMembers;
   const i = list.findIndex((m) => m.profileId === profileId);
   if (i !== -1) list.splice(i, 1);
@@ -716,17 +722,20 @@ export function demoAddEventPhoto(eventId: string, dataUrl: string) {
 }
 
 export function demoApproveEventPhoto(photoId: string) {
+  if (demoMyRole() !== "organizer") return;
   const photo = db().eventPhotos.find((p) => p.id === photoId);
   if (photo) photo.status = "approved";
 }
 
 export function demoDeleteEventPhoto(photoId: string) {
+  if (demoMyRole() !== "organizer") return;
   const photos = db().eventPhotos;
   const i = photos.findIndex((p) => p.id === photoId);
   if (i !== -1) photos.splice(i, 1);
 }
 
 export function demoCreateEvent(event: SwellEvent) {
+  if (demoMyRole() !== "organizer") return;
   const { starts_at, ...rest } = event;
   EVENT_SEEDS.push({
     ...rest,
@@ -758,6 +767,7 @@ export function demoUpdateEventSchedule(
     is_sea: boolean;
   },
 ) {
+  if (demoMyRole() !== "organizer") return;
   const seed = EVENT_SEEDS.find((e) => e.id === eventId);
   if (seed) Object.assign(seed, patch);
 }
