@@ -57,15 +57,11 @@ function assertNotAccidentalDemo(): void {
   // הדגמה מכוונת — בין אם יש מפתחות ובין אם לא
   if (forceDemo || process.env.SWELL_ALLOW_DEMO === "1") return;
 
-  const platform =
-    process.env.RAILWAY_ENVIRONMENT_NAME ??
-    process.env.RAILWAY_PROJECT_ID ??
-    (process.env.VERCEL ? "Vercel" : undefined) ??
-    process.env.RENDER_SERVICE_ID ??
-    process.env.FLY_APP_NAME;
-
-  // אין סימן לפלטפורמה — פיתוח מקומי, וזה בדיוק המצב שההדגמה נועדה לו
-  if (!platform) return;
+  // NODE_ENV="production" מוגדר אוטומטית ע"י Next בכל הרצה אמיתית
+  // (next build + next start) — בכל חברת אירוח שהיא, לא רק ברשימה
+  // סגורה של פלטפורמות מוכרות (כפי שהיה קודם). "next dev" המקומי
+  // תמיד מגדיר "development", ולכן פיתוח רגיל על המחשב לא נחסם.
+  if (process.env.NODE_ENV !== "production") return;
 
   throw new Error(
     [
