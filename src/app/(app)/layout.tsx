@@ -73,8 +73,9 @@ export default async function AppLayout({
                 </p>
                 <hr className="border-(--color-line)" />
                 <p className="text-sm leading-relaxed text-(--color-ink-soft)">
-                  רוצים להצטרף לקהילה? רק תוודאו שאתם עוקבים אחרינו
-                  באינסטגרם.
+                  רוצים להצטרף לקהילה?
+                  <br />
+                  רק תוודאו שאתם עוקבים אחרינו באינסטגרם.
                 </p>
                 <LinkButton
                   href="https://www.instagram.com/swell__club/"
