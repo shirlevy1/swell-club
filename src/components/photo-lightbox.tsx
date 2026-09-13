@@ -1,23 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { ChevronIcon } from "./social-icons";
-
-export function CloseIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      className={className}
-      aria-hidden
-    >
-      <path d="M6 6 18 18M18 6 6 18" />
-    </svg>
-  );
-}
+import { ChevronIcon, XIcon } from "./social-icons";
 
 /**
  * תצוגת מסך-מלא משותפת: אלבום המפגש (`event-photo-album.tsx`) ותור
@@ -74,7 +58,7 @@ export function PhotoLightbox({
           aria-label="סגירה"
           className="flex size-10 items-center justify-center rounded-full bg-white/10 text-white"
         >
-          <CloseIcon className="size-5" />
+          <XIcon className="size-5" />
         </button>
         {label && (
           <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white">
