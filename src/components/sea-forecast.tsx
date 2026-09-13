@@ -17,8 +17,44 @@ const TONE_CLASS: Record<WindTone, string> = {
   strong: "text-(--color-fail)",
 };
 
+/**
+ * GoSurf כותב כיוון כמילה עברית מלאה ("צפון מזרחית") — לא נכנס בעמודה
+ * צרה במסך טלפון. חץ מעביר את אותו מידע בשבריר מהמקום, בדיוק כמו בכל
+ * אפליקציית מזג אוויר. בדיקה לפי שורש המילה (לא התאמה מלאה), כי הסיומת
+ * הדקדוקית משתנה בין השדות (windDir/swellDir) בלי סיבה ברורה ("מזרחית"
+ * מול "מערבי") — לא רוצים שחיץ ייעלם רק כי הניסוח קצת שונה ממה שציפינו.
+ */
+function compassArrow(dir: string | null): string | null {
+  if (!dir) return null;
+  const n = dir.includes("צפון");
+  const s = dir.includes("דרום");
+  const e = dir.includes("מזרח");
+  const w = dir.includes("מערב");
+  if (n && e) return "↗";
+  if (n && w) return "↖";
+  if (s && e) return "↘";
+  if (s && w) return "↙";
+  if (n) return "↑";
+  if (s) return "↓";
+  if (e) return "→";
+  if (w) return "←";
+  return null;
+}
+
+/** חץ כיוון מוצג בבידוד LTR — חיצים כאלה הם bidi-mirrored ביוניקוד,
+ * ובלי זה טקסט RTL סביבם יכול להפוך אותם ולשקר על הכיוון האמיתי. */
+function DirArrow({ dir }: { dir: string | null }) {
+  const arrow = compassArrow(dir);
+  if (!arrow) return null;
+  return (
+    <span dir="ltr" className="block text-[9px] text-(--color-ink-faint)">
+      {arrow}
+    </span>
+  );
+}
+
 const TH = "px-1 py-2 text-center font-semibold";
-const TD = "px-1 py-2 text-center";
+const TD = "px-1 py-2 text-center align-middle";
 
 export function SeaForecast({ day }: { day: GoSurfDay }) {
   if (!day.rows.length) return null;
@@ -48,10 +84,7 @@ export function SeaForecast({ day }: { day: GoSurfDay }) {
               <th className={TH}>גובה</th>
               <th className={TH}>גלים</th>
               <th className={TH}>רוח</th>
-              <th className={TH}>כיוון</th>
               <th className={TH}>סוואל</th>
-              <th className={TH}>מחזור</th>
-              <th className={TH}>כיוון</th>
             </tr>
           </thead>
           <tbody>
@@ -78,26 +111,21 @@ export function SeaForecast({ day }: { day: GoSurfDay }) {
                     ) : (
                       "—"
                     )}
-                  </td>
-                  <td className={cx(TD, "text-(--color-ink-soft)")}>
-                    {row.windDir ?? "—"}
+                    <DirArrow dir={row.windDir} />
                   </td>
                   <td className={TD}>
-                    {row.swellCm != null ? (
-                      <span className="ltr-nums">{row.swellCm}</span>
-                    ) : (
-                      "—"
+                    {row.swellCm != null && (
+                      <span className="ltr-nums block text-[9.5px]">
+                        {row.swellCm} ס״מ
+                      </span>
                     )}
-                  </td>
-                  <td className={TD}>
-                    {row.swellPeriodSec != null ? (
-                      <span className="ltr-nums">{row.swellPeriodSec}</span>
-                    ) : (
-                      "—"
+                    {row.swellPeriodSec != null && (
+                      <span className="ltr-nums block text-[9.5px]">
+                        {row.swellPeriodSec} שנ׳
+                      </span>
                     )}
-                  </td>
-                  <td className={cx(TD, "text-(--color-ink-soft)")}>
-                    {row.swellDir ?? "—"}
+                    {row.swellCm == null && row.swellPeriodSec == null && "—"}
+                    <DirArrow dir={row.swellDir} />
                   </td>
                 </tr>
               );
