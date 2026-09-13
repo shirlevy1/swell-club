@@ -497,7 +497,10 @@ export function EventPhotoAlbum({
                   </div>
                 )}
 
-                {!selecting && canManage && (
+                {/* מנהלת מוחקת כל תמונה; מי שהעלה תמונה יכול/ה למחוק
+                    רק את שלו/ה, וכל עוד היא עדיין ממתינה לאישור —
+                    ברגע שאושרה, ה-X נעלם (RLS תואם, migration 0047). */}
+                {!selecting && (canManage || (isPending && photo.isMine)) && (
                   <span
                     role="button"
                     tabIndex={0}

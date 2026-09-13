@@ -730,11 +730,17 @@ export function demoApproveEventPhoto(photoId: string) {
   if (photo) photo.status = "approved";
 }
 
+/** מנהלת מוחקת כל תמונה; מי שהעלה תמונה יכול למחוק רק את שלו/ה,
+ * וכל עוד היא עדיין ממתינה לאישור — בדיוק כמו ב-RLS האמיתי
+ * (migration 0047). */
 export function demoDeleteEventPhoto(photoId: string) {
-  if (demoMyRole() !== "organizer") return;
   const photos = db().eventPhotos;
   const i = photos.findIndex((p) => p.id === photoId);
-  if (i !== -1) photos.splice(i, 1);
+  if (i === -1) return;
+  const photo = photos[i];
+  const isOwnPending = photo.uploadedBy === ME_ID && photo.status === "pending";
+  if (demoMyRole() !== "organizer" && !isOwnPending) return;
+  photos.splice(i, 1);
 }
 
 export function demoCreateEvent(event: SwellEvent) {
