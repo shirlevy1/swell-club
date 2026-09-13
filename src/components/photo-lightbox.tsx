@@ -78,7 +78,7 @@ export function PhotoLightbox({
             aria-label="התמונה הקודמת"
             className="absolute start-1 flex size-10 items-center justify-center rounded-full bg-white/10 text-white"
           >
-            <ChevronIcon className="size-5" />
+            <ChevronIcon className="size-5 rotate-180" />
           </button>
         )}
 
@@ -92,7 +92,7 @@ export function PhotoLightbox({
             aria-label="התמונה הבאה"
             className="absolute end-1 flex size-10 items-center justify-center rounded-full bg-white/10 text-white"
           >
-            <ChevronIcon className="size-5 rotate-180" />
+            <ChevronIcon className="size-5" />
           </button>
         )}
       </div>
