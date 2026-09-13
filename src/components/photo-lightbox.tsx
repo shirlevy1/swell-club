@@ -28,6 +28,26 @@ export function PhotoLightbox({
 }) {
   const photo = photos[index];
 
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  function onTouchStart(e: React.TouchEvent) {
+    // עוצר בעדינות מבעד ל-DOM כדי שהתנועה לא תיתפס גם כמשיכה-לרענון
+    // של העמוד שמתחת (PullToRefresh מקשיב על אזור הגלילה עצמו).
+    e.stopPropagation();
+    touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }
+  function onTouchEnd(e: React.TouchEvent) {
+    e.stopPropagation();
+    const start = touchStart.current;
+    touchStart.current = null;
+    if (!start) return;
+    const dx = e.changedTouches[0].clientX - start.x;
+    const dy = e.changedTouches[0].clientY - start.y;
+    // רק סְוַויְפּ אופקי וברור — לא תזוזה אנכית או נגיעה קלה בטעות
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return;
+    if (dx < 0 && index < photos.length - 1) onIndexChange(index + 1);
+    else if (dx > 0 && index > 0) onIndexChange(index - 1);
+  }
+
   const dialogRef = useRef<HTMLDivElement>(null);
   // מקלדת: Escape סוגר, ופוקוס עובר לחלון עצמו בפתיחה — בלי זה מי
   // שמנווט/ת במקלדת נשאר/ת "מאחורי" התוכן שכבר לא נראה מתחת לרקע השחור.
@@ -70,7 +90,11 @@ export function PhotoLightbox({
         </button>
       </div>
 
-      <div className="relative flex flex-1 items-center justify-center px-2">
+      <div
+        className="relative flex flex-1 items-center justify-center px-2"
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+      >
         {index > 0 && (
           <button
             type="button"
