@@ -8,6 +8,15 @@ import { geolocationErrorMessage } from "@/lib/geo";
 /** חוף תל אביב — נקודת פתיחה סבירה לקהילה ימית */
 const DEFAULT_CENTER: [number, number] = [32.087, 34.766];
 
+/** מ-13.9.2026 CARTO דורשים מפתח גם לאריחים שהיו חינמיים לגמרי בעבר —
+ * בלעדיו מוצגת חותמת "API KEY REQUIRED" במקום מפה. מכסה חינמית
+ * (5 מיליון בקשות/חודש) מספיקה בהרבה לגודל הקהילה. בלי המפתח נופל
+ * חזרה לכתובת הישנה בלי key — עדיין תציג את החותמת, אבל לא תיפול. */
+const CARTO_KEY = process.env.NEXT_PUBLIC_CARTO_API_KEY;
+const CARTO_TILE_URL = CARTO_KEY
+  ? `https://basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png?key=${CARTO_KEY}`
+  : "https://basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png";
+
 export function MapPicker({
   lat,
   lng,
@@ -51,13 +60,10 @@ export function MapPicker({
 
     // אריחים בהירים ומעודנים — ברירת המחדל הצבעונית של OSM צורמת
     // מול הכחול הרך של הממשק
-    L.tileLayer(
-      "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-      {
-        maxZoom: 19,
-        attribution: "© OpenStreetMap © CARTO",
-      },
-    ).addTo(m);
+    L.tileLayer(CARTO_TILE_URL, {
+      maxZoom: 19,
+      attribution: "© OpenStreetMap © CARTO",
+    }).addTo(m);
 
     m.on("click", (e: L.LeafletMouseEvent) => {
       onChangeRef.current({ lat: e.latlng.lat, lng: e.latlng.lng });
