@@ -72,19 +72,26 @@ export function israelParts(date: Date) {
  */
 export function eveningThresholdBefore(eventStartsAt: string): Date {
   const start = new Date(eventStartsAt);
-  const israelAtStart = israelParts(start);
-  const asUTC = Date.UTC(
-    Number(israelAtStart.dateStr.slice(0, 4)),
-    Number(israelAtStart.dateStr.slice(5, 7)) - 1,
-    Number(israelAtStart.dateStr.slice(8, 10)),
-    israelAtStart.hour,
-    israelAtStart.minute,
-  );
-  const offsetMin = Math.round((asUTC - start.getTime()) / 60_000);
-
   const dayBefore = new Date(start.getTime() - 24 * 3600_000);
   const { dateStr: dayBeforeStr } = israelParts(dayBefore);
   const [y, m, d] = dayBeforeStr.split("-").map(Number);
+
+  // ה-offset מ-UTC מחושב ביחס לנקודת הזמן של הסף עצמו (20:00 באותו
+  // יום), לא ביחס לזמן תחילת המפגש — אחרת מעבר שעון קיץ/חורף שחל
+  // בדיוק בין שתי הנקודות (פעמיים בשנה) היה מסיט את הסף בשעה.
+  // אותה שיטה כמו למטה: מניחים לרגע ש-20:00 מקומי הוא UTC, בודקים
+  // מה השעה בישראל ברגע ה-UTC המקביל, וההפרש הוא ה-offset האמיתי.
+  const approxUTC = Date.UTC(y, m - 1, d, 20, 0);
+  const israelAtApprox = israelParts(new Date(approxUTC));
+  const asUTC = Date.UTC(
+    Number(israelAtApprox.dateStr.slice(0, 4)),
+    Number(israelAtApprox.dateStr.slice(5, 7)) - 1,
+    Number(israelAtApprox.dateStr.slice(8, 10)),
+    israelAtApprox.hour,
+    israelAtApprox.minute,
+  );
+  const offsetMin = Math.round((asUTC - approxUTC) / 60_000);
+
   return new Date(Date.UTC(y, m - 1, d, 0, 0) + (20 * 60 - offsetMin) * 60_000);
 }
 
