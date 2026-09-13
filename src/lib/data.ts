@@ -340,13 +340,20 @@ export async function getPendingEventPhotos(
 }
 
 /**
- * ספירה בלבד (לא הרשימה עצמה) — לתג ההתראה בסרגל הניווט, שנטען בכל
- * ניווט בין עמודים. לא שווה לייצר כתובות חתומות לכל התמונות רק כדי
- * לספור אותן.
+ * ספירה בלבד (לא הרשימה עצמה) — לתג ההתראה בסרגל הניווט. נקראת מ-
+ * layout.tsx כערך התחלתי אמיתי, כדי שהתג לא יתחיל תמיד מ"אין כלום
+ * ממתין" ויתקן את עצמו רגע אחרי בצד הלקוח. אותה שאילתה בדיוק כמו
+ * fetchPendingCounts ב-app-nav.tsx (שם היא ממשיכה לרוץ בצד הלקוח,
+ * לרענון realtime אחרי הטעינה הראשונית).
  */
-export async function getOrganizerPendingCount(clubId: string): Promise<number> {
+export async function getOrganizerPendingCounts(
+  clubId: string,
+): Promise<{ members: number; photos: number }> {
   if (demoMode) {
-    return demo.demoAllPendingPhotos().length;
+    return {
+      members: demo.demoPendingMembers().length,
+      photos: demo.demoAllPendingPhotos().length,
+    };
   }
 
   const supabase = await createClient();
@@ -363,7 +370,7 @@ export async function getOrganizerPendingCount(clubId: string): Promise<number> 
       .eq("events.club_id", clubId),
   ]);
 
-  return (memberCount ?? 0) + (photoCount ?? 0);
+  return { members: memberCount ?? 0, photos: photoCount ?? 0 };
 }
 
 // מפגש שהתחיל לפני פחות משעתיים עדיין נחשב "קרוב"
@@ -593,20 +600,6 @@ export async function getGoingNamesByEvent(
   return out;
 }
 
-export async function getMyAttendanceCount(userId: string): Promise<number> {
-  if (demoMode) {
-    return demo
-      .demoAttendances()
-      .filter((a) => a.profileId === demo.demoMeId).length;
-  }
-
-  const supabase = await createClient();
-  const { count } = await supabase
-    .from("attendances")
-    .select("*", { count: "exact", head: true })
-    .eq("profile_id", userId);
-  return count ?? 0;
-}
 
 // ------------------------------------------------ היסטוריית הסלפים של אדם
 

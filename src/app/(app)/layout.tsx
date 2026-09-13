@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getViewer } from "@/lib/data";
+import { getViewer, getOrganizerPendingCounts } from "@/lib/data";
 import { demoMode } from "@/lib/config";
 import { AppNav } from "@/components/app-nav";
 import { AppHeader } from "@/components/app-header";
@@ -30,6 +30,15 @@ export default async function AppLayout({
       new Date(viewer.profile.created_at).getTime() >
       60_000
   );
+
+  // ערך התחלתי אמיתי לתג ההתראה על "ניהול" — בלעדיו הוא תמיד מתחיל
+  // מ"אין כלום ממתין" ומתקן את עצמו רגע אחרי, כשה-fetch בצד הלקוח
+  // מסיים (ראו app-nav.tsx).
+  const isOrganizer = viewer.role === "organizer";
+  const initialPendingCounts =
+    isOrganizer && viewer.club?.id
+      ? await getOrganizerPendingCounts(viewer.club.id)
+      : { members: 0, photos: 0 };
 
   return (
     <div className="relative isolate flex flex-1 flex-col">
@@ -96,8 +105,9 @@ export default async function AppLayout({
         viewer.status !== "removed" &&
         viewer.status !== null && (
         <AppNav
-          isOrganizer={viewer.role === "organizer"}
+          isOrganizer={isOrganizer}
           clubId={viewer.club?.id ?? null}
+          initialCounts={initialPendingCounts}
         />
       )}
     </div>

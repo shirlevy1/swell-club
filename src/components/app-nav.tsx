@@ -73,17 +73,25 @@ async function fetchPendingCounts(
 export function AppNav({
   isOrganizer,
   clubId,
+  initialCounts,
 }: {
   isOrganizer: boolean;
   clubId: string | null;
+  /** נספר כבר בשרת (layout.tsx) — כדי שהתג לא יתחיל תמיד מ"אין כלום
+   * ממתין" ויתקן את עצמו רגע אחרי טעינת העמוד. */
+  initialCounts: { members: number; photos: number };
 }) {
   const pathname = usePathname();
   // בהדגמה זה נתון מקומי סינכרוני שידוע כבר ברגע הטעינה — אין צורך
   // ב-fetch או ב-realtime כמו במצב האמיתי.
-  const [pendingCounts, setPendingCounts] = useState(() => ({
-    members: demoMode ? demo.demoPendingMembers().length : 0,
-    photos: demoMode ? demo.demoAllPendingPhotos().length : 0,
-  }));
+  const [pendingCounts, setPendingCounts] = useState(() =>
+    demoMode
+      ? {
+          members: demo.demoPendingMembers().length,
+          photos: demo.demoAllPendingPhotos().length,
+        }
+      : initialCounts,
+  );
 
   // תג ההתראה על "ניהול": בקשות הצטרפות ותמונות ממתינות מוצגות
   // בנפרד — לא סתם מספר אחד מאוחד — כי אלה שתי פעולות שונות לגמרי.
