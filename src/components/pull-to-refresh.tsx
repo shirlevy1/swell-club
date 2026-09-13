@@ -82,11 +82,13 @@ export function PullToRefresh({
   const active = pull > 0 || pending;
 
   return (
-    <div
-      ref={containerRef}
-      className={className}
-      style={{ WebkitOverflowScrolling: "touch" }}
-    >
+    // ⚠️ בלי -webkit-overflow-scrolling:touch בכוונה: בספארי באייפון
+    // זה יוצר "הקשר מיקום" חדש לצאצאים, בדיוק כמו transform — ואז
+    // מודאלים במסך מלא בתוך התוכן (PhotoLightbox, add-attendance-
+    // button) עם fixed inset-0 מתכווצים לגבולות האזור הזה במקום לכסות
+    // את כל המסך (הכותרת וה-nav "מציצים" מסביב). ספארי מודרני עושה
+    // גלילה חלקה גם בלעדיו.
+    <div ref={containerRef} className={className}>
       <div
         className="flex items-center justify-center overflow-hidden"
         style={{
