@@ -34,15 +34,16 @@ export function LeaveCommunityButton() {
 
     if (demoMode) {
       await leaveCommunityAction();
+      setPending(false);
       router.refresh();
       return;
     }
 
     try {
       const { error: rpcError } = await createClient().rpc("leave_community");
+      setPending(false);
       if (rpcError) {
         setError("לא הצלחנו לעזוב את הקהילה. נסו שוב.");
-        setPending(false);
         return;
       }
 
