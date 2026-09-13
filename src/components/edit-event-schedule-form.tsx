@@ -163,7 +163,17 @@ export function EditEventScheduleForm({
     if (!mapsLinkInput.trim()) return;
     setLinkError(null);
     setResolvingLink(true);
-    const result = await resolveMapsLinkAction(mapsLinkInput.trim());
+
+    let result;
+    try {
+      result = await resolveMapsLinkAction(mapsLinkInput.trim());
+    } catch {
+      // כשל רשת אמיתי זורק חריגה במקום להחזיר error מסודר — בלי
+      // try/catch הכפתור היה נשאר נעול על "מאתרים…" לצמיתות.
+      setResolvingLink(false);
+      setLinkError("לא הצלחנו לפתוח את הקישור. בדקו את החיבור ונסו שוב.");
+      return;
+    }
     setResolvingLink(false);
 
     if (!result.ok) {
