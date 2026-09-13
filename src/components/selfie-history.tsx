@@ -93,26 +93,17 @@ function EventThumbnail({
  *
  * התמונה שמייצגת כל מפגש היא קולאז' מאלבום המפגש (כשיש), ולא רק
  * הסלפי של האדם הזה — זו הזיכרון המשותף של כולם, לא רק שלו. הסלפי
- * הוא רק גיבוי כשלמפגש עדיין אין אלבום.
- *
- * `enlargeOwnSelfies`: במצב הזה (כרגע רק בעמוד הפרופיל העצמי) לחיצה
- * על אריח פותחת תצוגת מסך-מלא של הסלפי עצמו עם דפדוף בין כל הסלפים
- * (לא הקולאז' של האלבום המשותף — "תמונות הפרופיל" שהאדם עצמו צילם),
- * במקום לנווט לעמוד המפגש. שיר ביקשה במפורש להתחיל רק כאן; הצגת
- * הסלפים של חבר/ת קהילה *אחר/ת* באותה צורה נשארת נקודה למחשבה
- * (ראו משימות פתוחות).
+ * הוא רק גיבוי כשלמפגש עדיין אין אלבום. לחיצה על אריח מעבירה לעמוד
+ * המפגש עצמו — תצוגת מסך-מלא עם דפדוף בין הסלפים נמצאת רק בעיגול
+ * תמונת הפרופיל למעלה (ראו SelfieAvatarButton), לא כאן.
  */
 export function SelfieHistory({
   shots,
   albumsByEvent,
-  enlargeOwnSelfies,
 }: {
   shots: SelfieShot[];
   albumsByEvent?: Map<string, string[]>;
-  enlargeOwnSelfies?: boolean;
 }) {
-  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
-
   if (shots.length === 0) {
     return (
       <p className="rounded-xl border border-dashed border-(--color-line) px-4 py-8 text-center text-sm text-(--color-ink-faint)">
@@ -121,82 +112,33 @@ export function SelfieHistory({
     );
   }
 
-  // רק סלפים עם תמונה בפועל ניתנים להגדלה/דפדוף — "נוסף ידנית" בלי
-  // צילום נשאר אריח לא-לחיץ, אין מה להראות במסך מלא.
-  const selfieShots = shots.filter((s) => s.selfieUrl);
-  const lightboxPhotos = selfieShots.map((s) => ({
-    id: s.eventId,
-    url: s.selfieUrl!,
-  }));
-
   return (
-    <>
-      <ul className="grid grid-cols-3 gap-2.5">
-        {shots.map((shot) => {
-          const tile = (
-            <>
-              <div className="aspect-square w-full overflow-hidden bg-(--color-haze)">
-                <EventThumbnail
-                  album={albumsByEvent?.get(shot.eventId) ?? []}
-                  selfieUrl={shot.selfieUrl}
-                  selfiePosition={facePositionStyle(shot.faceX, shot.faceY)}
-                />
-              </div>
-              <div className="px-2 py-1.5">
-                <p className="truncate text-[0.7rem] font-semibold">
-                  {shot.eventTitle}
-                </p>
-                <p className="truncate text-[0.65rem] text-(--color-ink-faint)">
-                  {formatDateShort(shot.startsAt)}
-                </p>
-              </div>
-            </>
-          );
-          const tileClassName =
-            "block overflow-hidden rounded-xl border border-(--color-line) bg-(--color-surface) transition hover:border-(--color-sky)";
-
-          if (enlargeOwnSelfies && shot.selfieUrl) {
-            return (
-              <li key={shot.eventId}>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setViewerIndex(
-                      selfieShots.findIndex((s) => s.eventId === shot.eventId),
-                    )
-                  }
-                  className={cx(tileClassName, "w-full text-start")}
-                >
-                  {tile}
-                </button>
-              </li>
-            );
-          }
-
-          return (
-            <li key={shot.eventId}>
-              <Link href={`/events/${shot.eventId}`} className={tileClassName}>
-                {tile}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-
-      {viewerIndex !== null && selfieShots[viewerIndex] && (
-        <PhotoLightbox
-          photos={lightboxPhotos}
-          index={viewerIndex}
-          onIndexChange={setViewerIndex}
-          onClose={() => setViewerIndex(null)}
-          footer={
-            <p className="pb-6 text-center text-xs font-semibold text-white/80">
-              {formatDateShort(selfieShots[viewerIndex].startsAt)}
-            </p>
-          }
-        />
-      )}
-    </>
+    <ul className="grid grid-cols-3 gap-2.5">
+      {shots.map((shot) => (
+        <li key={shot.eventId}>
+          <Link
+            href={`/events/${shot.eventId}`}
+            className="block overflow-hidden rounded-xl border border-(--color-line) bg-(--color-surface) transition hover:border-(--color-sky)"
+          >
+            <div className="aspect-square w-full overflow-hidden bg-(--color-haze)">
+              <EventThumbnail
+                album={albumsByEvent?.get(shot.eventId) ?? []}
+                selfieUrl={shot.selfieUrl}
+                selfiePosition={facePositionStyle(shot.faceX, shot.faceY)}
+              />
+            </div>
+            <div className="px-2 py-1.5">
+              <p className="truncate text-[0.7rem] font-semibold">
+                {shot.eventTitle}
+              </p>
+              <p className="truncate text-[0.65rem] text-(--color-ink-faint)">
+                {formatDateShort(shot.startsAt)}
+              </p>
+            </div>
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
 
