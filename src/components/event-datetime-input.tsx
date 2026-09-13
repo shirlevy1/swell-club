@@ -42,14 +42,19 @@ export function EventDateTimeInput({
   const [hour, setHour] = useState<number | "">("");
   const [minute, setMinute] = useState<number | "">("");
 
-  useEffect(() => {
-    if (!defaultValue) return;
-    setYear(defaultValue.getFullYear());
-    setMonth(defaultValue.getMonth() + 1);
-    setDay(defaultValue.getDate());
-    setHour(defaultValue.getHours());
-    setMinute(defaultValue.getMinutes());
-  }, [defaultValue]);
+  // עדכון מ-defaultValue רק כשהוא באמת משתנה — תוך כדי הרינדור עצמו,
+  // לא ב-useEffect, כדי לא "לחכות" לסבב רינדור נוסף אחרי שהוא מגיע.
+  const [syncedDefaultValue, setSyncedDefaultValue] = useState(defaultValue);
+  if (defaultValue !== syncedDefaultValue) {
+    setSyncedDefaultValue(defaultValue);
+    if (defaultValue) {
+      setYear(defaultValue.getFullYear());
+      setMonth(defaultValue.getMonth() + 1);
+      setDay(defaultValue.getDate());
+      setHour(defaultValue.getHours());
+      setMinute(defaultValue.getMinutes());
+    }
+  }
 
   const currentYear = new Date().getFullYear();
   const years = [currentYear, currentYear + 1, currentYear + 2];

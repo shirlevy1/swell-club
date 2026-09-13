@@ -75,6 +75,10 @@ export default function NewEventPage() {
   const [equipmentLinkVisible, setEquipmentLinkVisible] = useState(true);
   useEffect(() => {
     const now = roundedNow();
+    // מכוון: "עכשיו" חייב להיקבע רק בדפדפן (ראו ההערה על startsAtDefault
+    // למעלה) — אי אפשר לחשב את זה בלי useEffect בלי ליצור פער בין
+    // מה שהשרת מרנדר למה שהדפדפן מחשב.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setStartsAtDefault(now);
     setTitle(defaultEventTitle(now.toISOString()));
     setAgendaText(defaultAgendaText(now.toISOString()));

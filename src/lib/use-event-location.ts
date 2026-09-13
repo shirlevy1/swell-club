@@ -65,6 +65,9 @@ export function useEventLocation(initial: {
     const query = locationName.trim();
     setHighlightedIndex(-1);
     if (query.length < 3) {
+      // מכוון: זה effect שמאזין להקלדה ומפעיל חיפוש עם debounce —
+      // הניקוי כאן הוא חלק מהתפקיד שלו, לא state שאפשר לחשב בלי effect.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuggestions([]);
       setSearchError(null);
       setSearching(false);
