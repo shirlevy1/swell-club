@@ -47,6 +47,10 @@ export function LeaveCommunityButton() {
         return;
       }
 
+      // לא ממתינים לזה, זה לא חוסם את העזיבה — המנהלת צריכה לדעת, אבל
+      // זה לא חייב לעכב את מי שעוזב/ת.
+      fetch("/api/push/notify-member-left", { method: "POST" }).catch(() => {});
+
       await unsubscribeFromPush();
       router.refresh();
     } catch {
