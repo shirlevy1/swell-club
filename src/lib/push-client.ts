@@ -162,6 +162,15 @@ export async function unsubscribeFromPush(): Promise<void> {
   try {
     const reg = await navigator.serviceWorker.getRegistration();
     const sub = await reg?.pushManager.getSubscription();
+    if (sub) {
+      // ההגנה האמיתית: המערכת שלנו שולחת לפי מה שרשום ב-DB, לא לפי
+      // מה שקורה בדפדפן. אם רק sub.unsubscribe() למטה נכשל בשקט,
+      // הרשומה הייתה נשארת פעילה עד ניסיון שליחה שנכשל.
+      await createClient()
+        .from("push_subscriptions")
+        .delete()
+        .eq("endpoint", sub.endpoint);
+    }
     await sub?.unsubscribe();
   } catch {
     // לא קריטי — ראו הערה למעלה.
