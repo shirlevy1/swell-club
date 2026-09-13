@@ -9,8 +9,7 @@ import {
 import { demoMode } from "@/lib/config";
 import { attendanceStreak } from "@/lib/streak";
 import { StreakCard } from "@/components/streak-card";
-import { SelfieHistory } from "@/components/selfie-history";
-import { facePositionStyle } from "@/lib/face-position";
+import { SelfieHistory, SelfieAvatarButton } from "@/components/selfie-history";
 import {
   swimLevelLabel,
   SWIM_LEVEL_COLOR,
@@ -39,35 +38,16 @@ export default async function ProfilePage() {
   // הנוכחויות כבר כאן — אין צורך בשאילתה נוספת בשביל הרצף
   const streak = attendanceStreak(shots.map((s) => s.startsAt));
   const fullName = viewer.profile?.full_name ?? "חבר קהילה";
-  // הסלפי האחרון שלך — shots כבר ממוינים מהאחרון לראשון
-  const latestSelfie = shots[0]?.selfieUrl ?? null;
-  const latestSelfiePosition = facePositionStyle(
-    shots[0]?.faceX ?? null,
-    shots[0]?.faceY ?? null,
-  );
 
   return (
     <div className="space-y-7">
       <header className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-4">
-          <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)">
-            {latestSelfie ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={latestSelfie}
-                alt={fullName}
-                className="size-full object-cover"
-                style={latestSelfiePosition}
-              />
-            ) : (
-              <span
-                aria-hidden
-                className="font-[family-name:var(--font-display)] text-2xl font-bold text-(--color-sea)"
-              >
-                {fullName.trim()[0]}
-              </span>
-            )}
-          </div>
+          <SelfieAvatarButton
+            shots={shots}
+            fullName={fullName}
+            className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)"
+          />
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="truncate font-[family-name:var(--font-display)] text-2xl font-bold">

@@ -200,6 +200,78 @@ export function SelfieHistory({
   );
 }
 
+/**
+ * עיגול תמונת הפרופיל בראש עמוד הפרופיל העצמי — התמונה עצמה היא
+ * הסלפי האחרון, ולחיצה עליה פותחת את אותה תצוגת מסך-מלא עם דפדוף
+ * כמו אריח בגלריית "הרגעים מהסוואל" למטה (ראו SelfieHistory), רק
+ * שמתחילה מהסלפי האחרון. כשאין עדיין אף סלפי, נשארת בדיוק כמו
+ * שהייתה — עיגול עם האות הראשונה של השם, לא לחיץ.
+ */
+export function SelfieAvatarButton({
+  shots,
+  fullName,
+  className,
+}: {
+  shots: SelfieShot[];
+  fullName: string;
+  className?: string;
+}) {
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  const selfieShots = shots.filter((s) => s.selfieUrl);
+  const latest = selfieShots[0];
+
+  if (!latest) {
+    return (
+      <div className={className}>
+        <span
+          aria-hidden
+          className="font-[family-name:var(--font-display)] text-2xl font-bold text-(--color-sea)"
+        >
+          {fullName.trim()[0]}
+        </span>
+      </div>
+    );
+  }
+
+  const lightboxPhotos = selfieShots.map((s) => ({
+    id: s.eventId,
+    url: s.selfieUrl!,
+  }));
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setViewerIndex(0)}
+        aria-label="הגדלת תמונת הפרופיל"
+        className={className}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={latest.selfieUrl!}
+          alt={fullName}
+          className="size-full object-cover"
+          style={facePositionStyle(latest.faceX, latest.faceY)}
+        />
+      </button>
+
+      {viewerIndex !== null && selfieShots[viewerIndex] && (
+        <PhotoLightbox
+          photos={lightboxPhotos}
+          index={viewerIndex}
+          onIndexChange={setViewerIndex}
+          onClose={() => setViewerIndex(null)}
+          footer={
+            <p className="pb-6 text-center text-xs font-semibold text-white/80">
+              {formatDateShort(selfieShots[viewerIndex].startsAt)}
+            </p>
+          }
+        />
+      )}
+    </>
+  );
+}
+
 /** שורת מידע קטנה על הסלפי האחרון — לכרטיס החבר בצד הניהול */
 export function LatestShotLabel({ shot }: { shot: SelfieShot }) {
   return (
