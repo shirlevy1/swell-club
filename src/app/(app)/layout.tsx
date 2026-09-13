@@ -8,7 +8,8 @@ import { VisibilityRefresh } from "@/components/visibility-refresh";
 import { PullToRefresh } from "@/components/pull-to-refresh";
 import { NotificationPromptBanner } from "@/components/notification-prompt-banner";
 import { SignOutButton } from "@/components/sign-out-button";
-import { Card } from "@/components/ui";
+import { Card, LinkButton } from "@/components/ui";
+import { InstagramIcon } from "@/components/social-icons";
 
 export default async function AppLayout({
   children,
@@ -70,6 +71,21 @@ export default async function AppLayout({
                   ההרשמה שלכם התקבלה. תנו לנו רגע לעבור עליה, וברגע
                   שתאושרו תוכלו להיכנס ולגלות את המפגשים הקרובים.
                 </p>
+                <hr className="border-(--color-line)" />
+                <p className="text-sm leading-relaxed text-(--color-ink-soft)">
+                  רוצים להצטרף לקהילה? רק תוודאו שאתם עוקבים אחרינו
+                  באינסטגרם.
+                </p>
+                <LinkButton
+                  href="https://www.instagram.com/swell__club/"
+                  target="_blank"
+                  rel="noreferrer"
+                  variant="secondary"
+                  className="w-full"
+                >
+                  <InstagramIcon className="size-4" />
+                  מעבר לאינסטגרם של Swell Club
+                </LinkButton>
                 <SignOutButton />
               </Card>
             </div>
