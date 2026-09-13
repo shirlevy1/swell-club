@@ -126,53 +126,77 @@ async function sendReminder(
     .insert({ event_id: event.id, kind });
   if (claimError) return;
 
-  const [{ data: going }, { data: members }] = await Promise.all([
-    db
-      .from("rsvps")
-      .select("profile_id")
+  // התפיסה למעלה כבר קרתה — אם משהו כאן נכשל (או שכל השליחות
+  // נכשלו), משחררים אותה בסוף כדי שהטיק הבא ינסה שוב, במקום לאבד
+  // את התזכורת לצמיתות בשקט.
+  try {
+    const [{ data: going }, { data: members }] = await Promise.all([
+      db
+        .from("rsvps")
+        .select("profile_id")
+        .eq("event_id", event.id)
+        .eq("going", true),
+      db
+        .from("club_members")
+        .select("profile_id")
+        .eq("club_id", event.club_id)
+        .eq("status", "approved"),
+    ]);
+
+    // ערב לפני — כולם, גם מי שעוד לא סימן/ה שמגיע/ה (זו הזמנה).
+    // בוקר של המפגש — רק מי שכבר סימן/ה, כתזכורת לסמן הגעה בפועל.
+    const ids =
+      kind === "morning"
+        ? (going ?? []).map((r) => r.profile_id)
+        : (members ?? []).map((m) => m.profile_id);
+    if (ids.length === 0) return;
+
+    const { data: subs } = await db
+      .from("push_subscriptions")
+      .select("endpoint, p256dh, auth")
+      .in("profile_id", ids);
+    if (!subs || subs.length === 0) return;
+
+    const payload = JSON.stringify(buildReminderPayload(kind, event));
+
+    const dead: string[] = [];
+    let successCount = 0;
+    await Promise.all(
+      subs.map(async (s) => {
+        try {
+          await webpush.sendNotification(
+            { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
+            payload,
+          );
+          successCount++;
+          sent[kind] = (sent[kind] ?? 0) + 1;
+        } catch (err) {
+          // 404/410 = המנוי בוטל בצד הדפדפן. לנקות, אחרת הטבלה
+          // מתמלאת ביעדים מתים וכל ריצה מנסה אותם שוב.
+          const status = (err as { statusCode?: number })?.statusCode;
+          if (status === 404 || status === 410) dead.push(s.endpoint);
+        }
+      }),
+    );
+
+    if (dead.length) {
+      await db.from("push_subscriptions").delete().in("endpoint", dead);
+    }
+
+    // היו מכשירים לשלוח אליהם, אבל אף שליחה לא הצליחה — לא באמת
+    // "נשלחה תזכורת", אז לא משאירים את התפיסה נעולה.
+    if (successCount === 0) {
+      await db
+        .from("event_reminders")
+        .delete()
+        .eq("event_id", event.id)
+        .eq("kind", kind);
+    }
+  } catch {
+    await db
+      .from("event_reminders")
+      .delete()
       .eq("event_id", event.id)
-      .eq("going", true),
-    db
-      .from("club_members")
-      .select("profile_id")
-      .eq("club_id", event.club_id)
-      .eq("status", "approved"),
-  ]);
-
-  // ערב לפני — כולם, גם מי שעוד לא סימן/ה שמגיע/ה (זו הזמנה).
-  // בוקר של המפגש — רק מי שכבר סימן/ה, כתזכורת לסמן הגעה בפועל.
-  const ids =
-    kind === "morning"
-      ? (going ?? []).map((r) => r.profile_id)
-      : (members ?? []).map((m) => m.profile_id);
-  if (ids.length === 0) return;
-
-  const { data: subs } = await db
-    .from("push_subscriptions")
-    .select("endpoint, p256dh, auth")
-    .in("profile_id", ids);
-
-  const payload = JSON.stringify(buildReminderPayload(kind, event));
-
-  const dead: string[] = [];
-  await Promise.all(
-    (subs ?? []).map(async (s) => {
-      try {
-        await webpush.sendNotification(
-          { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
-          payload,
-        );
-        sent[kind] = (sent[kind] ?? 0) + 1;
-      } catch (err) {
-        // 404/410 = המנוי בוטל בצד הדפדפן. לנקות, אחרת הטבלה
-        // מתמלאת ביעדים מתים וכל ריצה מנסה אותם שוב.
-        const status = (err as { statusCode?: number })?.statusCode;
-        if (status === 404 || status === 410) dead.push(s.endpoint);
-      }
-    }),
-  );
-
-  if (dead.length) {
-    await db.from("push_subscriptions").delete().in("endpoint", dead);
+      .eq("kind", kind);
   }
 }
