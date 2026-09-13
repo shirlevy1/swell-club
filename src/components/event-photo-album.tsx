@@ -253,10 +253,15 @@ export function EventPhotoAlbum({
         await approveEventPhotoAction(eventId, photoId);
       } else {
         const supabase = createClient();
-        await supabase
+        const { error: updateError } = await supabase
           .from("event_photos")
           .update({ status: "approved" })
           .eq("id", photoId);
+        if (updateError) {
+          setBusyId(null);
+          setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
+          return;
+        }
       }
       setBusyId(null);
       router.refresh();
@@ -280,7 +285,15 @@ export function EventPhotoAlbum({
         if (photo.storagePath) {
           await supabase.storage.from("event-photos").remove([photo.storagePath]);
         }
-        await supabase.from("event_photos").delete().eq("id", photo.id);
+        const { error: deleteError } = await supabase
+          .from("event_photos")
+          .delete()
+          .eq("id", photo.id);
+        if (deleteError) {
+          setBusyId(null);
+          setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
+          return;
+        }
       }
       setSelected((s) => {
         if (!s.has(photo.id)) return s;
