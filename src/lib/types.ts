@@ -47,6 +47,9 @@ export type SwellEvent = {
   checkin_closes_after_min: number;
   created_by: string | null;
   created_at: string;
+  // מתעדכן אוטומטית בכל UPDATE (טריגר, migration 0046) — משמש להגנה
+  // מפני מרוץ בין שתי מנהלות ששומרות עריכה כמעט בו-זמנית.
+  updated_at: string;
   description: string | null;
   // ריק אומר "אין לו״ז מותאם" — נופל על הלו״ז הקבוע. ראו lib/agenda.ts
   agenda_text: string | null;

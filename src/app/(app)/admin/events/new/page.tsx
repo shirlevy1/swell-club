@@ -156,6 +156,7 @@ export default function NewEventPage() {
         club_id: "demo-club",
         created_by: null,
         created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       });
       setPending(false);
       router.push(`/events/${id}`);

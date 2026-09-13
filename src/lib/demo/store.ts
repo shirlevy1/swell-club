@@ -112,7 +112,7 @@ function profiles(): Profile[] {
  * `title` נשאר ריק למפגש הפתוח: הוא נופל על השעה הנוכחית, ולכן הכותרת
  * נגזרת ממנה. אחרת ההדגמה מציגה "שחיית בוקר" בשש בערב.
  */
-type EventSeed = Omit<SwellEvent, "starts_at" | "title"> & {
+type EventSeed = Omit<SwellEvent, "starts_at" | "title" | "updated_at"> & {
   title?: string;
 } & (
     | { offsetMin: number; days?: never; fixedStartsAt?: never }
@@ -406,6 +406,9 @@ export function demoEvents(): SwellEvent[] {
       ...rest,
       starts_at: startsAt.toISOString(),
       title: title ?? defaultEventTitle(startsAt.toISOString()),
+      // בהדגמה אין ריבוי מנהלות אמיתי שמריץ מרוץ שמירה — לא נדרש
+      // לעדכן את זה בפועל, רק להתאים לצורת SwellEvent.
+      updated_at: rest.created_at,
     };
   });
 }

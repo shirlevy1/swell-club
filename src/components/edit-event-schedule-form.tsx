@@ -154,13 +154,25 @@ export function EditEventScheduleForm({
     // עם אובדן מלא של העריכה.
     try {
       const supabase = createClient();
-      const { error: updateError } = await supabase
+      // updated_at כתנאי נוסף: אם מישהי אחרת כבר שינתה את המפגש
+      // הזה מאז שהטופס נטען, הטריגר (migration 0046) כבר עדכן את
+      // updated_at, השורה לא תואמת יותר, וה-UPDATE לא ימצא שורה
+      // לעדכן — במקום לדרוס בשקט את מה שהיא שינתה.
+      const { data: updatedRows, error: updateError } = await supabase
         .from("events")
         .update(patch)
-        .eq("id", event.id);
+        .eq("id", event.id)
+        .eq("updated_at", event.updated_at)
+        .select("id");
       setPending(false);
 
       if (updateError) return setError("לא הצלחנו לשמור. נסו שוב.");
+
+      if (!updatedRows || updatedRows.length === 0) {
+        return setError(
+          "מישהי אחרת כבר שינתה את המפגש הזה בינתיים. רעננו את הדף כדי לראות את הגרסה העדכנית לפני שתמשיכו לערוך.",
+        );
+      }
 
       // רק כששעה/תאריך או מיקום השתנו בפועל — לא על כל שמירה — ורק
       // למי שכבר סימן/ה הגעה, כי אלה תכננו לפי הפרטים הישנים. לא ממתינים
