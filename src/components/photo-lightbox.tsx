@@ -52,6 +52,14 @@ export function PhotoLightbox({
       aria-modal="true"
     >
       <div className="flex items-center justify-between gap-3 p-4">
+        <div className="flex items-center gap-2">{actions}</div>
+        {label && (
+          <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white">
+            {label}
+          </span>
+        )}
+        {/* אחרונה ב-DOM כדי שתמיד תופיע בצד שמאל, בלי קשר למה actions
+            מכיל — שיר ביקשה במפורש X בצד שמאל. */}
         <button
           type="button"
           onClick={onClose}
@@ -60,12 +68,6 @@ export function PhotoLightbox({
         >
           <XIcon className="size-5" />
         </button>
-        {label && (
-          <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white">
-            {label}
-          </span>
-        )}
-        <div className="flex items-center gap-2">{actions}</div>
       </div>
 
       <div className="relative flex flex-1 items-center justify-center px-2">
