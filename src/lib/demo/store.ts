@@ -1,6 +1,7 @@
 import type { Club, MemberRole, Profile, SwellEvent } from "../types";
 import { DEFAULT_EVENT_LOCATION } from "../maps";
 import { defaultEventTitle } from "../agenda";
+import { checkInWindow } from "../checkin";
 
 /**
  * מאגר בזיכרון למצב הדגמה. אין מסד נתונים ואין התחברות —
@@ -503,6 +504,11 @@ export function demoCheckIn(
 ) {
   const rows = db().attendances;
   if (rows.some((a) => a.eventId === eventId && a.profileId === ME_ID)) return;
+  // בהדגמה מדולגת רק בדיקת המיקום (AGENTS.md) — חלון הזמן אמור
+  // להיאכף כאן בדיוק כמו במצב אמיתי, לא רק להסתמך על כך שהממשק
+  // מסתיר את הכפתור מחוץ לחלון.
+  const event = demoEvent(eventId);
+  if (event && checkInWindow(event).status !== "open") return;
   rows.push({
     eventId,
     profileId: ME_ID,
