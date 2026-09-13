@@ -8,7 +8,7 @@ import {
   formatTime,
   formatWeekday,
 } from "@/lib/format";
-import { checkInWindow, hasEventStarted } from "@/lib/checkin";
+import { checkInWindow, hasEventStarted, canUploadEventPhoto } from "@/lib/checkin";
 import { getSeaForecastForEvent } from "@/lib/gosurf";
 import {
   getEventAgendaText,
@@ -226,7 +226,11 @@ export default async function EventPage({
           eventId={id}
           photos={photos}
           canManage={isOrganizer && eventHasStarted}
-          canUpload={canSeeAlbum && eventHasStarted}
+          canUpload={
+            canSeeAlbum &&
+            eventHasStarted &&
+            canUploadEventPhoto(event, isOrganizer)
+          }
         />
       )}
 

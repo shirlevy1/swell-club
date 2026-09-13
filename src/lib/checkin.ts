@@ -33,6 +33,20 @@ export function hasEventStarted(
 }
 
 /**
+ * חברי קהילה יכולים להעלות תמונות רק ב-24 השעות שאחרי תחילת המפגש;
+ * המנהלת פטורה מהמגבלה, בדיוק כמו שהיא פטורה מדרישת הנוכחות
+ * (add_event_photo, migration 0048).
+ */
+export function canUploadEventPhoto(
+  event: Pick<SwellEvent, "starts_at">,
+  isOrganizer: boolean,
+  now: Date = new Date(),
+): boolean {
+  if (isOrganizer) return true;
+  return now.getTime() - new Date(event.starts_at).getTime() < 24 * 60 * 60_000;
+}
+
+/**
  * תרגום קודי השגיאה של check_in() לעברית.
  * הקודים מגיעים מ-raise exception ב-SQL, עטופים בהודעת Postgres.
  */

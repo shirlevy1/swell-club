@@ -1,7 +1,7 @@
 import type { Club, MemberRole, Profile, SwellEvent } from "../types";
 import { DEFAULT_EVENT_LOCATION } from "../maps";
 import { defaultEventTitle } from "../agenda";
-import { checkInWindow } from "../checkin";
+import { checkInWindow, canUploadEventPhoto } from "../checkin";
 
 /**
  * מאגר בזיכרון למצב הדגמה. אין מסד נתונים ואין התחברות —
@@ -712,7 +712,12 @@ export function demoRejectMember(profileId: string) {
   if (i !== -1) list.splice(i, 1);
 }
 
+/** חלון ה-24 שעות אחרי תחילת המפגש נאכף כאן בדיוק כמו במצב אמיתי
+ * (add_event_photo, migration 0048) — לא רק שהממשק מסתיר את הכפתור. */
 export function demoAddEventPhoto(eventId: string, dataUrl: string) {
+  const event = demoEvent(eventId);
+  if (!event) return;
+  if (!canUploadEventPhoto(event, demoMyRole() === "organizer")) return;
   db().eventPhotos.push({
     id: `demo-photo-${Math.random().toString(36).slice(2)}`,
     eventId,
