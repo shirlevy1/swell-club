@@ -44,6 +44,9 @@ export function EditSelfieButton({ eventId }: { eventId: string }) {
 
   const [step, setStep] = useState<Step>("idle");
   const [error, setError] = useState<string | null>(null);
+  // ref מתעדכן מיידית, בלי לחכות לרינדור מחדש — אותו פתרון בדיוק
+  // כמו ב-check-in-flow.tsx, למניעת לחיצה כפולה מהירה על "צילום".
+  const capturingRef = useRef(false);
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -95,6 +98,16 @@ export function EditSelfieButton({ eventId }: { eventId: string }) {
   }
 
   async function capture() {
+    if (capturingRef.current) return;
+    capturingRef.current = true;
+    try {
+      await runCapture();
+    } finally {
+      capturingRef.current = false;
+    }
+  }
+
+  async function runCapture() {
     const video = videoRef.current;
     if (!video) return;
 
