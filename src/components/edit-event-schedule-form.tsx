@@ -17,7 +17,7 @@ import {
 } from "@/lib/agenda";
 import type { SwellEvent } from "@/lib/types";
 import { EventDateTimeInput } from "./event-datetime-input";
-import { LocationSuggestions } from "./location-suggestions";
+import { LocationNameInput, LocationSuggestions } from "./location-suggestions";
 import { Button, Card, Field, Input, Notice, Textarea } from "./ui";
 
 // Leaflet ניגש ל-window בזמן הטעינה — חייב להיטען רק בדפדפן
@@ -355,12 +355,9 @@ export function EditEventScheduleForm({
             סרגל הלוגו הקבוע (z-10), שאחרת נחצה כשהשדה מגיע לראש המסך. */}
         <div className="relative z-[5]">
           <Field label="מיקום המפגש" hint="איך אנשים מכירים את המקום">
-            <Input
-              name="location_name"
-              required
-              autoComplete="off"
+            <LocationNameInput
               value={location.locationName}
-              onChange={(e) => location.setLocationName(e.target.value)}
+              onChange={location.setLocationName}
               onKeyDown={location.onLocationInputKeyDown}
             />
           </Field>
