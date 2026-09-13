@@ -47,7 +47,9 @@ export default function NewEventPage() {
     lat: DEFAULT_EVENT_LOCATION.lat,
     lng: DEFAULT_EVENT_LOCATION.lng,
     mapsUrl: DEFAULT_EVENT_LOCATION.mapsUrl,
-    skipInitialSearch: false,
+    // ברירת המחדל היא כבר מיקום אמיתי ותקין (קואורדינטות ידועות) —
+    // אין צורך לחפש אותה שוב בטעינת העמוד, בלי שהמשתמשת ביקשה.
+    skipInitialSearch: true,
   });
   const [radius, setRadius] = useState(150);
 
@@ -374,7 +376,9 @@ export default function NewEventPage() {
             במפה וגם את קישור הניווט, לא רק את השם.
           </p>
 
-          <div className="relative z-20">
+          {/* z-[5], לא z-20: צריך רק לנצח את המפה מתחת (z-0) — לא את
+              סרגל הלוגו הקבוע (z-10), שאחרת נחצה כשהשדה מגיע לראש המסך. */}
+          <div className="relative z-[5]">
             <Field label="מיקום המפגש" hint="איך אנשים מכירים את המקום">
               <Input
                 name="location_name"

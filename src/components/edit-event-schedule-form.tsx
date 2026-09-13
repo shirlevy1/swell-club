@@ -351,7 +351,9 @@ export function EditEventScheduleForm({
           </Notice>
         )}
 
-        <div className="relative z-20">
+        {/* z-[5], לא z-20: צריך רק לנצח את המפה מתחת (z-0) — לא את
+            סרגל הלוגו הקבוע (z-10), שאחרת נחצה כשהשדה מגיע לראש המסך. */}
+        <div className="relative z-[5]">
           <Field label="מיקום המפגש" hint="איך אנשים מכירים את המקום">
             <Input
               name="location_name"
