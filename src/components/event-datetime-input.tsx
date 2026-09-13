@@ -36,14 +36,22 @@ export function EventDateTimeInput({
    *  ה-hidden input, כדי לא לשנות איך השליחה עצמה עובדת. */
   onChange?: (date: Date | null) => void;
 }) {
-  const [year, setYear] = useState<number | "">("");
-  const [month, setMonth] = useState<number | "">("");
-  const [day, setDay] = useState<number | "">("");
-  const [hour, setHour] = useState<number | "">("");
-  const [minute, setMinute] = useState<number | "">("");
+  const [year, setYear] = useState<number | "">(
+    () => defaultValue?.getFullYear() ?? "",
+  );
+  const [month, setMonth] = useState<number | "">(() =>
+    defaultValue ? defaultValue.getMonth() + 1 : "",
+  );
+  const [day, setDay] = useState<number | "">(() => defaultValue?.getDate() ?? "");
+  const [hour, setHour] = useState<number | "">(() => defaultValue?.getHours() ?? "");
+  const [minute, setMinute] = useState<number | "">(
+    () => defaultValue?.getMinutes() ?? "",
+  );
 
-  // עדכון מ-defaultValue רק כשהוא באמת משתנה — תוך כדי הרינדור עצמו,
-  // לא ב-useEffect, כדי לא "לחכות" לסבב רינדור נוסף אחרי שהוא מגיע.
+  // הערך ההתחלתי כבר מולא למעלה (lazy initializer) — זה כאן מטפל רק
+  // בשינוי מאוחר יותר (למשל "מפגש חדש": מתחיל null, מתמלא רגע אחרי
+  // ב-useEffect בעמוד ההורה). תוך כדי הרינדור עצמו, לא ב-useEffect,
+  // כדי לא "לחכות" לסבב רינדור נוסף אחרי שהערך מגיע.
   const [syncedDefaultValue, setSyncedDefaultValue] = useState(defaultValue);
   if (defaultValue !== syncedDefaultValue) {
     setSyncedDefaultValue(defaultValue);
