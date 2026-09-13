@@ -134,7 +134,7 @@ export default async function ProfilePage() {
               רגעים מהמפגשים שהייתם בהם איתנו.
             </p>
           </div>
-          <SelfieHistory shots={shots} albumsByEvent={albumsByEvent} />
+          <SelfieHistory shots={shots} albumsByEvent={albumsByEvent} enlargeOwnSelfies />
         </section>
       )}
 
