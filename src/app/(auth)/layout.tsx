@@ -13,7 +13,7 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative isolate flex flex-1 flex-col overflow-y-auto">
+    <div className="no-scrollbar relative isolate flex flex-1 flex-col overflow-y-auto">
       <MorningGlow horizonTop="38%" />
 
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col gap-8 px-6 pb-[max(2rem,env(safe-area-inset-bottom))] pt-[max(2.5rem,env(safe-area-inset-top))]">

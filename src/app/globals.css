@@ -76,6 +76,18 @@
 }
 
 @layer utilities {
+  /* מסתירה את פס הגלילה של הדפדפן, בלי לבטל את הגלילה עצמה — נועד
+     לאזורי הגלילה הפנימיים של האפליקציה (PullToRefresh וכו', ראו
+     app/(app)/layout.tsx) שברוחב מובייל-קבוע גם על מסך שולחני, ופס
+     גלילה אפור עבה שם נראה כמו תקלה, לא כמו חלק מהעיצוב. */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
   /* ערפל: שכבה רכה שמונעת מהרקע להיראות כמו צבע שטוח */
   .haze::after {
     content: "";

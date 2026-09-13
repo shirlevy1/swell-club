@@ -61,7 +61,7 @@ export default async function AppLayout({
           וה-nav למטה יושבים מחוצה לו בכוונה, כדי שאף פעם לא "יזוזו"
           תוך כדי גלילה (ראו ההערה ברכיב עצמו). */}
       <main className="min-h-0 flex-1 overflow-hidden">
-        <PullToRefresh className="mx-auto h-full w-full max-w-md overflow-y-auto px-5 pb-6 pt-6">
+        <PullToRefresh className="no-scrollbar mx-auto h-full w-full max-w-md overflow-y-auto px-5 pb-6 pt-6">
           {/* ממתין/ה לאישור: אין גישה לתוכן הקהילה, כולל ניווט בין
               עמודים — לפני שמנהלת אישרה, אין כלום לנווט אליו בכל מקרה. */}
           {viewer.status === "pending" ? (

@@ -17,7 +17,7 @@ export default async function Home() {
   }
 
   return (
-    <main className="relative isolate flex flex-1 flex-col overflow-y-auto">
+    <main className="no-scrollbar relative isolate flex flex-1 flex-col overflow-y-auto">
       <MorningGlow horizonTop="56%" />
 
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-9 px-7 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(2.5rem,env(safe-area-inset-top))]">
