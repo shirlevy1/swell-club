@@ -154,6 +154,24 @@ export function DownloadIcon({ className }: { className?: string }) {
   );
 }
 
+export function ShareIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      <path d="M12 16V4M12 4 8 8M12 4l4 4" />
+      <path d="M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5" />
+    </svg>
+  );
+}
+
 export function ChevronIcon({ className }: { className?: string }) {
   return (
     <svg

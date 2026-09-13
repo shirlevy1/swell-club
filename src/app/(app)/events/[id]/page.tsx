@@ -28,6 +28,7 @@ import { ScrollToAttendees } from "@/components/scroll-to-attendees";
 import { DeleteEventButton } from "@/components/delete-event-button";
 import { EventLiveRefresh } from "@/components/event-live-refresh";
 import { AddAttendanceButton } from "@/components/add-attendance-button";
+import { ShareEventButton } from "@/components/share-event-button";
 import { WhatToBring } from "@/components/what-to-bring";
 import { EditIcon, ExternalLinkIcon } from "@/components/social-icons";
 
@@ -82,18 +83,28 @@ export default async function EventPage({
               {formatDateTime(event.starts_at)}
             </h1>
           </div>
-          {/* לא רק "לפני שהמפגש התחיל" — גם ברגע שחלון הצ'ק־אין נפתח
-              (שיכול להיות לפני שעת ההתחלה) או שכבר יש נוכחויות
-              מאומתות, עריכת מיקום/רדיוס/חלון היא כבר לא בטוחה. */}
-          {isOrganizer && status === "before" && attendees.length === 0 && (
-            <Link
-              href={`/admin/events/${id}/edit`}
-              aria-label="עריכת מפגש"
-              className="flex size-11 shrink-0 items-center justify-center rounded-full border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
-            >
-              <EditIcon className="size-5" />
-            </Link>
-          )}
+          <div className="flex shrink-0 gap-2">
+            {/* לא רלוונטי להזמין אנשים למפגש שכבר נגמר */}
+            {status !== "closed" && (
+              <ShareEventButton
+                title={event.title}
+                startsAt={event.starts_at}
+                locationName={event.location_name}
+              />
+            )}
+            {/* לא רק "לפני שהמפגש התחיל" — גם ברגע שחלון הצ'ק־אין נפתח
+                (שיכול להיות לפני שעת ההתחלה) או שכבר יש נוכחויות
+                מאומתות, עריכת מיקום/רדיוס/חלון היא כבר לא בטוחה. */}
+            {isOrganizer && status === "before" && attendees.length === 0 && (
+              <Link
+                href={`/admin/events/${id}/edit`}
+                aria-label="עריכת מפגש"
+                className="flex size-11 shrink-0 items-center justify-center rounded-full border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
+              >
+                <EditIcon className="size-5" />
+              </Link>
+            )}
+          </div>
         </div>
         <a
           href={
