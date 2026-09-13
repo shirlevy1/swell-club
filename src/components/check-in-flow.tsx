@@ -246,7 +246,7 @@ export function CheckInFlow({ event }: { event: SwellEvent }) {
       return;
     }
 
-    if (!coords) return;
+    if (!coords) return fail("משהו השתבש עם המיקום. נסו שוב.");
 
     const blob = await new Promise<Blob | null>((resolve) =>
       canvas.toBlob(resolve, "image/jpeg", JPEG_QUALITY),
