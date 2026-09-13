@@ -142,7 +142,14 @@ export function AppNav({
   ];
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-(--color-line) bg-(--color-surface)/92 backdrop-blur-md">
+    <nav
+      className="fixed inset-x-0 bottom-0 z-20 transform-gpu border-t border-(--color-line) bg-(--color-surface)/92 backdrop-blur-md"
+      // רמז לספארי באייפון להריץ את הסרגל על שכבת חומרה נפרדת — בלי
+      // זה, במצב שמור-למסך-הבית, הוא "קופץ" רגעית תוך כדי גלילה כי
+      // הדפדפן מצייר אותו מחדש בין הפריימים של הגלילה עצמה, לא בגלל
+      // גובה העמוד (זה כבר טופל בעבר דרך svh ב-app/layout.tsx).
+      style={{ willChange: "transform" }}
+    >
       <ul className="mx-auto flex w-full max-w-md pb-[env(safe-area-inset-bottom)]">
         {items.map((item) => {
           const active =
