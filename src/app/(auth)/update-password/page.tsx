@@ -73,7 +73,26 @@ export default function UpdatePasswordPage() {
     }
   }
 
-  if (checking) return null;
+  // שלד עדין במקום מסך ריק — אותו אפקט פעימה בדיוק כמו placeholder
+  // המפה בטופסי המפגש (admin/events/new, edit-event-schedule-form),
+  // כדי שבחיבור חלש (בדיוק מה שהקישור הזה נבדק דרכו) לא ייראה שהאתר
+  // קרס באמצע בדיקת תקפות הקישור.
+  if (checking) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-center font-[family-name:var(--font-display)] text-2xl font-bold">
+          סיסמה חדשה
+        </h1>
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <div className="h-4 w-24 animate-pulse rounded-md bg-(--color-surface)" />
+            <div className="h-11 w-full animate-pulse rounded-xl bg-(--color-surface)" />
+          </div>
+          <div className="h-12 w-full animate-pulse rounded-xl bg-(--color-surface)" />
+        </div>
+      </div>
+    );
+  }
 
   if (!linkValid) {
     return (
