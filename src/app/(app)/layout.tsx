@@ -42,7 +42,7 @@ export default async function AppLayout({
       : { members: 0, photos: 0 };
 
   return (
-    <div className="relative isolate flex flex-1 flex-col">
+    <div className="relative isolate flex h-full flex-col overflow-hidden">
       <div
         className="pointer-events-none absolute inset-0 -z-10"
         style={{
@@ -57,8 +57,11 @@ export default async function AppLayout({
 
       <AppHeader />
 
-      <main className="mx-auto w-full max-w-md flex-1 px-5 pb-28 pt-6">
-        <PullToRefresh>
+      {/* PullToRefresh הוא גם אזור הגלילה היחיד בעמוד — הכותרת למעלה
+          וה-nav למטה יושבים מחוצה לו בכוונה, כדי שאף פעם לא "יזוזו"
+          תוך כדי גלילה (ראו ההערה ברכיב עצמו). */}
+      <main className="min-h-0 flex-1 overflow-hidden">
+        <PullToRefresh className="mx-auto h-full w-full max-w-md overflow-y-auto px-5 pb-6 pt-6">
           {/* ממתין/ה לאישור: אין גישה לתוכן הקהילה, כולל ניווט בין
               עמודים — לפני שמנהלת אישרה, אין כלום לנווט אליו בכל מקרה. */}
           {viewer.status === "pending" ? (

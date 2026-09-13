@@ -11,24 +11,41 @@ const MAX_PULL = 90;
  * בכלל את המחווה הזו מובנית בדפדפן (ראו visibility-refresh.tsx) —
  * זו הדרך היחידה לרענן בלי לצאת ולחזור לאפליקציה. `router.refresh()`
  * מביא מחדש רק את הנתונים מהשרת, לא רענון מלא של הדף.
+ *
+ * הרכיב הזה הוא גם *אזור הגלילה עצמו* של תוכן העמוד (ראו app/(app)/
+ * layout.tsx): הכותרת וסרגל הניווט התחתון יושבים מחוץ לאזור הזה
+ * לגמרי, כדי שספארי באייפון לא "יגע" בהם תוך כדי גלילה — אותה תקלה
+ * ידועה של position:fixed שקופץ/נתלש תוך כדי גלילה ב-PWA שמור-למסך-
+ * הבית. לכן הבדיקות כאן הן מול הגלילה הפנימית של האלמנט הזה
+ * (containerRef.scrollTop), לא מול window.scrollY.
  */
-export function PullToRefresh({ children }: { children: React.ReactNode }) {
+export function PullToRefresh({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [pull, setPull] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
   const startY = useRef<number | null>(null);
   const pullValue = useRef(0);
 
   useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
     function onTouchStart(e: TouchEvent) {
-      if (window.scrollY > 0 || pending) return;
+      if ((container?.scrollTop ?? 0) > 0 || pending) return;
       startY.current = e.touches[0].clientY;
     }
 
     function onTouchMove(e: TouchEvent) {
       if (startY.current === null) return;
       // התחלנו למעלה, אבל בינתיים גללו — זו גלילה רגילה, לא משיכה
-      if (window.scrollY > 0) {
+      if ((container?.scrollTop ?? 0) > 0) {
         startY.current = null;
         pullValue.current = 0;
         setPull(0);
@@ -52,20 +69,24 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
       setPull(0);
     }
 
-    document.addEventListener("touchstart", onTouchStart, { passive: true });
-    document.addEventListener("touchmove", onTouchMove, { passive: false });
-    document.addEventListener("touchend", onTouchEnd, { passive: true });
+    container.addEventListener("touchstart", onTouchStart, { passive: true });
+    container.addEventListener("touchmove", onTouchMove, { passive: false });
+    container.addEventListener("touchend", onTouchEnd, { passive: true });
     return () => {
-      document.removeEventListener("touchstart", onTouchStart);
-      document.removeEventListener("touchmove", onTouchMove);
-      document.removeEventListener("touchend", onTouchEnd);
+      container.removeEventListener("touchstart", onTouchStart);
+      container.removeEventListener("touchmove", onTouchMove);
+      container.removeEventListener("touchend", onTouchEnd);
     };
   }, [pending, router]);
 
   const active = pull > 0 || pending;
 
   return (
-    <>
+    <div
+      ref={containerRef}
+      className={className}
+      style={{ WebkitOverflowScrolling: "touch" }}
+    >
       <div
         className="flex items-center justify-center overflow-hidden"
         style={{
@@ -99,6 +120,6 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
         )}
       </div>
       {children}
-    </>
+    </div>
   );
 }

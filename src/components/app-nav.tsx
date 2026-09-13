@@ -143,13 +143,12 @@ export function AppNav({
 
   return (
     <nav
-      // ⚠️ אל תוסיפו transform/will-change:transform כאן. ניסינו את
-      // זה כדי לתקן קפיצה קטנה של הסרגל תוך כדי גלילה באייפון — אבל
-      // השילוב עם backdrop-blur למטה גרם לסרגל לאבד את ה-position:fixed
-      // לגמרי ("נדבק" בתוך זרימת התוכן במקום להישאר צמוד לתחתית המסך).
-      // ראו גם ההערה ב-app/layout.tsx על dvh/svh — זו תקלה שלישית ונפרדת
-      // מאותה משפחה, לא תיקון של אותה בעיה.
-      className="fixed inset-x-0 bottom-0 z-20 border-t border-(--color-line) bg-(--color-surface)/92 backdrop-blur-md"
+      // לא position:fixed בכוונה: זה מה שגרם לכל סיפור הקפיצות/הינתקות
+      // תוך כדי גלילה באייפון (PWA שמור למסך הבית) — ראו ההערה על
+      // הארכיטקטורה ב-pull-to-refresh.tsx וב-app/(app)/layout.tsx.
+      // הסרגל הזה יושב עכשיו כילד שקט בתחתית עמודת flex בגובה קבוע,
+      // מחוץ לאזור הגלילה לגמרי — אין שום דבר "לקפוץ" ממנו.
+      className="shrink-0 border-t border-(--color-line) bg-(--color-surface)/92 backdrop-blur-md"
     >
       <ul className="mx-auto flex w-full max-w-md pb-[env(safe-area-inset-bottom)]">
         {items.map((item) => {
