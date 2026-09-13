@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { ChevronIcon } from "./social-icons";
 
 export function CloseIcon({ className }: { className?: string }) {
@@ -42,10 +43,30 @@ export function PhotoLightbox({
   footer?: React.ReactNode;
 }) {
   const photo = photos[index];
+
+  const dialogRef = useRef<HTMLDivElement>(null);
+  // מקלדת: Escape סוגר, ופוקוס עובר לחלון עצמו בפתיחה — בלי זה מי
+  // שמנווט/ת במקלדת נשאר/ת "מאחורי" התוכן שכבר לא נראה מתחת לרקע השחור.
+  useEffect(() => {
+    if (!photo) return;
+    dialogRef.current?.focus();
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [photo, onClose]);
+
   if (!photo) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-black/95" role="dialog" aria-modal="true">
+    <div
+      ref={dialogRef}
+      tabIndex={-1}
+      className="fixed inset-0 z-50 flex flex-col bg-black/95 outline-none"
+      role="dialog"
+      aria-modal="true"
+    >
       <div className="flex items-center justify-between gap-3 p-4">
         <button
           type="button"

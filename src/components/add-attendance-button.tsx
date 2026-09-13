@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
@@ -34,6 +34,19 @@ export function AddAttendanceButton({
   const [query, setQuery] = useState("");
   const [addingId, setAddingId] = useState<string | null>(null);
   const [justAdded, setJustAdded] = useState<Set<string>>(new Set());
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  // מקלדת: Escape סוגר, ופוקוס עובר לחלון עצמו בפתיחה — עד היום היחיד
+  // שסגר את זה היה קליק על הרקע, לא נגיש למי שמנווט/ת במקלדת.
+  useEffect(() => {
+    if (!open) return;
+    dialogRef.current?.focus();
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open]);
 
   async function openModal() {
     setOpen(true);
@@ -98,7 +111,12 @@ export function AddAttendanceButton({
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          ref={dialogRef}
+          tabIndex={-1}
+          role="dialog"
+          aria-modal="true"
+          aria-label="עוד חברי קהילה שהגיעו"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 outline-none"
           onClick={(e) => {
             if (e.target === e.currentTarget) setOpen(false);
           }}
