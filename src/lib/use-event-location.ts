@@ -98,11 +98,21 @@ export function useEventLocation(initial: {
     setMapsUrl(null);
   }
 
-  /** סימון ידני על המפה מבטל את הקישור שנשמר — הוא כבר לא מתאר את
-   * הנקודה שנבחרה בפועל. */
+  /** סימון ידני על המפה (לחיצה, או "המיקום שלי") — השם הישן בשדה
+   * כבר לא מתאר את הנקודה החדשה, כך שאי אפשר יותר לסמוך על "מיקום"
+   * בעמוד המפגש שנופל בחזרה על חיפוש-טקסט לפי locationName כשאין
+   * קישור שמור (ראו events/[id]/page.tsx) — זה היה פותח מקום אחר
+   * לגמרי. במקום זה: קישור לפי נ.צ מדויק (לא page עשיר כמו לחיפוש
+   * טקסטואלי, אבל תמיד נכון), והשם מתאפס לטקסט כללי כדי לא "לשקר"
+   * על שם מקום ספציפי שגוי. skipNextSearch כדי לא לחפש את המחרוזת
+   * הכללית הזו כאילו הוקלדה. */
   function setCoordsManually(c: { lat: number; lng: number }) {
     setCoordsState(c);
-    setMapsUrl(null);
+    setMapsUrl(
+      `https://www.google.com/maps/search/?api=1&query=${c.lat},${c.lng}`,
+    );
+    skipNextSearch.current = true;
+    setLocationNameState("מיקום מסומן על המפה");
   }
 
   function chooseSuggestion(s: LocationSuggestion) {
