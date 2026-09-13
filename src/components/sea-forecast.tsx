@@ -97,7 +97,9 @@ export function SeaForecast({ day }: { day: GoSurfDay }) {
                   </td>
                   <td className={TD}>
                     {row.heightCm ? (
-                      <span className="ltr-nums">{row.heightCm}</span>
+                      <>
+                        <span className="ltr-nums">{row.heightCm}</span> ס״מ
+                      </>
                     ) : (
                       "—"
                     )}
@@ -115,13 +117,13 @@ export function SeaForecast({ day }: { day: GoSurfDay }) {
                   </td>
                   <td className={TD}>
                     {row.swellCm != null && (
-                      <span className="ltr-nums block text-[9.5px]">
-                        {row.swellCm} ס״מ
+                      <span className="block text-[9.5px]">
+                        <span className="ltr-nums">{row.swellCm}</span> ס״מ
                       </span>
                     )}
                     {row.swellPeriodSec != null && (
-                      <span className="ltr-nums block text-[9.5px]">
-                        {row.swellPeriodSec} שנ׳
+                      <span className="block text-[9.5px]">
+                        <span className="ltr-nums">{row.swellPeriodSec}</span> שנ׳
                       </span>
                     )}
                     {row.swellCm == null && row.swellPeriodSec == null && "—"}
