@@ -149,7 +149,7 @@ export function NotificationIconToggle() {
         }
       }
     } catch {
-      setNotice("משהו השתבש. נסו שוב.");
+      setNotice("משהו השתבש. בדקו את החיבור ונסו שוב.");
     }
     setPending(false);
   }

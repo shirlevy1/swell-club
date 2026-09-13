@@ -173,7 +173,7 @@ export function EditSelfieButton({ eventId }: { eventId: string }) {
       setStep("done");
       router.refresh();
     } catch {
-      fail("משהו השתבש. נסו שוב.");
+      fail("משהו השתבש. בדקו את החיבור ונסו שוב.");
     }
   }
 

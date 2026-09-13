@@ -186,7 +186,7 @@ export function CheckInFlow({ event }: { event: SwellEvent }) {
       await runCapture();
     } catch {
       // רשת שנופלת באמצע זורקת, ולא מחזירה שגיאה מסודרת
-      fail("משהו השתבש. נסו שוב.");
+      fail("משהו השתבש. בדקו את החיבור ונסו שוב.");
     } finally {
       // גם ל-runCapture() יש כמה יציאות מוקדמות (return שקט, בלי
       // fail()) — finally מבטיח שהנעילה תמיד תשתחרר, בלי צורך לזכור
