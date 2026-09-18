@@ -34,6 +34,7 @@ export default async function EventsHistoryPage() {
           events={past}
           attended={attended}
           gender={viewer.profile?.gender ?? null}
+          eventLinkQuery="from=history"
         />
       )}
     </div>
