@@ -53,7 +53,14 @@ export default async function EventPage({
           ? { href: `/people/${fromId}`, label: "בחזרה לפרופיל" }
           : from === "history"
             ? { href: "/events/history", label: "לכל המפגשים שהיו" }
-            : { href: "/events", label: "לכל המפגשים" };
+            : from === "admin"
+              ? { href: "/admin#events", label: "לניהול" }
+              : from === "admin-history"
+                ? {
+                    href: "/admin/events/history",
+                    label: "לכל המפגשים שהיו",
+                  }
+                : { href: "/events", label: "לכל המפגשים" };
   // שתי שאילתות בלתי-תלויות זו בזו — בבת אחת, לא ברצף
   const [viewer, event] = await Promise.all([getViewer(), getEvent(id)]);
   if (!viewer || !event) notFound();

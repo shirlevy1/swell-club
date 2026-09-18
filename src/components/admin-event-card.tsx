@@ -7,8 +7,17 @@ import { EventReportButton } from "./event-report-button";
 /**
  * כרטיס מפגש בעמוד הניהול — משותף בין הרשימה הראשית (admin/page.tsx,
  * קרובים + שהיו האחרונים) לעמוד ההיסטוריה המלאה (admin/events/history).
+ * eventLinkQuery: לכפתור החזרה בעמוד המפגש עצמו, כדי שידע לחזור
+ * לניהול ולא ל"לכל המפגשים" הרגיל — כל קורא/ת קובע/ת את ה-query שלו.
  */
-export function AdminEventCard({ event }: { event: AdminEvent }) {
+export function AdminEventCard({
+  event,
+  eventLinkQuery,
+}: {
+  event: AdminEvent;
+  eventLinkQuery?: string;
+}) {
+  const eventHref = `/events/${event.id}${eventLinkQuery ? `?${eventLinkQuery}` : ""}`;
   const femalePercent =
     event.cameCount > 0
       ? Math.round((event.femaleCame / event.cameCount) * 100)
@@ -25,7 +34,7 @@ export function AdminEventCard({ event }: { event: AdminEvent }) {
           עוגן, ראו attendee-grid). */}
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
         <Link
-          href={`/events/${event.id}`}
+          href={eventHref}
           className="min-w-0 truncate font-[family-name:var(--font-display)] text-lg font-bold"
         >
           {event.title}
@@ -42,7 +51,7 @@ export function AdminEventCard({ event }: { event: AdminEvent }) {
           />
         </div>
       </div>
-      <Link href={`/events/${event.id}`} className="block space-y-4">
+      <Link href={eventHref} className="block space-y-4">
         {/* שתי קבוצות — "כמה" ו"מי" — מופרדות בקו דק, לא חמש עמודות
             דחוסות. סדר ה-DOM הפוך מסדר התצוגה במכוון: איבר ראשון נופל
             מימין ב-RTL, ולכן כדי לקבל משמאל לימין "הגיעו בפועל, סימנו

@@ -361,7 +361,7 @@ export default async function AdminPage() {
           <ul className="space-y-3">
             {upcomingEvents.map((event) => (
               <li key={event.id}>
-                <AdminEventCard event={event} />
+                <AdminEventCard event={event} eventLinkQuery="from=admin" />
               </li>
             ))}
           </ul>
@@ -376,7 +376,7 @@ export default async function AdminPage() {
           <ul className="space-y-3">
             {pastEvents.map((event) => (
               <li key={event.id}>
-                <AdminEventCard event={event} />
+                <AdminEventCard event={event} eventLinkQuery="from=admin" />
               </li>
             ))}
           </ul>

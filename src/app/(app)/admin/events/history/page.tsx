@@ -28,7 +28,7 @@ export default async function AdminEventsHistoryPage() {
         <ul className="space-y-3">
           {pastEvents.map((event) => (
             <li key={event.id}>
-              <AdminEventCard event={event} />
+              <AdminEventCard event={event} eventLinkQuery="from=admin-history" />
             </li>
           ))}
         </ul>
