@@ -181,7 +181,11 @@ export default async function PersonPage({
                 רגעים מהמפגשים שהייתם בהם ביחד.
               </p>
             </div>
-            <SelfieHistory shots={shots} albumsByEvent={albumsByEvent} />
+            <SelfieHistory
+              shots={shots}
+              albumsByEvent={albumsByEvent}
+              eventLinkQuery={`from=person&fromId=${id}`}
+            />
           </section>
         </>
       ) : (

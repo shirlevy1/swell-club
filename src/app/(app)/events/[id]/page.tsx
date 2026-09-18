@@ -49,7 +49,9 @@ export default async function EventPage({
       ? { href: "/profile", label: "בחזרה לפרופיל שלי" }
       : from === "admin-member" && fromId
         ? { href: `/admin/members/${fromId}`, label: "בחזרה לפרופיל" }
-        : { href: "/events", label: "לכל המפגשים" };
+        : from === "person" && fromId
+          ? { href: `/people/${fromId}`, label: "בחזרה לפרופיל" }
+          : { href: "/events", label: "לכל המפגשים" };
   // שתי שאילתות בלתי-תלויות זו בזו — בבת אחת, לא ברצף
   const [viewer, event] = await Promise.all([getViewer(), getEvent(id)]);
   if (!viewer || !event) notFound();
