@@ -438,7 +438,7 @@ export default async function AdminPage() {
         )}
       </section>
 
-      <section className="space-y-3">
+      <section id="members" className="space-y-3 scroll-mt-20">
         <div className="flex items-center justify-between">
           <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-ink-faint)">
             חברי הקהילה
