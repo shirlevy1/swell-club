@@ -15,7 +15,7 @@ import { NotificationIconToggle } from "@/components/notification-icon-toggle";
 // כמה מפגשי עבר מוצגים בעמוד הראשי לפני שמפנים ל"כל ההיסטוריה" —
 // בלי זה, קהילה עם היסטוריה ארוכה טוענת יותר ויותר עם הזמן בעמוד
 // הכי נצפה באתר.
-const PAST_EVENTS_PAGE_LIMIT = 10;
+const PAST_EVENTS_PAGE_LIMIT = 3;
 
 export default async function EventsPage() {
   const viewer = await getViewer();

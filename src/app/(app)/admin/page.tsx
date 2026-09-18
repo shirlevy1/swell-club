@@ -228,9 +228,9 @@ export default async function AdminPage() {
   ];
 
   // אותו דפוס בדיוק כמו עמוד "מפגשים" הרגיל (events/page.tsx) — קרובים
-  // (מהקרוב ביותר), ושהיו (מהאחרון ביותר) חתוכים ל-10 עם קישור להיסטוריה
+  // (מהקרוב ביותר), ושהיו (מהאחרון ביותר) חתוכים עם קישור להיסטוריה
   // המלאה, כדי שקהילה עם היסטוריה ארוכה לא תטעין יותר ויותר עם הזמן.
-  const ADMIN_PAST_EVENTS_LIMIT = 10;
+  const ADMIN_PAST_EVENTS_LIMIT = 3;
   const {
     upcoming: upcomingEvents,
     past: pastEvents,
