@@ -16,7 +16,7 @@ export function PastEventsList({
     <ul className="space-y-3">
       {events.map((event) => (
         <li key={event.id}>
-          <Link href={`/events/${event.id}`}>
+          <Link href={`/events/${event.id}?from=history`}>
             <EventCard
               event={event}
               attended={attended.has(event.id)}
