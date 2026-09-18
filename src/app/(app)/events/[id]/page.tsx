@@ -34,10 +34,22 @@ import { EditIcon, ExternalLinkIcon } from "@/components/social-icons";
 
 export default async function EventPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  /** מאיפה הגיעו — כדי שכפתור החזרה יוביל למקום הכי אינטואיטיבי,
+      לא תמיד "לכל המפגשים". ראו גם admin/members/[id]/page.tsx
+      שמייצר את אותם פרמטרים דרך SelfieHistory. */
+  searchParams: Promise<{ from?: string; fromId?: string }>;
 }) {
   const { id } = await params;
+  const { from, fromId } = await searchParams;
+  const back =
+    from === "profile"
+      ? { href: "/profile", label: "בחזרה לפרופיל שלי" }
+      : from === "admin-member" && fromId
+        ? { href: `/admin/members/${fromId}`, label: "בחזרה לפרופיל" }
+        : { href: "/events", label: "לכל המפגשים" };
   // שתי שאילתות בלתי-תלויות זו בזו — בבת אחת, לא ברצף
   const [viewer, event] = await Promise.all([getViewer(), getEvent(id)]);
   if (!viewer || !event) notFound();
@@ -71,7 +83,7 @@ export default async function EventPage({
   return (
     <div className="space-y-7">
       {status !== "closed" && <EventLiveRefresh />}
-      <BackLink href="/events">לכל המפגשים</BackLink>
+      <BackLink href={back.href}>{back.label}</BackLink>
 
       <header className="space-y-2">
         <div className="flex items-start justify-between gap-4">
@@ -158,7 +170,7 @@ export default async function EventPage({
       {/* השמות שמאחורי המספר. מי שכבר נכח רואה במקום זה את הרשימה
           האמיתית עם הפנים, ולכן אין צורך להראות לו כוונות. */}
       {!hasAttended && status !== "closed" && (
-        <GoingList people={going} myGoing={myGoing} />
+        <GoingList people={going} myGoing={myGoing} eventId={id} />
       )}
 
       {!hasAttended && status === "open" && (

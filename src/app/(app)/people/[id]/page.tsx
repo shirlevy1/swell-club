@@ -35,8 +35,10 @@ export default async function PersonPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  /** `from` הוא event_id בלבד — משמש לחיפוש בתוך shots, לא ל-redirect
-      וגם לא מוצג בשום מקום, ולכן אין צורך לחטא אותו כמו את `?next=`. */
+  /** `from` הוא event_id בלבד. שני שימושים: לבחור איזה סלפי להציג
+      למעלה (הכי רלוונטי להֶקשר, לא סתם "הכי עדכני"), וגם לכפתור
+      החזרה למטה — שניהם לא מוצגים בשום מקום אחר, ולכן אין צורך
+      לחטא אותו כמו את `?next=`. */
   searchParams: Promise<{ from?: string }>;
 }) {
   const { id } = await params;
@@ -45,8 +47,13 @@ export default async function PersonPage({
   if (!viewer) redirect("/login");
   if (id === viewer.userId) redirect("/profile");
   // למנהלת יש כבר עמוד חבר מלא — טלפון, אינסטגרם וכל הסלפים. אין טעם
-  // לשכפל כאן גרסה מצומצמת שתיראה לה שבורה.
-  if (viewer.role === "organizer") redirect(`/admin/members/${id}`);
+  // לשכפל כאן גרסה מצומצמת שתיראה לה שבורה. מעבירים את from הלאה כדי
+  // שכפתור החזרה שם ידע שהיא הגיעה ממפגש, לא מהניהול.
+  if (viewer.role === "organizer") {
+    redirect(
+      `/admin/members/${id}${from ? `?from=event&fromId=${from}` : ""}`,
+    );
+  }
 
   const person = await getPersonCard(id, viewer.userId);
   if (!person) notFound();
@@ -73,7 +80,9 @@ export default async function PersonPage({
 
   return (
     <div className="space-y-6">
-      <BackLink href="/events">לכל המפגשים</BackLink>
+      <BackLink href={from ? `/events/${from}` : "/events"}>
+        {from ? "בחזרה למפגש" : "לכל המפגשים"}
+      </BackLink>
 
       <header className="flex items-center gap-4">
         <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)">

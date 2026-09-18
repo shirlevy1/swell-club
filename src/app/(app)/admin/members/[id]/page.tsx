@@ -20,10 +20,20 @@ import { WhatsAppIcon, InstagramIcon, WaveIcon } from "@/components/social-icons
 
 export default async function AdminMemberPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  /** מגיע מההפניה האוטומטית ב-people/[id]/page.tsx כשמנהלת ניגשת
+      לעמוד "חבר קהילה" רגיל דרך מפגש (attendee-grid/going-list) —
+      כדי שכפתור החזרה כאן ידע שהיא לא הגיעה מהניהול. */
+  searchParams: Promise<{ from?: string; fromId?: string }>;
 }) {
   const { id } = await params;
+  const { from, fromId } = await searchParams;
+  const back =
+    from === "event" && fromId
+      ? { href: `/events/${fromId}`, label: "בחזרה למפגש" }
+      : { href: "/admin", label: "לניהול" };
   const viewer = await getViewer();
   if (!viewer?.club || viewer.role !== "organizer") redirect("/events");
 
@@ -42,7 +52,7 @@ export default async function AdminMemberPage({
 
   return (
     <div className="space-y-6">
-      <BackLink href="/admin">לניהול</BackLink>
+      <BackLink href={back.href}>{back.label}</BackLink>
 
       <header className="flex items-center gap-4">
         <div className="size-16 shrink-0 overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)">
@@ -120,7 +130,11 @@ export default async function AdminMemberPage({
             רגעים מהמפגשים שהייתם בהם ביחד.
           </p>
         </div>
-        <SelfieHistory shots={shots} albumsByEvent={albumsByEvent} />
+        <SelfieHistory
+          shots={shots}
+          albumsByEvent={albumsByEvent}
+          eventLinkQuery={`from=admin-member&fromId=${id}`}
+        />
       </section>
     </div>
   );

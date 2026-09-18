@@ -1,6 +1,5 @@
-import Link from "next/link";
 import { getViewer, getPastEvents, getMyAttendedEventIds } from "@/lib/data";
-import { EmptyState } from "@/components/ui";
+import { BackLink, EmptyState } from "@/components/ui";
 import { PastEventsList } from "@/components/past-events-list";
 
 export default async function EventsHistoryPage() {
@@ -22,12 +21,7 @@ export default async function EventsHistoryPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <Link
-          href="/events"
-          className="text-sm font-semibold text-(--color-sea)"
-        >
-          ← חזרה למפגשים
-        </Link>
+        <BackLink href="/events">לכל המפגשים</BackLink>
         <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold">
           כל המפגשים שהיו
         </h1>

@@ -33,9 +33,13 @@ function initial(name: string): string {
 export function GoingList({
   people,
   myGoing,
+  eventId,
 }: {
   people: GoingPerson[];
   myGoing: boolean;
+  /** לקישור לעמוד כל אדם, כדי שכפתור החזרה שם ידע לחזור לכאן —
+      אותו דפוס בדיוק כמו attendee-grid.tsx. */
+  eventId: string;
 }) {
   if (people.length === 0) return null;
 
@@ -71,7 +75,11 @@ export function GoingList({
             {/* "אתם" מוביל לפרופיל, כל השאר לעמוד האדם. מטרת מגע של
                 44px גם בידיים רטובות בחוף. */}
             <Link
-              href={person.isMe ? "/profile" : `/people/${person.profileId}`}
+              href={
+                person.isMe
+                  ? "/profile"
+                  : `/people/${person.profileId}?from=${eventId}`
+              }
               className={
                 "flex min-h-11 items-center gap-2 rounded-full border py-1 ps-1 pe-3 transition hover:border-(--color-sea) hover:bg-(--color-haze) " +
                 (person.isMe

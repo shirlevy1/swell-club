@@ -96,13 +96,20 @@ function EventThumbnail({
  * הוא רק גיבוי כשלמפגש עדיין אין אלבום. לחיצה על אריח מעבירה לעמוד
  * המפגש עצמו — תצוגת מסך-מלא עם דפדוף בין הסלפים נמצאת רק בעיגול
  * תמונת הפרופיל למעלה (ראו SelfieAvatarButton), לא כאן.
+ *
+ * `eventLinkQuery`: מחרוזת query מוכנה (בלי "?") שנוספת לקישור לכל
+ * מפגש, כדי שכפתור החזרה שם ידע לאן להוביל בחזרה — ראו events/[id]/
+ * page.tsx. כל קורא/ת (עמוד פרופיל, עמוד חבר קהילה בניהול) בונה את
+ * ה-query המתאים להֶקשר שלו.
  */
 export function SelfieHistory({
   shots,
   albumsByEvent,
+  eventLinkQuery,
 }: {
   shots: SelfieShot[];
   albumsByEvent?: Map<string, string[]>;
+  eventLinkQuery?: string;
 }) {
   if (shots.length === 0) {
     return (
@@ -117,7 +124,7 @@ export function SelfieHistory({
       {shots.map((shot) => (
         <li key={shot.eventId}>
           <Link
-            href={`/events/${shot.eventId}`}
+            href={`/events/${shot.eventId}${eventLinkQuery ? `?${eventLinkQuery}` : ""}`}
             className="block overflow-hidden rounded-xl border border-(--color-line) bg-(--color-surface) transition hover:border-(--color-sky)"
           >
             <div className="aspect-square w-full overflow-hidden bg-(--color-haze)">
