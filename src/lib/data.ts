@@ -1213,6 +1213,23 @@ export type AdminEvent = SwellEvent & {
   /** מי בפועל נכח (כולל הוספה ידנית) — למטריצת הנוכחות של כל המפגשים. */
   attendedProfileIds: string[];
 };
+/**
+ * קרובים (מהקרוב ביותר) ושהיו (מהאחרון ביותר), מתוך events שכבר
+ * הגיע מ-getAdminData ממוין מהחדש לישן — אותו דפוס בדיוק כמו
+ * getUpcomingEvents/getPastEvents, רק בלי שאילתה נפרדת כי כל האירועים
+ * כבר בזיכרון עם הסטטיסטיקות שלהם. פונקציה רגילה ולא קומפוננטה, כדי
+ * ש-Date.now() לא ייחשב קריאה לא-טהורה בתוך רינדור (react-hooks/purity).
+ */
+export function splitAdminEvents(events: AdminEvent[], pastLimit?: number) {
+  const now = Date.now();
+  const upcoming = [...events]
+    .filter((e) => new Date(e.starts_at).getTime() >= now)
+    .sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+  const pastAll = events.filter((e) => new Date(e.starts_at).getTime() < now);
+  const past = pastLimit ? pastAll.slice(0, pastLimit) : pastAll;
+  return { upcoming, past, pastAll };
+}
+
 export type AdminMember = {
   profile: Profile;
   role: MemberRole;
