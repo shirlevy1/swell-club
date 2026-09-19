@@ -3,10 +3,6 @@ import { seaScoreColor } from "@/lib/sea-score";
 import { formatDayMonth } from "@/lib/format";
 import { cx } from "./ui";
 
-function bestDay(days: SeaScoreDay[]): SeaScoreDay {
-  return days.reduce((best, d) => (d.stars > best.stars ? d : best), days[0]);
-}
-
 /**
  * "מתי הים הכי מתאים לסוואל" — גרסת "אופק": כל יום הוא עמודה, הגובה
  * והצבע שלה הם הציון (גבוה+כחול עמוק = ים רגוע, נמוך+אפרפר = ים גלי).
@@ -14,7 +10,6 @@ function bestDay(days: SeaScoreDay[]): SeaScoreDay {
  */
 export function SeaScoreStrip({ days }: { days: SeaScoreDay[] }) {
   if (days.length === 0) return null;
-  const best = bestDay(days);
 
   return (
     <div
@@ -22,13 +17,7 @@ export function SeaScoreStrip({ days }: { days: SeaScoreDay[] }) {
       style={{ background: "linear-gradient(165deg, #f5f9fb 0%, #e9f1f6 100%)" }}
     >
       <p className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
-        מתי הים הכי מתאים לסוואל? — אופק
-      </p>
-      <p className="text-sm text-(--color-ink-soft)">
-        הכי טוב בקרוב:{" "}
-        <span className="font-bold text-(--color-deep)">
-          יום {best.dayName}, {formatDayMonth(best.dateISO)}
-        </span>
+        מתי הים הכי מתאים לסוואל?
       </p>
 
       <div className="relative mt-4 flex h-28 items-end justify-between gap-1.5">

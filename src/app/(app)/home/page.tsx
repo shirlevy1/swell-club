@@ -2,7 +2,6 @@ import { getViewer } from "@/lib/data";
 import { getSeaScoreForecast } from "@/lib/gosurf";
 import { EmptyState } from "@/components/ui";
 import { SeaScoreStrip } from "@/components/sea-score-strip";
-import { SeaScoreWordStrip } from "@/components/sea-score-word-strip";
 
 export default async function HomePage() {
   const viewer = await getViewer();
@@ -19,10 +18,7 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-8">
-      {/* שתי גרסאות זו לצד זו, זמנית — עד שיוחלט איזו נשארת. שתיהן
-          כבר כוללות את שם הגרסה בכותרת שלהן, כדי שיהיה ברור מה מה. */}
       <SeaScoreStrip days={seaScoreDays} />
-      <SeaScoreWordStrip days={seaScoreDays} />
     </div>
   );
 }
