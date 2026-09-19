@@ -438,60 +438,6 @@ export async function getPastEvents(clubId: string, limit?: number) {
   return (data ?? []) as SwellEvent[];
 }
 
-const MONTH_MS = 30 * 24 * 3600_000;
-
-export type RecentMonthStats = { attended: number; total: number };
-
-/** X ו-Y ל"נכחתם ב-Y מתוך X מפגשים בחודש האחרון" בעמוד הפרופיל */
-export async function getRecentMonthStats(
-  clubId: string,
-  userId: string,
-): Promise<RecentMonthStats> {
-  const since = new Date(Date.now() - MONTH_MS).toISOString();
-  const now = new Date().toISOString();
-
-  if (demoMode) {
-    const events = demo
-      .demoEvents()
-      .filter(
-        (e) => e.club_id === clubId && e.starts_at >= since && e.starts_at <= now,
-      );
-    const mine = new Set(
-      demo
-        .demoAttendances()
-        .filter((a) => a.profileId === userId)
-        .map((a) => a.eventId),
-    );
-    return {
-      total: events.length,
-      attended: events.filter((e) => mine.has(e.id)).length,
-    };
-  }
-
-  const supabase = await createClient();
-  const { data: events } = await supabase
-    .from("events")
-    .select("id")
-    .eq("club_id", clubId)
-    .gte("starts_at", since)
-    .lte("starts_at", now);
-
-  const ids = (events ?? []).map((e) => e.id as string);
-  if (ids.length === 0) return { attended: 0, total: 0 };
-
-  // לא שאילתה ישירה על attendances: ה-RLS שם מרשה לקרוא שורת נוכחות
-  // רק למי שנכח/ה באותו מפגש בעצמו/ה (has_attended), לא לפי profile_id
-  // שמבקשים — שאילתה ישירה הייתה מחזירה בטעות "כמה מפגשים גם אני וגם
-  // userId נכחנו בהם ביחד", לא את הנוכחות האמיתית של userId. אותה
-  // מחלה בדיוק שכבר טופלה ב-person_card(), ואותו פתרון: security definer.
-  const { data: attended } = await supabase.rpc(
-    "person_month_attendance_count",
-    { p_profile_id: userId, p_club_id: clubId },
-  );
-
-  return { total: ids.length, attended: attended ?? 0 };
-}
-
 export async function getEvent(eventId: string) {
   if (demoMode) return demo.demoEvent(eventId);
 

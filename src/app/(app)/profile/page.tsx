@@ -4,7 +4,6 @@ import {
   getViewer,
   getSelfieHistory,
   getEventPhotoCollages,
-  getRecentMonthStats,
 } from "@/lib/data";
 import { demoMode } from "@/lib/config";
 import { attendanceStreak } from "@/lib/streak";
@@ -15,7 +14,6 @@ import {
   SWIM_LEVEL_COLOR,
   swimLevelBadgeStyle,
 } from "@/lib/swim-level";
-import { monthAttendanceLine } from "@/lib/attendance-text";
 import { EditIcon, WaveIcon } from "@/components/social-icons";
 import { LeaveCommunityButton } from "@/components/leave-community-button";
 import { SignOutButton } from "@/components/sign-out-button";
@@ -27,12 +25,7 @@ export default async function ProfilePage() {
   // שתי שאילתות בלתי-תלויות זו בזו — בבת אחת, לא ברצף. אלבומי
   // התמונות דווקא כן תלויים ב-shots (צריך את מזהי המפגשים שלהם),
   // ולכן נשארים אחרי, לא בתוך אותה קבוצה.
-  const [shots, monthStats] = await Promise.all([
-    getSelfieHistory(viewer.userId),
-    viewer.club
-      ? getRecentMonthStats(viewer.club.id, viewer.userId)
-      : Promise.resolve(null),
-  ]);
+  const shots = await getSelfieHistory(viewer.userId);
   const count = shots.length;
   const albumsByEvent = await getEventPhotoCollages(shots.map((s) => s.eventId));
   // הנוכחויות כבר כאן — אין צורך בשאילתה נוספת בשביל הרצף
@@ -69,22 +62,16 @@ export default async function ProfilePage() {
               )}
             </div>
             <p className="text-sm text-(--color-ink-soft)">
-              {monthStats
-                ? monthAttendanceLine(
-                    "הייתם איתנו",
-                    monthStats.attended,
-                    monthStats.total,
-                  )
-                : count === 0
-                  ? "עוד לא הייתם איתנו באף מפגש"
-                  : count === 1
-                    ? "הייתם איתנו במפגש אחד"
-                    : (
-                        <>
-                          הייתם איתנו ב־<span className="ltr-nums">{count}</span>{" "}
-                          מפגשים
-                        </>
-                      )}
+              {count === 0
+                ? "עוד לא הייתם איתנו באף מפגש"
+                : count === 1
+                  ? "הייתם איתנו במפגש אחד"
+                  : (
+                      <>
+                        הייתם איתנו ב־<span className="ltr-nums">{count}</span>{" "}
+                        מפגשים
+                      </>
+                    )}
             </p>
           </div>
         </div>
