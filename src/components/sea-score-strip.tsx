@@ -53,12 +53,12 @@ export function SeaScoreStrip({ days }: { days: SeaScoreDay[] }) {
       </p>
 
       <div className="flex justify-between px-1">
-        {days.map((d, i) => (
+        {days.map((d) => (
           <div key={d.dateISO} className="flex-1 text-center">
             <span
               className={cx(
                 "block text-xs font-bold",
-                i === 0 ? "text-(--color-sea)" : "text-(--color-ink)",
+                d.stars >= 4 ? "text-(--color-deep)" : "text-(--color-sea)",
               )}
             >
               {d.dayName}
