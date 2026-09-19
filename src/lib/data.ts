@@ -71,6 +71,21 @@ export type Viewer = {
   joinedAt: string | null;
 };
 
+/**
+ * ניסיון חוזר אחד לשאילתה שנכשלה — למשל טלפון שהתעורר משינה ועדיין
+ * מתחבר מחדש לרשת. בלי זה, כל כשל תקשורת רגעי ב-getViewer() נראה
+ * זהה ל"אין חברות בקהילה" (maybeSingle מחזירה data:null גם על הצלחה
+ * אמיתית עם 0 שורות וגם על שגיאת רשת), ואז נכנס/ת שרואה בטעות את
+ * מסך "כבר לא חלק מהקהילה" — כולל מנהלת.
+ */
+async function withRetry<T extends { error: unknown }>(
+  run: () => PromiseLike<T>,
+): Promise<T> {
+  const first = await run();
+  if (!first.error) return first;
+  return run();
+}
+
 /** הזהות של מי שמסתכל. כל עמוד ב-(app) מתחיל מכאן. */
 export async function getViewer(): Promise<Viewer | null> {
   if (demoMode) {
@@ -116,12 +131,16 @@ export async function getViewer(): Promise<Viewer | null> {
   if (!userId) return null;
 
   const [{ data: profile }, { data: membership }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
-    supabase
-      .from("club_members")
-      .select("role, status, joined_at, clubs(*)")
-      .eq("profile_id", userId)
-      .maybeSingle(),
+    withRetry(() =>
+      supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
+    ),
+    withRetry(() =>
+      supabase
+        .from("club_members")
+        .select("role, status, joined_at, clubs(*)")
+        .eq("profile_id", userId)
+        .maybeSingle(),
+    ),
   ]);
 
   return {
