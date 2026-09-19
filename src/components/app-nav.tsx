@@ -9,6 +9,8 @@ import * as demo from "@/lib/demo/store";
 import { cx } from "./ui";
 
 const ICONS = {
+  // בית פשוט בקו — גג + קירות עם פתח דלת באמצע, לא אייקון גנרי מוכן.
+  home: "M3 11L12 4l9 7M5 9.5V20h5v-6h4v6h5V9.5",
   // הגלים מהלוגו עצמו — לא סינוסים גנריים. אסימטרי, עם הרמה קטנה
   // בקצה, כמו הגל הראשי ב-public/logo.png.
   events:
@@ -134,6 +136,7 @@ export function AppNav({
   }, [isOrganizer, clubId]);
 
   const items = [
+    { href: "/home", label: "בית", icon: ICONS.home },
     { href: "/events", label: "מפגשים", icon: ICONS.events },
     { href: "/profile", label: "פרופיל", icon: ICONS.profile },
     ...(isOrganizer

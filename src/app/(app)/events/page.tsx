@@ -7,12 +7,10 @@ import {
   getMyGoingEventIds,
   getGoingNamesByEvent,
 } from "@/lib/data";
-import { getSeaScoreForecast } from "@/lib/gosurf";
 import { EmptyState } from "@/components/ui";
 import { EventCard } from "@/components/event-card";
 import { PastEventsList } from "@/components/past-events-list";
 import { NotificationIconToggle } from "@/components/notification-icon-toggle";
-import { SeaScoreStrip } from "@/components/sea-score-strip";
 
 // כמה מפגשי עבר מוצגים בעמוד הראשי לפני שמפנים ל"כל ההיסטוריה" —
 // בלי זה, קהילה עם היסטוריה ארוכה טוענת יותר ויותר עם הזמן בעמוד
@@ -30,12 +28,11 @@ export default async function EventsPage() {
     );
   }
 
-  const [upcoming, pastPlusOne, attended, going, seaScoreDays] = await Promise.all([
+  const [upcoming, pastPlusOne, attended, going] = await Promise.all([
     getUpcomingEvents(viewer.club.id),
     getPastEvents(viewer.club.id, PAST_EVENTS_PAGE_LIMIT + 1),
     getMyAttendedEventIds(viewer.userId),
     getMyGoingEventIds(viewer.userId),
-    getSeaScoreForecast(),
   ]);
   const hasMorePast = pastPlusOne.length > PAST_EVENTS_PAGE_LIMIT;
   const past = hasMorePast
@@ -50,8 +47,6 @@ export default async function EventsPage() {
 
   return (
     <div className="space-y-8">
-      <SeaScoreStrip days={seaScoreDays} />
-
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
