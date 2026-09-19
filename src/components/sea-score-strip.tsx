@@ -33,8 +33,13 @@ export function SeaScoreStrip({ days }: { days: SeaScoreDay[] }) {
 
   const width = days.length * COL_WIDTH;
   const usableHeight = CHART_HEIGHT - CHART_PAD * 2;
+  // ה-SVG תמיד שמאל-לימין במרחב הקואורדינטות שלו, גם בעמוד RTL —
+  // בניגוד לכותרות הימים למעלה (flex רגיל, מתהפך לבד ב-RTL). בלי
+  // ההיפוך הזה כאן, האינדקס הראשון (ראשון) היה מצויר בקצה השמאלי של
+  // הגרף בזמן שהכותרת "ראשון" יושבת בקצה הימני — הערכים היו נראים
+  // שייכים ליום ההפוך לגמרי (בדיוק הבאג שדווח בפועל).
   const points = days.map((d, i) => ({
-    x: i * COL_WIDTH + COL_WIDTH / 2,
+    x: (days.length - 1 - i) * COL_WIDTH + COL_WIDTH / 2,
     y: CHART_PAD + (d.stars / 5) * usableHeight,
   }));
   const linePath = buildSmoothPath(points);
