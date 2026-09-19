@@ -1,6 +1,5 @@
 import { notFound, redirect } from "next/navigation";
 import { getViewer, getEvent, getEventAttendanceCount } from "@/lib/data";
-import { BackLink } from "@/components/ui";
 import { EditEventScheduleForm } from "@/components/edit-event-schedule-form";
 
 export default async function EditEventSchedulePage({
@@ -16,15 +15,8 @@ export default async function EditEventSchedulePage({
   if (!event) notFound();
   const attendanceCount = await getEventAttendanceCount(id);
 
-  return (
-    <div className="space-y-6">
-      <BackLink href={`/events/${id}`}>למפגש</BackLink>
-
-      <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold">
-        עריכת מפגש
-      </h1>
-
-      <EditEventScheduleForm event={event} attendanceCount={attendanceCount} />
-    </div>
-  );
+  // כותרת וכפתור החזרה עברו לתוך EditEventScheduleForm עצמו — כפתור
+  // "למפגש" צריך לדעת אם הטופס dirty לפני שהוא מפנה, וזה נתון שקיים
+  // רק בקומפוננטת הלקוח, לא כאן.
+  return <EditEventScheduleForm event={event} attendanceCount={attendanceCount} />;
 }

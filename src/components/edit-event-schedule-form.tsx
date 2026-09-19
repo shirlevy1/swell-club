@@ -18,6 +18,7 @@ import {
 import type { SwellEvent } from "@/lib/types";
 import { EventDateTimeInput } from "./event-datetime-input";
 import { LocationNameInput, LocationSuggestions } from "./location-suggestions";
+import { ChevronIcon } from "./social-icons";
 import { Button, Card, Field, Input, Notice, Textarea } from "./ui";
 
 // Leaflet ניגש ל-window בזמן הטעינה — חייב להיטען רק בדפדפן
@@ -96,6 +97,21 @@ export function EditEventScheduleForm({
 
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // כל שינוי בטופס מסמן dirty, כדי שכפתור "למפגש" יזהיר לפני יציאה
+  // בלי שמירה — רוב השדות תופסים את זה לבד (מבעבע דרך onChange על
+  // ה-<form> עצמו), אבל שינויים במפה/בהצעות מיקום/פענוח קישור לא
+  // עוברים דרך input רגיל, ולכן מסומנים ידנית בכל אחד מהם למטה.
+  const [dirty, setDirty] = useState(false);
+
+  function handleBackClick() {
+    if (
+      !dirty ||
+      window.confirm("לצאת בלי לשמור?\nהשינוי שעשיתם עדיין לא נשמר.")
+    ) {
+      router.push(`/events/${event.id}`);
+    }
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -204,7 +220,25 @@ export function EditEventScheduleForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-5">
+    <div className="space-y-6">
+      <button
+        type="button"
+        onClick={handleBackClick}
+        className="-ms-2 inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-(--color-ink-faint) transition hover:text-(--color-sea)"
+      >
+        <ChevronIcon className="size-3.5 shrink-0" />
+        למפגש
+      </button>
+
+      <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold">
+        עריכת מפגש
+      </h1>
+
+      <form
+        onSubmit={onSubmit}
+        onChange={() => setDirty(true)}
+        className="space-y-5"
+      >
       <Card className="space-y-4">
         <Field label="שם המפגש">
           <Input name="title" required defaultValue={event.title} />
@@ -369,7 +403,10 @@ export function EditEventScheduleForm({
             suggestions={location.suggestions}
             highlightedIndex={location.highlightedIndex}
             onHighlight={location.setHighlightedIndex}
-            onChoose={location.chooseSuggestion}
+            onChoose={(s) => {
+              setDirty(true);
+              location.chooseSuggestion(s);
+            }}
           />
         </div>
 
@@ -379,7 +416,10 @@ export function EditEventScheduleForm({
             lng={location.coords.lng}
             radiusM={radius}
             focusSignal={location.focusSignal}
-            onChange={location.setCoords}
+            onChange={(c) => {
+              setDirty(true);
+              location.setCoords(c);
+            }}
           />
         </div>
 
@@ -419,7 +459,10 @@ export function EditEventScheduleForm({
               type="button"
               variant="secondary"
               disabled={location.resolvingLink || !location.mapsLinkInput.trim()}
-              onClick={location.onResolveMapsLink}
+              onClick={() => {
+                setDirty(true);
+                location.onResolveMapsLink();
+              }}
               className="shrink-0"
             >
               {location.resolvingLink ? "מאתרים…" : "עדכון מיקום"}
@@ -467,6 +510,7 @@ export function EditEventScheduleForm({
       <Button type="submit" disabled={pending} className="w-full">
         {pending ? "שומרים…" : "שמירה"}
       </Button>
-    </form>
+      </form>
+    </div>
   );
 }
