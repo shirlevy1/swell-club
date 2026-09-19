@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { computeSwellScore } from "./sea-score";
 
 /**
  * תחזית ים מ-GoSurf. כרגע כל המפגשים הם על חוף תל אביב, ולכן אזור
@@ -91,8 +92,11 @@ function parseGoSurfHtml(html: string): GoSurfDay[] {
  * שולף את כל ימי התחזית מ-GoSurf. `revalidate` מבטיח שהעמוד לא ישלוף
  * מהאתר בכל טעינה (מכבד את השרת שלהם), אבל גם לא יתקע על נתון ישן —
  * זה בדיוק מה שנותן את ה"מתעדכן אוטומטית" שהתבקש.
+ *
+ * מיוצאת (לא רק שימוש פנימי) כדי ש-getSeaScoreForecast ב-lib/data.ts
+ * תוכל להשתמש באותם ימים בדיוק בשביל Swell Score, בלי לשלוף פעמיים.
  */
-async function fetchGoSurfDays(): Promise<GoSurfDay[]> {
+export async function fetchGoSurfDays(): Promise<GoSurfDay[]> {
   const res = await fetch(`https://gosurf.co.il/forecast/${GOSURF_LOCATION_SLUG}`, {
     headers: {
       "User-Agent":
@@ -175,5 +179,28 @@ export async function getSeaForecastForEvent(
     return { ...day, rows };
   } catch {
     return null;
+  }
+}
+
+export type SeaScoreDay = {
+  dateISO: string;
+  dayName: string;
+  stars: number;
+};
+
+/**
+ * ניקוד Swell Score לכל הימים שיש להם תחזית ב-GoSurf כרגע (בד"כ
+ * שבוע קדימה) — למדור "הדופק של הקהילה" בעמוד הבית. ראו sea-score.ts
+ * לנוסחה עצמה. מחזירה מערך ריק בכל כשל, לא מפילה את עמוד הבית.
+ */
+export async function getSeaScoreForecast(): Promise<SeaScoreDay[]> {
+  try {
+    const days = await fetchGoSurfDays();
+    return days.flatMap((day) => {
+      const stars = computeSwellScore(day);
+      return stars == null ? [] : [{ dateISO: day.dateISO, dayName: day.dayName, stars }];
+    });
+  } catch {
+    return [];
   }
 }
