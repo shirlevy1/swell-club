@@ -7,7 +7,11 @@
 -- פעמים עולה קודם, לא רק "נפגשנו/לא נפגשנו".
 -- ============================================================================
 
-create or replace function public.event_going_list(p_event_id uuid)
+-- שינוי טור פלט (הוספת shared_count) לא נתמך ע"י create or replace —
+-- postgres דורש למחוק את החתימה הישנה קודם.
+drop function if exists public.event_going_list(uuid);
+
+create function public.event_going_list(p_event_id uuid)
 returns table (
   profile_id   uuid,
   full_name    text,
