@@ -114,7 +114,6 @@ src/lib/format.ts                   תאריכים בעברית, טלפון, א�
 
 src/app/(auth)/                     הרשמה, התחברות, איפוס סיסמה
 src/app/(app)/                      האפליקציה עצמה (מוגן בהתחברות)
-src/app/preview/                    מסך דמה לבדיקה ויזואלית. פיתוח בלבד
 src/components/check-in-flow.tsx    מיקום → מצלמה → דחיסה → אימות בשרת
 src/components/attendee-grid.tsx    הפרס — מי נכח, עם הפנים
 src/components/going-list.tsx       מי מתכוון להגיע. שמות בלבד, בלי תמונות
