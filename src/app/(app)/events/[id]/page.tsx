@@ -19,6 +19,7 @@ import { BackLink, Card, Notice } from "@/components/ui";
 import { RsvpButton } from "@/components/rsvp-button";
 import { CheckInFlow } from "@/components/check-in-flow";
 import { AttendeeGrid } from "@/components/attendee-grid";
+import { FirstMeetings } from "@/components/first-meetings";
 import { GoingList } from "@/components/going-list";
 import { SeaForecast } from "@/components/sea-forecast";
 import { EventAgendaView } from "@/components/event-agenda";
@@ -80,7 +81,7 @@ export default async function EventPage({
   // זמין נחשב "אין תחזית", לא שגיאה. גם לא נשלפת בכלל למפגש שכבר
   // נגמר — התחזית כבר לא מוצגת שם, ואין טעם בקריאת רשת חיצונית סתם.
   const [
-    { myGoing, rsvpCount, going, hasAttended, attendees },
+    { myGoing, rsvpCount, going, hasAttended, attendees, firstMeetings },
     forecast,
   ] = await Promise.all([
     getEventDetail(id, viewer.userId, isOrganizer),
@@ -236,6 +237,7 @@ export default async function EventPage({
               attendees.tsx וההערה שם). scroll-mt כדי שהכותרת לא תיחבא
               מתחת לכותרת העליונה הדביקה (AppHeader). */}
           <ScrollToAttendees />
+          <FirstMeetings people={firstMeetings} eventId={id} />
           <div className="flex items-center justify-between">
             <h2 className="font-[family-name:var(--font-display)] text-xl font-bold">
               מי היה חלק מהסוואל?

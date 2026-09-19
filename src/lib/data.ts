@@ -847,7 +847,12 @@ export type EventDetail = {
   /** כמה כבר נכחו. גלוי גם למי שלא נכח — המספר מותר, הזהויות לא. */
   attendedCount: number;
   attendees: AttendeeCard[];
+  /** מי מתוך attendees שזו הפעם הראשונה שנכחתם יחד — כבר חתוך ל-FIRST_MEETINGS_LIMIT */
+  firstMeetings: AttendeeCard[];
 };
+
+/** תקרה ל"מי הכרתם היום" — לא להציף אם יש הרבה פנים חדשות במפגש אחד */
+const FIRST_MEETINGS_LIMIT = 4;
 
 export async function getEventDetail(
   eventId: string,
@@ -895,6 +900,24 @@ export async function getEventDetail(
       };
     }
 
+    const demoAttendeeCards: AttendeeCard[] =
+      hasAttended || isOrganizer
+        ? attendances.flatMap((a) => {
+            const profile = byId.get(a.profileId);
+            return profile
+              ? [
+                  {
+                    profile,
+                    selfieUrl: a.selfie,
+                    isMe: a.profileId === demo.demoMeId,
+                    faceX: a.faceX,
+                    faceY: a.faceY,
+                  },
+                ]
+              : [];
+          })
+        : [];
+
     return {
       myGoing:
         rsvps.find((r) => r.profileId === demo.demoMeId)?.going ?? false,
@@ -921,21 +944,20 @@ export async function getEventDetail(
         }),
       hasAttended,
       attendedCount: attendances.length,
-      attendees: hasAttended || isOrganizer
-        ? attendances.flatMap((a) => {
-            const profile = byId.get(a.profileId);
-            return profile
-              ? [
-                  {
-                    profile,
-                    selfieUrl: a.selfie,
-                    isMe: a.profileId === demo.demoMeId,
-                    faceX: a.faceX,
-                    faceY: a.faceY,
-                  },
-                ]
-              : [];
-          })
+      attendees: demoAttendeeCards,
+      // "היום הכרתם" — רק מי שסך המפגשים המשותפים איתי הוא בדיוק אחד
+      // (המפגש הנוכחי), אותו תנאי בדיוק כמו ב-event_first_meetings() האמיתית.
+      firstMeetings: hasAttended
+        ? demoAttendeeCards
+            .filter((a) => {
+              if (a.isMe) return false;
+              const theirEventIds = allAttendances
+                .filter((x) => x.profileId === a.profile.id)
+                .map((x) => x.eventId);
+              const shared = theirEventIds.filter((eid) => myEventIds.has(eid)).length;
+              return shared === 1;
+            })
+            .slice(0, FIRST_MEETINGS_LIMIT)
         : [],
     };
   }
@@ -1004,6 +1026,25 @@ export async function getEventDetail(
     );
   }
 
+  // "היום הכרתם" — רק אם אני עצמי נכחתי (אין מה להראות "הכרתי את X"
+  // למנהלת שרק צופה בלי נוכחות). event_first_meetings() כבר מחזירה
+  // ריק במקרה הזה בכל מקרה, זו רק חיסכון בקריאה מיותרת.
+  let firstMeetings: AttendeeCard[] = [];
+  if (hasAttended) {
+    const { data: firstMeetingRows } = await supabase.rpc(
+      "event_first_meetings",
+      { p_event_id: eventId },
+    );
+    const firstMeetingIds = new Set(
+      ((firstMeetingRows ?? []) as { profile_id: string }[]).map(
+        (r) => r.profile_id,
+      ),
+    );
+    firstMeetings = attendees
+      .filter((a) => firstMeetingIds.has(a.profile.id))
+      .slice(0, FIRST_MEETINGS_LIMIT);
+  }
+
   const goingRowsTyped = (goingRows ?? []) as {
     profile_id: string;
     full_name: string;
@@ -1038,6 +1079,7 @@ export async function getEventDetail(
     hasAttended,
     attendedCount: attendedCount ?? 0,
     attendees,
+    firstMeetings,
   };
 }
 
