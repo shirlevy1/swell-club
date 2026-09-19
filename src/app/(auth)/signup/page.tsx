@@ -35,9 +35,7 @@ export default function SignupPage() {
     const city = String(form.get("city") ?? "").trim();
     const swimLevel = String(form.get("swim_level") ?? "").trim();
     const instagram = normalizeInstagram(String(form.get("instagram") ?? ""));
-    const privacyAccepted = form.get("privacy_accepted") === "on";
-    const waiverAccepted = form.get("waiver_accepted") === "on";
-    const termsAccepted = form.get("terms_accepted") === "on";
+    const legalAccepted = form.get("legal_accepted") === "on";
 
     if (fullName.length < 2) return setError("צריך שם מלא.");
     if (!isHebrewName(fullName))
@@ -49,12 +47,10 @@ export default function SignupPage() {
     if (!birthDate) return setError("צריך תאריך לידה.");
     if (!city) return setError("צריך לבחור עיר מגורים.");
     if (!swimLevel) return setError("צריך לבחור מה הכי מתאר אתכם במים.");
-    if (!privacyAccepted)
-      return setError("צריך לאשר את הצהרת הפרטיות כדי להצטרף.");
-    if (!waiverAccepted)
-      return setError("צריך לאשר את כתב הוויתור כדי להצטרף.");
-    if (!termsAccepted)
-      return setError("צריך לאשר את תנאי השימוש כדי להצטרף.");
+    if (!legalAccepted)
+      return setError(
+        "צריך לאשר את הצהרת הפרטיות, כתב הוויתור ותנאי השימוש כדי להצטרף.",
+      );
 
     // בהדגמה אין Supabase לקרוא אליו — הטופס רק מדמה הרשמה אמיתית
     if (demoMode) {
@@ -237,107 +233,79 @@ export default function SignupPage() {
         </p>
 
         <div className="space-y-3">
-          <div className="max-h-40 space-y-2 overflow-y-auto rounded-xl border border-(--color-line) bg-(--color-haze) p-4 text-xs leading-relaxed text-(--color-ink-soft)">
-            <p className="font-bold text-(--color-ink)">הצהרת פרטיות</p>
-            <p>
-              אנחנו אוספים את הפרטים שאתם ממלאים בטופס, סלפי בכל
-              צ׳ק־אין, ותמונות שמועלות לאלבום המפגשים. בזמן צ׳ק־אין
-              נאסף גם מיקום, כדי לוודא שבאמת הגעתם.
-            </p>
-            <p>
-              השם שלכם גלוי לכל חברי הקהילה. התמונות, הטלפון
-              והאינסטגרם גלויים רק למי שהיה איתכם באותו מפגש. מנהלת
-              הקהילה רואה הכל, תמיד.
-            </p>
-            <p>המידע נשמר אצל Supabase, בתשתית מאובטחת.</p>
+          <div className="max-h-64 space-y-4 overflow-y-auto rounded-xl border border-(--color-line) bg-(--color-haze) p-4 text-xs leading-relaxed text-(--color-ink-soft)">
+            <div className="space-y-2">
+              <p className="font-bold text-(--color-ink)">הצהרת פרטיות</p>
+              <p>
+                אנחנו אוספים את הפרטים שאתם ממלאים בטופס, סלפי בכל
+                צ׳ק־אין, ותמונות שמועלות לאלבום המפגשים. בזמן צ׳ק־אין
+                נאסף גם מיקום, כדי לוודא שבאמת הגעתם.
+              </p>
+              <p>
+                השם שלכם גלוי לכל חברי הקהילה. התמונות, הטלפון
+                והאינסטגרם גלויים רק למי שהיה איתכם באותו מפגש. מנהלת
+                הקהילה רואה הכל, תמיד.
+              </p>
+              <p>המידע נשמר אצל Supabase, בתשתית מאובטחת.</p>
+            </div>
+
+            <div className="space-y-2 border-t border-(--color-line) pt-3">
+              <p className="font-bold text-(--color-ink)">
+                כתב ויתור – השתתפות על אחריות אישית בלבד
+              </p>
+              <p>
+                בהצטרפות לכל פעילות של Swell Club (לרבות שחייה משותפת,
+                מפגשים ואירועים), אני מאשר/ת כי השתתפותי היא מרצוני החופשי
+                ועל אחריותי האישית בלבד.
+              </p>
+              <p>
+                ידוע לי כי שחייה במים פתוחים כרוכה בסיכונים, לרבות תנאי ים
+                משתנים, זרמים, גלים וסיכונים נוספים הנובעים מהשהייה בים.
+              </p>
+              <p>
+                אני מצהיר/ה כי אני אחראי/ת לוודא שמצבי הבריאותי, הכושר
+                הגופני והיכולת האישית שלי מתאימים להשתתפות בפעילות, וכי אני
+                מתחייב/ת לפעול בהתאם להנחיות צוות Swell Club במהלך המפגשים.
+              </p>
+              <p>
+                אני מבין/ה כי צוות Swell Club אינו אחראי לכל פגיעה, נזק,
+                אובדן או הוצאה שעלולים להיגרם לפני, במהלך או לאחר הפעילות,
+                בכפוף לכל דין.
+              </p>
+            </div>
+
+            <div className="space-y-2 border-t border-(--color-line) pt-3">
+              <p className="font-bold text-(--color-ink)">
+                תנאי שימוש וזכויות יוצרים
+              </p>
+              <p>
+                כל התוכן והעיצוב של Swell Club — לרבות הקוד, המיתוג, הלוגו
+                והממשק — שייכים ל-Swell Club, ואין להעתיק, לשכפל, לבצע
+                הנדסה חוזרת, או ליצור מהם עבודה נגזרת ללא אישור מראש ובכתב.
+              </p>
+              <p>
+                השימוש באתר מותר אך ורק למטרה שלשמה הוא נועד — ניהול נוכחות
+                והיכרות בתוך קהילת השחיינים — ולא לכל מטרה אחרת (לרבות
+                גישה אוטומטית, גריפת מידע, או שימוש מסחרי).
+              </p>
+              <p>
+                השירות ניתן כפי שהוא (&quot;as-is&quot;), בלי התחייבות
+                לזמינות רציפה או להיעדר תקלות. Swell Club אינה אחראית לכל
+                נזק, ישיר או עקיף, הנובע משימוש באתר או מאי-זמינותו.
+              </p>
+            </div>
           </div>
 
           <label className="flex items-start gap-2.5 text-sm text-(--color-ink)">
             <input
               type="checkbox"
-              name="privacy_accepted"
+              name="legal_accepted"
               required
               className="mt-0.5 size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
             />
             <span>
-              קראתי ואני מאשר/ת את הצהרת הפרטיות שלמעלה. בלי אישור אי
-              אפשר להצטרף לקהילה.
-            </span>
-          </label>
-        </div>
-
-        <div className="space-y-3">
-          <div className="max-h-40 space-y-2 overflow-y-auto rounded-xl border border-(--color-line) bg-(--color-haze) p-4 text-xs leading-relaxed text-(--color-ink-soft)">
-            <p className="font-bold text-(--color-ink)">
-              כתב ויתור – השתתפות על אחריות אישית בלבד
-            </p>
-            <p>
-              בהצטרפות לכל פעילות של Swell Club (לרבות שחייה משותפת, מפגשים
-              ואירועים), אני מאשר/ת כי השתתפותי היא מרצוני החופשי ועל
-              אחריותי האישית בלבד.
-            </p>
-            <p>
-              ידוע לי כי שחייה במים פתוחים כרוכה בסיכונים, לרבות תנאי ים
-              משתנים, זרמים, גלים וסיכונים נוספים הנובעים מהשהייה בים.
-            </p>
-            <p>
-              אני מצהיר/ה כי אני אחראי/ת לוודא שמצבי הבריאותי, הכושר הגופני
-              והיכולת האישית שלי מתאימים להשתתפות בפעילות, וכי אני
-              מתחייב/ת לפעול בהתאם להנחיות צוות Swell Club במהלך המפגשים.
-            </p>
-            <p>
-              אני מבין/ה כי צוות Swell Club אינו אחראי לכל פגיעה, נזק,
-              אובדן או הוצאה שעלולים להיגרם לפני, במהלך או לאחר הפעילות,
-              בכפוף לכל דין.
-            </p>
-          </div>
-
-          <label className="flex items-start gap-2.5 text-sm text-(--color-ink)">
-            <input
-              type="checkbox"
-              name="waiver_accepted"
-              required
-              className="mt-0.5 size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
-            />
-            <span>
-              קראתי ואני מאשר/ת את כתב הוויתור שלמעלה. בלי אישור אי אפשר
-              להצטרף לקהילה.
-            </span>
-          </label>
-        </div>
-
-        <div className="space-y-3">
-          <div className="max-h-40 space-y-2 overflow-y-auto rounded-xl border border-(--color-line) bg-(--color-haze) p-4 text-xs leading-relaxed text-(--color-ink-soft)">
-            <p className="font-bold text-(--color-ink)">
-              תנאי שימוש וזכויות יוצרים
-            </p>
-            <p>
-              כל התוכן והעיצוב של Swell Club — לרבות הקוד, המיתוג, הלוגו
-              והממשק — שייכים ל-Swell Club, ואין להעתיק, לשכפל, לבצע
-              הנדסה חוזרת, או ליצור מהם עבודה נגזרת ללא אישור מראש ובכתב.
-            </p>
-            <p>
-              השימוש באתר מותר אך ורק למטרה שלשמה הוא נועד — ניהול נוכחות
-              והיכרות בתוך קהילת השחיינים — ולא לכל מטרה אחרת (לרבות
-              גישה אוטומטית, גריפת מידע, או שימוש מסחרי).
-            </p>
-            <p>
-              השירות ניתן כפי שהוא (&quot;as-is&quot;), בלי התחייבות
-              לזמינות רציפה או להיעדר תקלות. Swell Club אינה אחראית לכל
-              נזק, ישיר או עקיף, הנובע משימוש באתר או מאי-זמינותו.
-            </p>
-          </div>
-
-          <label className="flex items-start gap-2.5 text-sm text-(--color-ink)">
-            <input
-              type="checkbox"
-              name="terms_accepted"
-              required
-              className="mt-0.5 size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
-            />
-            <span>
-              קראתי ואני מאשר/ת את תנאי השימוש שלמעלה. בלי אישור אי אפשר
-              להצטרף לקהילה.
+              קראתי ואני מאשר/ת את הצהרת הפרטיות, כתב הוויתור ותנאי השימוש
+              שלמעלה. בלי אישור אי אפשר להצטרף לקהילה.
             </span>
           </label>
         </div>

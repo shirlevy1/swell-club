@@ -193,6 +193,7 @@ export default async function PersonPage({
           <p className="font-bold">עוד לא נפגשתם בסוואל</p>
           <p className="mt-1">
             עדיין לא יצא לכם להיות יחד במפגש, אז בינתיים תראו רק את השם.
+            <br />
             אחרי שתיפגשו במים, תוכלו להכיר גם כאן.
           </p>
         </Notice>
