@@ -19,7 +19,7 @@ import {
   LocationNameInput,
   LocationSuggestions,
 } from "@/components/location-suggestions";
-import { Button, Card, Field, Input, Notice, Textarea } from "@/components/ui";
+import { BackLink, Button, Card, Field, Input, Notice, Textarea } from "@/components/ui";
 
 // Leaflet ניגש ל-window בזמן הטעינה — חייב להיטען רק בדפדפן
 const MapPicker = dynamic(
@@ -230,6 +230,8 @@ export default function NewEventPage() {
 
   return (
     <div className="space-y-6">
+      <BackLink href="/admin#events">לניהול</BackLink>
+
       <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold">
         מפגש חדש
       </h1>
