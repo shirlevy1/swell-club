@@ -173,26 +173,26 @@ export default async function PersonPage({
           )}
 
           <section className="space-y-3">
-            <div className="space-y-0.5">
-              <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="space-y-0.5">
                 <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
                   הסוואל המשותף שלכם
                 </h2>
-                <span className="flex shrink-0 items-center gap-1 rounded-full border border-(--color-sea)/40 bg-(--color-sea)/10 px-2 py-0.5 text-[0.7rem] font-bold text-(--color-sea)">
-                  <WaveIcon className="size-2.5" />
-                  {person.sharedCount === 1 ? (
-                    "פעם אחת"
-                  ) : (
-                    <>
-                      <span className="ltr-nums">{person.sharedCount}</span>{" "}
-                      פעמים
-                    </>
-                  )}
-                </span>
+                <p className="text-xs text-(--color-ink-faint)">
+                  רגעים מהמפגשים שהייתם בהם ביחד.
+                </p>
               </div>
-              <p className="text-xs text-(--color-ink-faint)">
-                רגעים מהמפגשים שהייתם בהם ביחד.
-              </p>
+              <span className="flex shrink-0 items-center gap-1 rounded-full border border-(--color-sea)/40 bg-(--color-sea)/10 px-2 py-0.5 text-[0.7rem] font-bold text-(--color-sea)">
+                <WaveIcon className="size-2.5" />
+                {person.sharedCount === 1 ? (
+                  "פעם אחת"
+                ) : (
+                  <>
+                    <span className="ltr-nums">{person.sharedCount}</span>{" "}
+                    פעמים
+                  </>
+                )}
+              </span>
             </div>
             <SelfieHistory
               shots={shots}
