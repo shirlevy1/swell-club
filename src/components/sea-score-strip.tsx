@@ -22,9 +22,9 @@ function buildSmoothPath(points: { x: number; y: number }[]): string {
 
 /**
  * "איך הים השבוע" — גרף שטח רציף וחלק, בהשראת תחזית גלים אמיתית:
- * כל יום הוא נקודה על העקומה, עם הציון (0–5) רשום ישירות עליה — בלי
- * מקרא צבעים נפרד (שהיה עלול להתבדח מהצבעים בפועל של הנקודות, כי
- * הצבע הוא גרדיאנט רציף לפי seaScoreColor, לא שני צבעים בינאריים).
+ * כל יום הוא נקודה על העקומה, עם הציון (0–5) רשום ישירות עליה. המקרא
+ * למטה מציג רק את שני הקצוות (1 ו-5) בצבע האמיתי שלהם — לא שני צבעים
+ * בינאריים מנותקים מהגרדיאנט הרציף בפועל של seaScoreColor.
  * הפוך מהציון: ים רגוע (ציון גבוה) הוא נקודה נמוכה בגרף, ים סוער
  * (ציון נמוך) הוא פסגה — כמו גרף גובה גל אמיתי. ראו lib/sea-score.ts.
  */
@@ -109,6 +109,27 @@ export function SeaScoreStrip({ days }: { days: SeaScoreDay[] }) {
           );
         })}
       </svg>
+
+      <div className="flex items-center justify-center gap-4 pt-1 text-[0.68rem] text-(--color-ink-faint)">
+        <span className="flex items-center gap-1.5">
+          <span
+            className="flex size-4 shrink-0 items-center justify-center rounded-full text-[0.6rem] font-extrabold text-white"
+            style={{ background: seaScoreColor(1) }}
+          >
+            1
+          </span>
+          ים סוער, לא מתאים
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span
+            className="flex size-4 shrink-0 items-center justify-center rounded-full text-[0.6rem] font-extrabold text-white"
+            style={{ background: seaScoreColor(5) }}
+          >
+            5
+          </span>
+          ים רגוע, מושלם לסוואל
+        </span>
+      </div>
     </div>
   );
 }
