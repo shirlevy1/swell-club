@@ -39,7 +39,7 @@ export function FirstMeetings({
         מי הכרתם היום?
       </p>
 
-      <ul className="flex flex-wrap justify-center gap-4">
+      <ul className="flex flex-wrap gap-4">
         {people.map(({ profile, selfieUrl, faceX, faceY }) => (
           <li key={profile.id} className="w-[68px] text-center">
             <Link href={`/people/${profile.id}?from=${eventId}`}>
