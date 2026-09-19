@@ -189,6 +189,12 @@ export type SeaScoreDay = {
 };
 
 /**
+ * מ-11:00 בבוקר (שעון ישראל) והלאה, "היום" כבר לא רלוונטי — חלון
+ * השחייה של הבוקר (06:00–09:00, שעליו כל הניקוד מבוסס) כבר עבר.
+ */
+const TODAY_CUTOFF_HOUR = 11;
+
+/**
  * ניקוד Swell Score לכל הימים שיש להם תחזית ב-GoSurf כרגע (בד"כ
  * שבוע קדימה) — למדור "הדופק של הקהילה" בעמוד הבית. ראו sea-score.ts
  * לנוסחה עצמה. מחזירה מערך ריק בכל כשל, לא מפילה את עמוד הבית.
@@ -196,7 +202,19 @@ export type SeaScoreDay = {
 export async function getSeaScoreForecast(): Promise<SeaScoreDay[]> {
   try {
     const days = await fetchGoSurfDays();
+    const now = new Date();
+    const todayISO = now.toLocaleDateString("en-CA", { timeZone: "Asia/Jerusalem" });
+    const israelHour = Number(
+      new Intl.DateTimeFormat("en-US", {
+        hour: "numeric",
+        hourCycle: "h23",
+        timeZone: "Asia/Jerusalem",
+      }).format(now),
+    );
+    const showToday = israelHour < TODAY_CUTOFF_HOUR;
+
     return days.flatMap((day) => {
+      if (day.dateISO === todayISO && !showToday) return [];
       const stars = computeSwellScore(day);
       return stars == null ? [] : [{ dateISO: day.dateISO, dayName: day.dayName, stars }];
     });

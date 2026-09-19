@@ -156,3 +156,23 @@ export function computeSwellScore(day: GoSurfDay): number | null {
   const stars = Math.min(dailyScore / 20, ceiling);
   return Math.round(Math.max(0, stars) * 2) / 2;
 }
+
+/** תיאור מילולי לפי הכוכבים — אותה שפה בדיוק כמו הקטגוריות במסמך. */
+export function seaScoreLabel(stars: number): string {
+  if (stars >= 4.5) return "מעולה";
+  if (stars >= 3.5) return "טוב מאוד";
+  if (stars >= 2.5) return "טוב";
+  if (stars >= 1.5) return "בינוני";
+  if (stars >= 0.5) return "גלי";
+  return "לא מומלץ";
+}
+
+/** גוון אחד בתוך פלטת הכחולים של Swell, כהה יותר ככל שהים רגוע יותר. */
+export function seaScoreColor(stars: number): string {
+  if (stars >= 4.5) return "#23405a";
+  if (stars >= 3.5) return "#2f5470";
+  if (stars >= 2.5) return "#3d6685";
+  if (stars >= 1.5) return "#6f93ab";
+  if (stars >= 0.5) return "#9aa9b3";
+  return "#b7c2c9";
+}
