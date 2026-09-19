@@ -5,10 +5,8 @@ import {
   getSelfieHistory,
   getMyAttendedEventIds,
   getEventPhotoCollages,
-  getRecentMonthStats,
 } from "@/lib/data";
 import { byGender, instagramUrl, whatsappUrl } from "@/lib/format";
-import { monthAttendanceLine } from "@/lib/attendance-text";
 import { facePositionStyle } from "@/lib/face-position";
 import {
   swimLevelLabel,
@@ -70,10 +68,7 @@ export default async function PersonPage({
   // הסלפי מהמפגש שממנו הגענו — לא סתם "הכי עדכני". נופל חזרה לראשון
   // ברשימה אם הגעתם ישירות לעמוד, או אם אותו מפגש לא נמצא ברשימה.
   const headerShot = (from && shots.find((s) => s.eventId === from)) || shots[0];
-  const [albumsByEvent, monthStats] = await Promise.all([
-    getEventPhotoCollages(shots.map((s) => s.eventId)),
-    viewer.club ? getRecentMonthStats(viewer.club.id, id) : null,
-  ]);
+  const albumsByEvent = await getEventPhotoCollages(shots.map((s) => s.eventId));
 
   const ig = instagramUrl(person.instagram);
   const wa = whatsappUrl(person.phone);
@@ -122,23 +117,17 @@ export default async function PersonPage({
             )}
           </div>
           <p className="text-sm text-(--color-ink-soft)">
-            {monthStats
-              ? monthAttendanceLine(
-                  byGender(person.gender, "היה איתנו", "הייתה איתנו"),
-                  monthStats.attended,
-                  monthStats.total,
-                )
-              : person.attendedCount === 0
-                ? byGender(person.gender, "עוד לא היה איתנו", "עוד לא הייתה איתנו")
-                : person.attendedCount === 1
-                  ? byGender(person.gender, "היה איתנו במפגש אחד", "הייתה איתנו במפגש אחד")
-                  : (
-                      <>
-                        {byGender(person.gender, "היה איתנו", "הייתה איתנו")} ב־
-                        <span className="ltr-nums">{person.attendedCount}</span>{" "}
-                        מפגשים
-                      </>
-                    )}
+            {person.attendedCount === 0
+              ? byGender(person.gender, "עוד לא היה איתנו", "עוד לא הייתה איתנו")
+              : person.attendedCount === 1
+                ? byGender(person.gender, "היה איתנו במפגש אחד", "הייתה איתנו במפגש אחד")
+                : (
+                    <>
+                      {byGender(person.gender, "היה איתנו", "הייתה איתנו")} ב־
+                      <span className="ltr-nums">{person.attendedCount}</span>{" "}
+                      מפגשים
+                    </>
+                  )}
           </p>
         </div>
       </header>

@@ -2,12 +2,11 @@ import { notFound, redirect } from "next/navigation";
 import {
   getViewer,
   getMemberProfile,
+  getPersonCard,
   getSelfieHistory,
   getEventPhotoCollages,
-  getRecentMonthStats,
 } from "@/lib/data";
 import { instagramUrl, whatsappUrl, byGender } from "@/lib/format";
-import { monthAttendanceLine } from "@/lib/attendance-text";
 import { BackLink, Card } from "@/components/ui";
 import { SelfieHistory } from "@/components/selfie-history";
 import { facePositionStyle } from "@/lib/face-position";
@@ -39,15 +38,13 @@ export default async function AdminMemberPage({
   const viewer = await getViewer();
   if (!viewer?.club || viewer.role !== "organizer") redirect("/events");
 
-  const [profile, shots] = await Promise.all([
+  const [profile, shots, person] = await Promise.all([
     getMemberProfile(id),
     getSelfieHistory(id),
+    getPersonCard(id, viewer.userId),
   ]);
   if (!profile) notFound();
-  const [albumsByEvent, monthStats] = await Promise.all([
-    getEventPhotoCollages(shots.map((s) => s.eventId)),
-    getRecentMonthStats(viewer.club.id, id),
-  ]);
+  const albumsByEvent = await getEventPhotoCollages(shots.map((s) => s.eventId));
 
   const ig = instagramUrl(profile.instagram);
   const wa = whatsappUrl(profile.phone);
@@ -87,11 +84,17 @@ export default async function AdminMemberPage({
             )}
           </div>
           <p className="text-sm text-(--color-ink-soft)">
-            {monthAttendanceLine(
-              byGender(profile.gender, "היה איתנו", "הייתה איתנו"),
-              monthStats.attended,
-              monthStats.total,
-            )}
+            {!person || person.attendedCount === 0
+              ? byGender(profile.gender, "עוד לא היה איתנו", "עוד לא הייתה איתנו")
+              : person.attendedCount === 1
+                ? byGender(profile.gender, "היה איתנו במפגש אחד", "הייתה איתנו במפגש אחד")
+                : (
+                    <>
+                      {byGender(profile.gender, "היה איתנו", "הייתה איתנו")} ב־
+                      <span className="ltr-nums">{person.attendedCount}</span>{" "}
+                      מפגשים
+                    </>
+                  )}
           </p>
         </div>
       </header>
