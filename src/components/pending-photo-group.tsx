@@ -43,6 +43,14 @@ export function PendingPhotoGroup({
             toApprove.map((p) => p.id),
           );
         if (updateError) return false;
+
+        // התראה אחת לכל סבב אישור (גם "אישור הכל") — לא אחת לכל תמונה.
+        // לא ממתינים לזה, זה לא חוסם את האישור.
+        fetch("/api/push/notify-photo-approved", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ photo_ids: toApprove.map((p) => p.id) }),
+        }).catch(() => {});
       }
       return true;
     } catch {

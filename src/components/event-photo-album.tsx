@@ -275,6 +275,12 @@ export function EventPhotoAlbum({
           setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
           return;
         }
+        // לא ממתינים לזה, זה לא חוסם את האישור
+        fetch("/api/push/notify-photo-approved", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ photo_ids: [photoId] }),
+        }).catch(() => {});
       }
       setBusyId(null);
       router.refresh();
