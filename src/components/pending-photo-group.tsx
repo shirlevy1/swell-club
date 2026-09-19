@@ -130,7 +130,7 @@ export function PendingPhotoGroup({
     <div className="space-y-2 rounded-xl border border-(--color-line) bg-(--color-surface) p-3">
       <div className="flex items-center justify-between gap-2">
         <p className="truncate text-sm font-semibold">
-          <Link href={`/admin/members/${uploaderId}`} className="text-(--color-sea) hover:underline">
+          <Link href={`/admin/members/${uploaderId}?from=admin-photos`} className="text-(--color-sea) hover:underline">
             {uploaderName}
           </Link>
           <span className="ms-1.5 font-normal text-(--color-ink-faint)">

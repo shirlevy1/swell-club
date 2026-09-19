@@ -55,12 +55,18 @@ export default async function EventPage({
             ? { href: "/events/history", label: "לכל המפגשים שהיו" }
             : from === "admin"
               ? { href: "/admin#events", label: "לניהול" }
-              : from === "admin-history"
-                ? {
-                    href: "/admin/events/history",
-                    label: "לכל המפגשים שהיו",
-                  }
+              : from === "admin-photos"
+                ? { href: "/admin#pending-photos", label: "לניהול" }
+                : from === "admin-history"
+                  ? {
+                      href: "/admin/events/history",
+                      label: "לכל המפגשים שהיו",
+                    }
                 : { href: "/events", label: "לכל המפגשים" };
+  // למחיקת מפגש: רק הבחנה גסה בין "הגעתי מהניהול" ל"הגעתי ממפגשים" —
+  // לא צריך את כל הדקויות של back (אזור ספציפי בניהול, מפגש ספציפי
+  // וכו') כי אחרי מחיקה אין יותר לאן לחזור באותה רמת פירוט.
+  const deleteRedirect = from?.startsWith("admin") ? "/admin" : "/events";
   // שתי שאילתות בלתי-תלויות זו בזו — בבת אחת, לא ברצף
   const [viewer, event] = await Promise.all([getViewer(), getEvent(id)]);
   if (!viewer || !event) notFound();
@@ -272,7 +278,9 @@ export default async function EventPage({
         />
       )}
 
-      {isOrganizer && <DeleteEventButton eventId={id} />}
+      {isOrganizer && (
+        <DeleteEventButton eventId={id} redirectTo={deleteRedirect} />
+      )}
     </div>
   );
 }

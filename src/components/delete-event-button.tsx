@@ -11,7 +11,15 @@ import { createClient } from "@/lib/supabase/client";
  * בממשק. כל הטבלאות שתלויות במפגש (rsvps, attendances, event_photos,
  * event_reminders) הן `on delete cascade`, אז זה נקי במסד מעצמו.
  */
-export function DeleteEventButton({ eventId }: { eventId: string }) {
+export function DeleteEventButton({
+  eventId,
+  redirectTo,
+}: {
+  eventId: string;
+  /** לאן חוזרים אחרי מחיקה — /admin אם הגיעו מהניהול, /events אם לא
+      (מחושב ב-events/[id]/page.tsx לפי מאיפה הגיעו למפגש). */
+  redirectTo: string;
+}) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +44,7 @@ export function DeleteEventButton({ eventId }: { eventId: string }) {
         return;
       }
 
-      router.push("/events");
+      router.push(redirectTo);
     } catch {
       setPending(false);
       setError("משהו השתבש. בדקו את החיבור ונסו שוב.");

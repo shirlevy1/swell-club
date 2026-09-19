@@ -33,7 +33,9 @@ export default async function AdminMemberPage({
   const back =
     from === "event" && fromId
       ? { href: `/events/${fromId}`, label: "בחזרה למפגש" }
-      : { href: "/admin#members", label: "לניהול" };
+      : from === "admin-photos"
+        ? { href: "/admin#pending-photos", label: "לניהול" }
+        : { href: "/admin#members", label: "לניהול" };
   const viewer = await getViewer();
   if (!viewer?.club || viewer.role !== "organizer") redirect("/events");
 

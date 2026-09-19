@@ -298,7 +298,7 @@ export default async function AdminPage() {
       )}
 
       {pendingPhotos.length > 0 && (
-        <section className="space-y-4">
+        <section id="pending-photos" className="space-y-4 scroll-mt-20">
           <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
             {pendingPhotos.length === 1
               ? "תמונה אחת ממתינה לאישור"
@@ -309,7 +309,7 @@ export default async function AdminPage() {
               <div key={event.eventId} className="space-y-2">
                 <div className="flex items-baseline justify-between gap-2">
                   <Link
-                    href={`/events/${event.eventId}`}
+                    href={`/events/${event.eventId}?from=admin-photos`}
                     className="truncate text-sm font-bold text-(--color-sea) hover:underline"
                   >
                     {event.eventTitle}
