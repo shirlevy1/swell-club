@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { AttendeeCard } from "@/lib/data";
 import { facePositionStyle } from "@/lib/face-position";
 import { WaveIcon, SwimmerIcon } from "./social-icons";
+import { cx } from "./ui";
 
 function NoSelfieFallback() {
   return (
@@ -39,7 +40,14 @@ export function FirstMeetings({
         מי הכרתם היום?
       </p>
 
-      <ul className="flex flex-wrap gap-4">
+      {/* אדם אחד: בימין (ברירת המחדל ב-RTL). שניים או שלושה: כקבוצה
+          ממורכזת, כך שהרווח מימין זהה לרווח משמאל. */}
+      <ul
+        className={cx(
+          "flex flex-wrap gap-4",
+          people.length > 1 && "justify-center",
+        )}
+      >
         {people.map(({ profile, selfieUrl, faceX, faceY }) => (
           <li key={profile.id} className="w-[68px] text-center">
             <Link href={`/people/${profile.id}?from=${eventId}`}>
