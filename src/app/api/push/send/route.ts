@@ -42,6 +42,14 @@ import {
  * ניסוח ה-payload עצמו (כותרת יום|שעה|מקום מודגשת, גוף עם משפט קצר
  * קבוע לפי הסוג) מוגדר פעם אחת ב-buildReminderPayload, ומשותף גם
  * ל-preview העצמי ולשידור לחבר/ה נבחר/ת — ראו lib/push-server.ts.
+ *
+ * kind שלישי — photos_ready: "יש כבר תמונות לראות מהיום", למי שנכח
+ * בפועל במפגש (לא רק למי שהעלה תמונה — זו נפרדת לגמרי מ-notify-photo-
+ * approved ומ-notify-photos-added, ולא מחליפה אותן). נשלחת פעם אחת
+ * בלבד לכל מפגש: מ-3 שעות אחרי תחילתו, כל טיק בודק אם כבר יש לפחות
+ * תמונה מאושרת אחת באלבום — ברגע שכן, שולחים ומפסיקים לבדוק. אם עברו
+ * 13 שעות ועדיין אין אף תמונה, מוותרים לצמיתות על המפגש הזה (חלון
+ * הזמן של הבדיקה עצמה כבר לא כולל אותו יותר בטיקים הבאים).
  */
 
 export const dynamic = "force-dynamic";
@@ -109,7 +117,110 @@ export async function POST(request: NextRequest) {
     await sendReminder(db, event, "morning", sent);
   }
 
+  // "תמונות מהיום מוכנות" — ראו הערה למעלה: חלון פתוח בין 3 ל-13 שעות
+  // אחרי תחילת המפגש, לא סף מדויק.
+  const PHOTOS_READY_MIN_DELAY_MS = 3 * 3600_000;
+  const PHOTOS_READY_MAX_DELAY_MS = 13 * 3600_000;
+  const { data: photosReadyCandidates } = await db
+    .from("events")
+    .select("id")
+    .gte("starts_at", new Date(now.getTime() - PHOTOS_READY_MAX_DELAY_MS).toISOString())
+    .lte("starts_at", new Date(now.getTime() - PHOTOS_READY_MIN_DELAY_MS).toISOString());
+  for (const event of photosReadyCandidates ?? []) {
+    await sendPhotosReadyReminder(db, event.id, sent);
+  }
+
   return NextResponse.json({ ok: true, sent });
+}
+
+async function sendPhotosReadyReminder(
+  db: ReturnType<typeof adminDb>,
+  eventId: string,
+  sent: Record<string, number>,
+) {
+  // כבר נשלחה למפגש הזה בעבר — אין מה לבדוק שוב.
+  const { data: existing } = await db
+    .from("event_reminders")
+    .select("event_id")
+    .eq("event_id", eventId)
+    .eq("kind", "photos_ready")
+    .maybeSingle();
+  if (existing) return;
+
+  const { count } = await db
+    .from("event_photos")
+    .select("id", { count: "exact", head: true })
+    .eq("event_id", eventId)
+    .eq("status", "approved");
+  // עדיין אין אף תמונה מאושרת — לא תופסים כלום, מנסים שוב בטיק הבא.
+  if (!count || count < 1) return;
+
+  // ניסיון תפיסה: אם השורה כבר קיימת (טיק מקביל שהספיק קודם), מישהו
+  // כבר שלח. אותו דפוס בדיוק כמו sendReminder למעלה.
+  const { error: claimError } = await db
+    .from("event_reminders")
+    .insert({ event_id: eventId, kind: "photos_ready" });
+  if (claimError) return;
+
+  try {
+    const { data: attendees } = await db
+      .from("attendances")
+      .select("profile_id")
+      .eq("event_id", eventId);
+    const ids = (attendees ?? []).map((a) => a.profile_id);
+    if (ids.length === 0) return;
+
+    const { data: subs } = await db
+      .from("push_subscriptions")
+      .select("endpoint, p256dh, auth")
+      .in("profile_id", ids);
+    if (!subs || subs.length === 0) return;
+
+    const payload = JSON.stringify({
+      title: "הרגעים מסוואל מוכנים",
+      body: "התמונות מהבוקר מחכות לכם באפליקציה.",
+      tag: `photos-ready-${eventId}`,
+      url: `/events/${eventId}`,
+    });
+
+    const dead: string[] = [];
+    let successCount = 0;
+    await Promise.all(
+      subs.map(async (s) => {
+        try {
+          await webpush.sendNotification(
+            { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
+            payload,
+          );
+          successCount++;
+          sent.photos_ready = (sent.photos_ready ?? 0) + 1;
+        } catch (err) {
+          const status = (err as { statusCode?: number })?.statusCode;
+          if (status === 404 || status === 410) dead.push(s.endpoint);
+        }
+      }),
+    );
+
+    if (dead.length) {
+      await db.from("push_subscriptions").delete().in("endpoint", dead);
+    }
+
+    // אף שליחה לא הצליחה בפועל — לא משאירים את התפיסה נעולה, כדי שטיק
+    // מאוחר יותר עדיין ינסה (למשל אחרי שמישהו יחדש הרשאת התראות).
+    if (successCount === 0) {
+      await db
+        .from("event_reminders")
+        .delete()
+        .eq("event_id", eventId)
+        .eq("kind", "photos_ready");
+    }
+  } catch {
+    await db
+      .from("event_reminders")
+      .delete()
+      .eq("event_id", eventId)
+      .eq("kind", "photos_ready");
+  }
 }
 
 async function sendReminder(
