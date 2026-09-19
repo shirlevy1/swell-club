@@ -854,6 +854,17 @@ export type EventDetail = {
 /** תקרה ל"מי הכרתם היום" — לא להציף אם יש הרבה פנים חדשות במפגש אחד */
 const FIRST_MEETINGS_LIMIT = 4;
 
+/** מדגם אקראי בגודל count — כשיש יותר פנים חדשות מהתקרה, מי בדיוק
+ * מוצג/ת מתחלף בכל טעינה, לא תמיד אותם אנשים ראשונים. */
+function sampleRandom<T>(items: T[], count: number): T[] {
+  const shuffled = [...items];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled.slice(0, count);
+}
+
 export async function getEventDetail(
   eventId: string,
   userId: string,
@@ -945,19 +956,25 @@ export async function getEventDetail(
       hasAttended,
       attendedCount: attendances.length,
       attendees: demoAttendeeCards,
-      // "היום הכרתם" — רק מי שסך המפגשים המשותפים איתי הוא בדיוק אחד
-      // (המפגש הנוכחי), אותו תנאי בדיוק כמו ב-event_first_meetings() האמיתית.
+      // "היום הכרתם" — רק מי שהמפגש הזה הוא המוקדם ביותר מבין כל
+      // המפגשים המשותפים בינינו (עובדה קבועה, לא ספירה חיה) — אותו
+      // תנאי בדיוק כמו ב-event_first_meetings() האמיתית, ראו שם.
       firstMeetings: hasAttended
-        ? demoAttendeeCards
-            .filter((a) => {
+        ? sampleRandom(
+            demoAttendeeCards.filter((a) => {
               if (a.isMe) return false;
-              const theirEventIds = allAttendances
-                .filter((x) => x.profileId === a.profile.id)
-                .map((x) => x.eventId);
-              const shared = theirEventIds.filter((eid) => myEventIds.has(eid)).length;
-              return shared === 1;
-            })
-            .slice(0, FIRST_MEETINGS_LIMIT)
+              const sharedStarts = allAttendances
+                .filter(
+                  (x) => x.profileId === a.profile.id && myEventIds.has(x.eventId),
+                )
+                .map((x) => demo.demoEvent(x.eventId)?.starts_at)
+                .filter((s): s is string => !!s);
+              const earliestShared = sharedStarts.sort()[0];
+              const thisEventStartsAt = demo.demoEvent(eventId)?.starts_at;
+              return !!thisEventStartsAt && earliestShared === thisEventStartsAt;
+            }),
+            FIRST_MEETINGS_LIMIT,
+          )
         : [],
     };
   }
@@ -1040,9 +1057,10 @@ export async function getEventDetail(
         (r) => r.profile_id,
       ),
     );
-    firstMeetings = attendees
-      .filter((a) => firstMeetingIds.has(a.profile.id))
-      .slice(0, FIRST_MEETINGS_LIMIT);
+    firstMeetings = sampleRandom(
+      attendees.filter((a) => firstMeetingIds.has(a.profile.id)),
+      FIRST_MEETINGS_LIMIT,
+    );
   }
 
   const goingRowsTyped = (goingRows ?? []) as {

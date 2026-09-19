@@ -14,8 +14,8 @@ function NoSelfieFallback() {
 /**
  * "מי הכרתם היום" — מדור מודגש מעל הרשת הרגילה, רק למי שזו הפעם
  * הראשונה שנכחתם יחד (ראו event_first_meetings() ב-lib/data.ts).
- * חתוך כבר ל-FIRST_MEETINGS_LIMIT לפני שהגיע לכאן — לא להציף אם יש
- * הרבה פנים חדשות במפגש אחד.
+ * כבר חתוך ומדוגם אקראית ל-FIRST_MEETINGS_LIMIT לפני שהגיע לכאן — לא
+ * להציף אם יש הרבה פנים חדשות במפגש אחד, בלי גלילה אופקית.
  */
 export function FirstMeetings({
   people,
@@ -39,9 +39,9 @@ export function FirstMeetings({
         מי הכרתם היום?
       </p>
 
-      <ul className="flex gap-4 overflow-x-auto pb-0.5">
+      <ul className="flex flex-wrap justify-center gap-4">
         {people.map(({ profile, selfieUrl, faceX, faceY }) => (
-          <li key={profile.id} className="w-[68px] shrink-0 text-center">
+          <li key={profile.id} className="w-[68px] text-center">
             <Link href={`/people/${profile.id}?from=${eventId}`}>
               <div className="mx-auto mb-1.5 flex size-16 items-center justify-center overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)">
                 {selfieUrl ? (
