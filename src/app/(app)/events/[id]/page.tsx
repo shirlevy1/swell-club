@@ -120,7 +120,11 @@ export default async function EventPage({
                 מאומתות, עריכת מיקום/רדיוס/חלון היא כבר לא בטוחה. */}
             {isOrganizer && status === "before" && attendees.length === 0 && (
               <Link
-                href={`/admin/events/${id}/edit`}
+                href={`/admin/events/${id}/edit${
+                  from
+                    ? `?from=${from}${fromId ? `&fromId=${fromId}` : ""}`
+                    : ""
+                }`}
                 aria-label="עריכת מפגש"
                 className="flex size-11 shrink-0 items-center justify-center rounded-full border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
               >

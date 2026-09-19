@@ -42,11 +42,17 @@ const MapPicker = dynamic(
 export function EditEventScheduleForm({
   event,
   attendanceCount,
+  returnQuery = "",
 }: {
   event: SwellEvent;
   attendanceCount: number;
+  /** ?from=...&fromId=... שהעמוד הגיע איתו, כדי שהחזרה למפגש (בכפתור
+      "למפגש" ואחרי שמירה) לא תשכח מאיפה הגיעו במקור — ריק כברירת
+      מחדל למי שהגיע ישירות (למשל מקישור בהתראה). */
+  returnQuery?: string;
 }) {
   const router = useRouter();
+  const eventHref = `/events/${event.id}${returnQuery}`;
 
   // מחושב פעם אחת (lazy initializer, לא בכל רינדור) — EventDateTimeInput
   // מאפס את הבחירה שלו בכל פעם ש-defaultValue מקבל זהות אובייקט חדשה,
@@ -109,7 +115,7 @@ export function EditEventScheduleForm({
       !dirty ||
       window.confirm("לצאת בלי לשמור?\nהשינוי שעשיתם עדיין לא נשמר.")
     ) {
-      router.push(`/events/${event.id}`);
+      router.push(eventHref);
     }
   }
 
@@ -160,7 +166,7 @@ export function EditEventScheduleForm({
     if (demoMode) {
       await updateEventScheduleAction(event.id, patch);
       setPending(false);
-      router.push(`/events/${event.id}`);
+      router.push(eventHref);
       router.refresh();
       return;
     }
@@ -211,7 +217,7 @@ export function EditEventScheduleForm({
         }).catch(() => {});
       }
 
-      router.push(`/events/${event.id}`);
+      router.push(eventHref);
       router.refresh();
     } catch {
       setPending(false);
