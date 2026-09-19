@@ -43,10 +43,13 @@ export function GoingList({
 }) {
   if (people.length === 0) return null;
 
-  // "אתם" תמיד ראשון — משם קל לקרוא את השאר
-  const sorted = [...people].sort(
-    (a, b) => Number(b.isMe) - Number(a.isMe),
-  );
+  // "אתם" תמיד ראשון, ואחריכם מי שכבר הכרתם (יש לו/ה selfieUrl — אותו
+  // סימון בדיוק שכבר קובע אם מציגים תמונה או אות ראשונית) — כדי
+  // שהפנים המוכרות יקפצו לעין קודם, לא יתערבבו סתם ברשימה.
+  const sorted = [...people].sort((a, b) => {
+    if (a.isMe !== b.isMe) return Number(b.isMe) - Number(a.isMe);
+    return Number(!!b.selfieUrl) - Number(!!a.selfieUrl);
+  });
 
   return (
     <Card className="space-y-3">
