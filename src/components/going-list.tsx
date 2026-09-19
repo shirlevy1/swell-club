@@ -43,12 +43,11 @@ export function GoingList({
 }) {
   if (people.length === 0) return null;
 
-  // "אתם" תמיד ראשון, ואחריכם מי שכבר הכרתם (יש לו/ה selfieUrl — אותו
-  // סימון בדיוק שכבר קובע אם מציגים תמונה או אות ראשונית) — כדי
-  // שהפנים המוכרות יקפצו לעין קודם, לא יתערבבו סתם ברשימה.
+  // "אתם" תמיד ראשון, ואחריכם לפי כמה מפגשים כבר הייתם יחד (יורד) —
+  // מי שנפגשתם איתם הכי הרבה פעמים קופץ לעין ראשון, לא רק "מוכר/לא מוכר".
   const sorted = [...people].sort((a, b) => {
     if (a.isMe !== b.isMe) return Number(b.isMe) - Number(a.isMe);
-    return Number(!!b.selfieUrl) - Number(!!a.selfieUrl);
+    return (b.sharedCount ?? 0) - (a.sharedCount ?? 0);
   });
 
   return (

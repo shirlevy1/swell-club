@@ -782,6 +782,9 @@ export type GoingPerson = {
   faceX: number | null;
   faceY: number | null;
   isMe: boolean;
+  /** בכמה מפגשים כבר נכחנו יחד. undefined במקומות שלא טורחים לחשב
+   * את זה (למשל getGoingNamesByEvent, שממילא לא מציגה תמונות). */
+  sharedCount?: number;
 };
 
 export type EventDetail = {
@@ -890,6 +893,9 @@ export async function getEventDetail(
           const shot = met
             ? latestDemoSelfie(profile.id)
             : { selfieUrl: null, faceX: null, faceY: null };
+          const sharedCount = allAttendances.filter(
+            (a) => a.profileId === profile.id && myEventIds.has(a.eventId),
+          ).length;
           return [
             {
               profileId: profile.id,
@@ -897,6 +903,7 @@ export async function getEventDetail(
               swimLevel: profile.swim_level,
               ...shot,
               isMe,
+              sharedCount,
             },
           ];
         }),
@@ -1017,6 +1024,7 @@ export async function getEventDetail(
     selfie_path: string | null;
     face_x: number | null;
     face_y: number | null;
+    shared_count: number;
   }[];
 
   const goingPaths = goingRowsTyped
@@ -1035,6 +1043,7 @@ export async function getEventDetail(
     faceX: r.face_x,
     faceY: r.face_y,
     isMe: r.profile_id === userId,
+    sharedCount: r.shared_count,
   }));
 
   return {
