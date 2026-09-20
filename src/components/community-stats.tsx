@@ -32,8 +32,8 @@ export function CommunityStats({
 }) {
   return (
     <div className="grid grid-cols-2 gap-3">
-      <StatTile count={memberCount} label="אנשים בקהילה" />
-      <StatTile count={metCount} label="אנשים שפגשתי" />
+      <StatTile count={memberCount} label="חברי קהילה" />
+      <StatTile count={metCount} label="כבר פגשתי" />
     </div>
   );
 }
