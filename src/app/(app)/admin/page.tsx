@@ -338,7 +338,8 @@ export default async function AdminPage() {
       <section id="events" className="space-y-3 scroll-mt-20">
         <div className="flex items-center justify-between">
           <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
-            מפגשים קרובים
+            מפגשים קרובים ·{" "}
+            <span className="ltr-nums">{upcomingEvents.length}</span>
           </h2>
           {events.length > 0 && (
             <ExportButton
@@ -371,7 +372,8 @@ export default async function AdminPage() {
       {pastEventsAll.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-ink-faint)">
-            מפגשים שהיו
+            מפגשים שהיו ·{" "}
+            <span className="ltr-nums">{pastEventsAll.length}</span>
           </h2>
           <ul className="space-y-3">
             {pastEvents.map((event) => (
@@ -394,7 +396,7 @@ export default async function AdminPage() {
       <section id="members" className="space-y-3 scroll-mt-20">
         <div className="flex items-center justify-between">
           <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-ink-faint)">
-            חברי הקהילה
+            חברי הקהילה · <span className="ltr-nums">{members.length}</span>
           </h2>
           {members.length > 0 && (
             <div className="flex items-center gap-2">
