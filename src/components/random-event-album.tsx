@@ -2,7 +2,7 @@ import Link from "next/link";
 import { WaveIcon } from "./social-icons";
 
 /**
- * מסגרת הרשת + מיקום כל תא, לפי כמות התמונות (1 עד 7 — getLastAttendedEventAlbum
+ * מסגרת הרשת + מיקום כל תא, לפי כמות התמונות (1 עד 7 — getRandomEventAlbum
  * מציג בדיוק כמה שיש, עד תקרה של 7). 1-4 הן אותן פריסות בדיוק כמו
  * EventThumbnail ב-selfie-history.tsx, לעקביות עם שאר האתר. 5-7:
  * תמיד שתי שורות, בלי חורים ריקים — 5 = תמונה גדולה אחת + 4 קטנות;
@@ -55,12 +55,14 @@ const LAYOUTS: Record<number, { grid: string; cells: string[] }> = {
 };
 
 /**
- * "רגעים מהסוואל האחרון" — קולאז' תמונות מהאלבום של המפגש האחרון
- * שהצופה/ת עצמו/ה נכח/ה בו (getLastAttendedEventAlbum ב-lib/data.ts).
- * כל התמונות שייכות לאותו מפגש, ולכן כל הקולאז' הוא קישור אחד אליו,
- * עם from=home כדי שהחזרה תחזור לבית. לא מוצג אם אין מספיק תמונות.
+ * "רגעים שלי מסוואל קלאב" — קולאז' תמונות מהאלבום של מפגש אחד אקראי
+ * שהצופה/ת עצמו/ה נכח/ה בו (getRandomEventAlbum ב-lib/data.ts כבר
+ * הגריל גם את המפגש וגם אילו תמונות מתוכו — לא רק "איזו תמונה", אלא
+ * "איזה מפגש בכלל" משתנה בכל טעינה). כל התמונות שייכות לאותו מפגש,
+ * ולכן כל הקולאז' הוא קישור אחד אליו, עם from=home כדי שהחזרה תחזור
+ * לבית. לא מוצג אם אין אף מפגש עם תמונה מאושרת שנכחו בו.
  */
-export function LastAlbumCollage({
+export function RandomEventAlbumCard({
   eventId,
   photoUrls,
 }: {
@@ -80,7 +82,7 @@ export function LastAlbumCollage({
     >
       <p className="flex items-center gap-1.5 font-[family-name:var(--font-display)] text-sm font-bold text-(--color-deep)">
         <WaveIcon className="size-4 shrink-0" />
-        רגעים מהסוואל האחרון
+        רגעים שלי מסוואל קלאב
       </p>
 
       <Link

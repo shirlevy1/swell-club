@@ -3,16 +3,14 @@ import {
   getMetPeople,
   getUpcomingEvents,
   getMyGoingEventIds,
-  getRandomMoment,
-  getLastAttendedEventAlbum,
+  getRandomEventAlbum,
 } from "@/lib/data";
 import { getWaveForecast, getBestSwimDays } from "@/lib/gosurf";
 import { EmptyState } from "@/components/ui";
 import { NextEventCard } from "@/components/next-event-card";
 import { WaveForecastStrip } from "@/components/wave-forecast-strip";
 import { KnownPeopleStrip } from "@/components/known-people-strip";
-import { RandomMomentCard } from "@/components/random-moment-card";
-import { LastAlbumCollage } from "@/components/last-album-collage";
+import { RandomEventAlbumCard } from "@/components/random-event-album";
 
 export default async function HomePage() {
   const viewer = await getViewer();
@@ -25,23 +23,15 @@ export default async function HomePage() {
     );
   }
 
-  const [
-    waveDays,
-    bestDays,
-    knownPeople,
-    upcomingEvents,
-    myGoingIds,
-    randomMoment,
-    lastAlbum,
-  ] = await Promise.all([
-    getWaveForecast(),
-    getBestSwimDays(),
-    getMetPeople(viewer.userId),
-    getUpcomingEvents(viewer.club.id),
-    getMyGoingEventIds(viewer.userId),
-    getRandomMoment(),
-    getLastAttendedEventAlbum(viewer.userId, viewer.club.id),
-  ]);
+  const [waveDays, bestDays, knownPeople, upcomingEvents, myGoingIds, randomAlbum] =
+    await Promise.all([
+      getWaveForecast(),
+      getBestSwimDays(),
+      getMetPeople(viewer.userId),
+      getUpcomingEvents(viewer.club.id),
+      getMyGoingEventIds(viewer.userId),
+      getRandomEventAlbum(),
+    ]);
   const nextEvent = upcomingEvents[0];
 
   return (
@@ -50,9 +40,8 @@ export default async function HomePage() {
         <NextEventCard event={nextEvent} going={myGoingIds.has(nextEvent.id)} />
       )}
       <KnownPeopleStrip people={knownPeople} />
-      <RandomMomentCard moment={randomMoment} />
-      {lastAlbum && (
-        <LastAlbumCollage eventId={lastAlbum.eventId} photoUrls={lastAlbum.photoUrls} />
+      {randomAlbum && (
+        <RandomEventAlbumCard eventId={randomAlbum.eventId} photoUrls={randomAlbum.photoUrls} />
       )}
       <WaveForecastStrip days={waveDays} bestDays={bestDays} />
     </div>

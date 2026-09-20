@@ -472,20 +472,19 @@ export function demoEventPhotos(eventId: string) {
 }
 
 /**
- * כל תמונות האלבום המאושרות שמותר ל"אני" לראות אי-פעם, מכל המפגשים
- * יחד — ל"רגעים שלי מסוואל קלאב" בדף הבית (הגרלה של תמונה אחת).
- * חבר קהילה רואה רק ממפגשים שנכח בהם; מנהלת רואה מכל המפגשים, בדיוק
- * כמו ההרשאה על סלפים (AGENTS.md, "הסלפים כזהות").
+ * כל תמונות האלבום המאושרות ממפגשים שה"אני" עצמו/ה נכח/ה בהם —
+ * ל"רגעים שלי מסוואל קלאב" בדף הבית (הגרלת מפגש אקראי ואז קולאז'
+ * מתוכו). היסטוריה אישית בכוונה, בלי חריג למנהלת — לא כמו ההרשאה
+ * על סלפים.
  */
-export function demoMyVisibleApprovedPhotos(): DemoEventPhoto[] {
-  const iAmOrganizer = demoMyRole() === "organizer";
+export function demoMyAttendedApprovedPhotos(): DemoEventPhoto[] {
   const myAttendedEventIds = new Set(
     db()
       .attendances.filter((a) => a.profileId === ME_ID)
       .map((a) => a.eventId),
   );
   return db().eventPhotos.filter(
-    (p) => p.status === "approved" && (iAmOrganizer || myAttendedEventIds.has(p.eventId)),
+    (p) => p.status === "approved" && myAttendedEventIds.has(p.eventId),
   );
 }
 

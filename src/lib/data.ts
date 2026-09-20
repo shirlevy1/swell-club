@@ -1312,79 +1312,51 @@ export async function getEventPhotoCollages(
   );
 }
 
-export type RandomMoment = {
-  eventId: string;
-  photoUrl: string;
-};
-
-/**
- * תמונת אלבום מאושרת אחת, אקראית, ל"רגעים שלי מסוואל קלאב" בדף
- * הבית — לא סלפי, תמונה מהאלבום המשותף. `random_moment_photo()`
- * (migration 0055) רצה בלי security definer בכוונה, כדי שה-RLS
- * הרגיל על event_photos יחיל את אותו כלל בדיוק כמו בכל מקום אחר:
- * חבר קהילה רואה רק ממפגשים שנכח בהם, מנהלת רואה מכל המפגשים.
- * מחזירה null אם עדיין אין אף תמונה מאושרת שהצופה/ת רשאי/ת לראות.
- */
-export async function getRandomMoment(): Promise<RandomMoment | null> {
-  if (demoMode) {
-    const candidates = demo.demoMyVisibleApprovedPhotos();
-    if (candidates.length === 0) return null;
-    const pick = candidates[Math.floor(Math.random() * candidates.length)];
-    return { eventId: pick.eventId, photoUrl: pick.url };
-  }
-
-  const supabase = await createClient();
-  const { data } = await supabase.rpc("random_moment_photo");
-  const row = (data ?? [])[0] as
-    | { event_id: string; storage_path: string }
-    | undefined;
-  if (!row) return null;
-
-  const urlByPath = await createSignedUrlsCached(supabase, "event-photos", [
-    row.storage_path,
-  ]);
-  const photoUrl = urlByPath.get(row.storage_path);
-  if (!photoUrl) return null;
-
-  return { eventId: row.event_id, photoUrl };
-}
-
-export type LastEventAlbum = {
+export type RandomEventAlbum = {
   eventId: string;
   photoUrls: string[];
 };
 
-/** תקרה עליונה — כשיש יותר, בוחרים אקראית בכל טעינה (sampleRandom).
- * פחות מזה, מציגים בדיוק כמה שיש (גם תמונה אחת). */
-const LAST_ALBUM_MAX_PHOTOS = 7;
+/** תקרה עליונה — כשיש יותר, בוחרים אקראית בכל טעינה. פחות מזה,
+ * מציגים בדיוק כמה שיש (גם תמונה אחת). */
+const RANDOM_ALBUM_MAX_PHOTOS = 7;
 
 /**
- * קולאז' תמונות מהאלבום של המפגש **האחרון שהצופה/ת עצמו/ה נכח/ה
- * בו** — לא "האחרון בקהילה" כמו getRandomMoment/met_people; זה
- * היסטוריה אישית, כמו כרטיס הרצף בעמוד הפרופיל, ולכן בכוונה בלי
- * חריג למנהלת. משתמשת ב-getPastEvents (ממוין מהחדש לישן) ו-
- * getMyAttendedEventIds שכבר קיימים, בלי לשכפל שאילתה חדשה. מחזירה
- * null אם אין מפגש עבר שנכחו בו, או שאין בו אף תמונה מאושרת.
+ * "רגעים שלי מסוואל קלאב" בדף הבית: מגרילים קודם מפגש אחד אקראי
+ * מבין המפגשים **שהצופה/ת עצמו/ה נכח/ה בהם**, ורק אז עד 7 תמונות
+ * אקראיות מהאלבום של אותו מפגש עצמו — היסטוריה אישית, כמו כרטיס
+ * הרצף בעמוד הפרופיל, בכוונה בלי חריג למנהלת (לא כמו met_people).
+ * `random_moment_album()` (migration 0056) רצה בלי security definer;
+ * `has_attended()` בתוכה כבר security definer ובודקת auth.uid()
+ * ישירות. מחזירה null אם אין אף מפגש עבר עם תמונה מאושרת שנכחו בו.
  */
-export async function getLastAttendedEventAlbum(
-  userId: string,
-  clubId: string,
-): Promise<LastEventAlbum | null> {
-  const [pastEvents, attendedIds] = await Promise.all([
-    getPastEvents(clubId),
-    getMyAttendedEventIds(userId),
-  ]);
-  const lastEvent = pastEvents.find((e) => attendedIds.has(e.id));
-  if (!lastEvent) return null;
+export async function getRandomEventAlbum(): Promise<RandomEventAlbum | null> {
+  if (demoMode) {
+    const candidates = demo.demoMyAttendedApprovedPhotos();
+    if (candidates.length === 0) return null;
+    const eventIds = [...new Set(candidates.map((p) => p.eventId))];
+    const pickedEventId = eventIds[Math.floor(Math.random() * eventIds.length)];
+    const photosForEvent = candidates.filter((p) => p.eventId === pickedEventId);
+    return {
+      eventId: pickedEventId,
+      photoUrls: sampleRandom(photosForEvent, RANDOM_ALBUM_MAX_PHOTOS).map((p) => p.url),
+    };
+  }
 
-  const photos = await getEventPhotos(lastEvent.id);
-  const approved = photos.filter((p) => p.status === "approved");
-  if (approved.length === 0) return null;
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("random_moment_album");
+  const rows = (data ?? []) as { event_id: string; storage_path: string }[];
+  if (rows.length === 0) return null;
 
-  return {
-    eventId: lastEvent.id,
-    photoUrls: sampleRandom(approved, LAST_ALBUM_MAX_PHOTOS).map((p) => p.url),
-  };
+  const paths = rows.map((r) => r.storage_path);
+  const urlByPath = await createSignedUrlsCached(supabase, "event-photos", paths);
+  const photoUrls = rows.flatMap((r) => {
+    const url = urlByPath.get(r.storage_path);
+    return url ? [url] : [];
+  });
+  if (photoUrls.length === 0) return null;
+
+  return { eventId: rows[0].event_id, photoUrls };
 }
 
 // -------------------------------------------------------------- דף ניהול
