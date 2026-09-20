@@ -80,6 +80,26 @@ export function CheckInFlow({
     streamRef.current = null;
   }, []);
 
+  /**
+   * כל יציאה משלב ההעלאה חייבת להחזיר את המסך למצב שאפשר לנסות ממנו
+   * שוב. בלי זה הכפתור נשאר "רגע…" ומושבת לנצח — והמשתמש עומד בחוף
+   * מול מסך תקוע, בלי דרך לצאת ממנו חוץ מרענון. useCallback (לא
+   * function רגילה) כדי שאפשר יהיה להשתמש בה בבטחה בתלויות של
+   * useEffect למטה, בלי שהאפקט ירוץ מחדש בכל רינדור.
+   */
+  const fail = useCallback(
+    (message: string) => {
+      stopCamera();
+      setStep("idle");
+      setError(message);
+      // בלי זה, כישלון אחרי זיהוי פנים מוצלח (העלאה/check_in) משאיר
+      // את "בודקים…" נעול על כפתור הצילום בפעם הבאה שהמצלמה נפתחת —
+      // בדיוק אותו סוג תקיעות שהפונקציה הזו נועדה למנוע, רק דרך משתנה אחר.
+      setCheckingFace(false);
+    },
+    [stopCamera],
+  );
+
   // הנורית של המצלמה חייבת להיכבות כשעוזבים את המסך
   useEffect(() => stopCamera, [stopCamera]);
 
@@ -172,22 +192,35 @@ export function CheckInFlow({
     // הכפתור נלחץ בתחתית העמוד, והמצלמה נפתחת במקומו. בלי הגלילה
     // הזאת היא יכולה להיפתח מחוץ למסך — וזה נראה בדיוק כמו כלום.
     cameraCardRef.current?.scrollIntoView({ block: "center" });
-  }, [step]);
 
-  /**
-   * כל יציאה משלב ההעלאה חייבת להחזיר את המסך למצב שאפשר לנסות ממנו
-   * שוב. בלי זה הכפתור נשאר "רגע…" ומושבת לנצח — והמשתמש עומד בחוף
-   * מול מסך תקוע, בלי דרך לצאת ממנו חוץ מרענון.
-   */
-  function fail(message: string) {
-    stopCamera();
-    setStep("idle");
-    setError(message);
-    // בלי זה, כישלון אחרי זיהוי פנים מוצלח (העלאה/check_in) משאיר את
-    // "בודקים…" נעול על כפתור הצילום בפעם הבאה שהמצלמה נפתחת — בדיוק
-    // אותו סוג תקיעות שהפונקציה הזו נועדה למנוע, רק דרך משתנה אחר.
-    setCheckingFace(false);
-  }
+    // getUserMedia שמצליח לא מבטיח שיוצג פריים אמיתי: באפליקציה ששמורה
+    // למסך הבית באייפון יש באג ידוע שבו ה-video נשאר מלבן כהה חלק
+    // (הרשאה כן ניתנה, ה-stream כן חוזר) בלי אף פריים בפועל — אומת
+    // בפועל: אותה מצלמה עובדת מיד בספארי הרגיל, ולא עובדת מהאייקון.
+    // 'playing' יורה רק כשבאמת יש תוכן חי — timeout בלעדיו משאיר את
+    // מי שנתקע/ת מול מסך שחור, עם כפתור "צילום" שלא עושה כלום.
+    let started = false;
+    const markStarted = () => {
+      started = true;
+    };
+    video.addEventListener("playing", markStarted);
+    const stuckTimer = setTimeout(() => {
+      if (started) return;
+      const isStandalone =
+        window.matchMedia?.("(display-mode: standalone)").matches ||
+        (navigator as unknown as { standalone?: boolean }).standalone === true;
+      fail(
+        isStandalone
+          ? "המצלמה לא הציגה תמונה. זו מגבלה ידועה של אייפון באפליקציות ששמורות למסך הבית - לפתיחה מיידית, היכנסו לאתר ישירות דרך ספארי במקום מהאייקון."
+          : "המצלמה לא הציגה תמונה. נסו שוב.",
+      );
+    }, 3000);
+
+    return () => {
+      video.removeEventListener("playing", markStarted);
+      clearTimeout(stuckTimer);
+    };
+  }, [step, fail]);
 
   // --- שלב 3: צילום, דחיסה, העלאה, אימות ---
   async function capture() {
