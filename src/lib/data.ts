@@ -1057,6 +1057,80 @@ export async function getEventDetail(
   };
 }
 
+export type KnownPerson = {
+  profileId: string;
+  fullName: string;
+  selfieUrl: string | null;
+  faceX: number | null;
+  faceY: number | null;
+};
+
+/** תקרה למדור "פנים שהכרתם" בעמוד הבית — מדגם אקראי, לא כל מי שאי-פעם
+ * הכרתם (יכול להיות עשרות אנשים אחרי כמה חודשים בקהילה). */
+const KNOWN_PEOPLE_LIMIT = 3;
+
+/**
+ * מדגם אקראי מכל מי שכבר חלקתם לפחות מפגש אחד — לא מפגש ספציפי, כל
+ * ההיסטוריה. מתחלף בכל טעינה (sampleRandom), כדי שבכל פעם שפותחים את
+ * האתר יופיעו שלושה אנשים אחרים. הסלפי של כל אחד/ת הוא מהמפגש
+ * המשותף האחרון — אותו כלל "תמונה רק אם נפגשנו" כמו בכל מקום אחר.
+ */
+export async function getMetPeople(userId: string): Promise<KnownPerson[]> {
+  if (demoMode) {
+    const allAttendances = demo.demoAttendances();
+    const myEventIds = new Set(
+      allAttendances.filter((a) => a.profileId === userId).map((a) => a.eventId),
+    );
+    const metIds = new Set(
+      allAttendances
+        .filter((a) => a.profileId !== userId && myEventIds.has(a.eventId))
+        .map((a) => a.profileId),
+    );
+    const byId = new Map(demo.demoProfiles().map((p) => [p.id, p]));
+
+    const known = [...metIds].flatMap((id) => {
+      const profile = byId.get(id);
+      if (!profile) return [];
+      const shared = allAttendances
+        .filter((a) => a.profileId === id && a.selfie && myEventIds.has(a.eventId))
+        .sort((a, b) => b.at.localeCompare(a.at));
+      const latest = shared[0];
+      return [
+        {
+          profileId: id,
+          fullName: profile.full_name,
+          selfieUrl: latest?.selfie ?? null,
+          faceX: latest?.faceX ?? null,
+          faceY: latest?.faceY ?? null,
+        },
+      ];
+    });
+    return sampleRandom(known, KNOWN_PEOPLE_LIMIT);
+  }
+
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("met_people");
+  const rows = (data ?? []) as {
+    profile_id: string;
+    full_name: string;
+    selfie_path: string | null;
+    face_x: number | null;
+    face_y: number | null;
+  }[];
+
+  const paths = rows.map((r) => r.selfie_path).filter(Boolean) as string[];
+  const urlByPath = await createSignedUrlsCached(supabase, "selfies", paths);
+
+  const known = rows.map((r) => ({
+    profileId: r.profile_id,
+    fullName: r.full_name,
+    selfieUrl: r.selfie_path ? (urlByPath.get(r.selfie_path) ?? null) : null,
+    faceX: r.face_x,
+    faceY: r.face_y,
+  }));
+  return sampleRandom(known, KNOWN_PEOPLE_LIMIT);
+}
+
 export type MemberPickerRow = {
   profileId: string;
   fullName: string;

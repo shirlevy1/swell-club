@@ -1,7 +1,8 @@
-import { getViewer } from "@/lib/data";
+import { getViewer, getMetPeople } from "@/lib/data";
 import { getWaveForecast } from "@/lib/gosurf";
 import { EmptyState } from "@/components/ui";
 import { WaveForecastStrip } from "@/components/wave-forecast-strip";
+import { KnownPeopleStrip } from "@/components/known-people-strip";
 
 export default async function HomePage() {
   const viewer = await getViewer();
@@ -14,11 +15,15 @@ export default async function HomePage() {
     );
   }
 
-  const waveDays = await getWaveForecast();
+  const [waveDays, knownPeople] = await Promise.all([
+    getWaveForecast(),
+    getMetPeople(viewer.userId),
+  ]);
 
   return (
     <div className="space-y-8">
       <WaveForecastStrip days={waveDays} />
+      <KnownPeopleStrip people={knownPeople} />
     </div>
   );
 }
