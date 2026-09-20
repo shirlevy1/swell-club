@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 import type { BestSwimDay } from "@/lib/gosurf";
 import { StarIcon } from "./social-icons";
 
-/** "שני (4 ⭐)" — יחיד. בין הימים: פסיק לאמצעיים, "ו" לפני האחרון —
+/** "שני (⭐ 4)" — אייקון לפני המספר, כמו בכל תג אחר באתר (למשל
+ * "מפגשים משותפים"). בין הימים: פסיק לאמצעיים, "ו" לפני האחרון —
  * אותו כלל חיבור עברי בדיוק כמו בכל רשימה אחרת באתר. */
 function renderDayList(days: BestSwimDay[]): ReactNode[] {
   return days.map((d, i) => {
@@ -12,8 +13,8 @@ function renderDayList(days: BestSwimDay[]): ReactNode[] {
       <span key={d.dateISO}>
         {prefix}
         <b className="font-bold text-(--color-deep)">{d.dayName}</b> (
-        <span className="ltr-nums">{d.stars}</span>
-        <StarIcon className="mx-0.5 inline size-3 -translate-y-px text-(--color-sea)" />)
+        <StarIcon className="mx-0.5 inline size-3 -translate-y-px text-(--color-sea)" />
+        <span className="ltr-nums">{d.stars}</span>)
       </span>
     );
   });
