@@ -48,11 +48,15 @@ export function NextEventCard({
   going,
   hasAttended,
   gender,
+  isFirstCheckIn,
 }: {
   event: SwellEvent;
   going: boolean;
   hasAttended: boolean;
   gender: Gender | null;
+  /** true אם עוד אין לצופה/ת אף נוכחות בכל הקהילה — מועבר ל-CheckInFlow
+   * כדי שמסך ה"done" יציג את "הסוואל הראשון שלך" במקום ההודעה הרגילה. */
+  isFirstCheckIn: boolean;
 }) {
   const isCheckInOpen = checkInWindow(event).status === "open";
 
@@ -148,7 +152,11 @@ export function NextEventCard({
         </Link>
 
         {isCheckInOpen && !hasAttended && (
-          <CheckInFlow event={event} variant="compact" />
+          <CheckInFlow
+            event={event}
+            variant="compact"
+            isFirstCheckIn={isFirstCheckIn}
+          />
         )}
       </div>
     </div>

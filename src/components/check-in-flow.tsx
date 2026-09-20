@@ -16,6 +16,7 @@ import { checkInAction } from "@/lib/demo/actions";
 import { detectFace } from "@/lib/face-detection";
 import type { SwellEvent } from "@/lib/types";
 import { Button, Card, Notice } from "./ui";
+import { WaveIcon } from "./social-icons";
 
 type Step = "idle" | "locating" | "opening" | "camera" | "uploading" | "done";
 
@@ -48,6 +49,7 @@ const JPEG_QUALITY = 0.7;
 export function CheckInFlow({
   event,
   variant = "card",
+  isFirstCheckIn = false,
 }: {
   event: SwellEvent;
   /** "compact": כפתור מלא-רוחב בלי הכותרת/התיאור/אזהרת-ההדגמה סביבו —
@@ -56,6 +58,11 @@ export function CheckInFlow({
    * זהים לגמרי בשני הווריאנטים — ברגע שנפתחה מצלמה צריך מסך מלא בכל
    * מקרה, לא משנה מאיפה התחילו. */
   variant?: "card" | "compact";
+  /** true אם זה הצ'ק-אין הראשון אי-פעם של המשתמש/ת בכל הקהילה (לא רק
+   * במפגש הזה) — נקבע בעמוד הקורא (events/[id]/page.tsx או דף הבית)
+   * לפי getMyAttendedEventIds לפני שהצ'ק-אין הזה קרה. משפיע רק על
+   * מסך ה"done" בסוף — שאר הזרימה זהה לגמרי. */
+  isFirstCheckIn?: boolean;
 }) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -74,6 +81,12 @@ export function CheckInFlow({
     (Coords & { accuracy: number }) | null
   >(null);
   const [checkingFace, setCheckingFace] = useState(false);
+  /** דאטה-URL של הסלפי שצולם ממש עכשיו — רק כדי להציג אותו מיד במסך
+   * "הסוואל הראשון שלך" (isFirstCheckIn), בלי לחכות לסבב-הלוך-ושוב
+   * של קישור חתום מה-storage. */
+  const [selfiePreviewUrl, setSelfiePreviewUrl] = useState<string | null>(
+    null,
+  );
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -242,12 +255,15 @@ export function CheckInFlow({
       return;
     }
 
+    const previewUrl = canvas.toDataURL("image/jpeg", JPEG_QUALITY);
+    setSelfiePreviewUrl(previewUrl);
+
     if (demoMode) {
       stopCamera();
       setStep("uploading");
       await checkInAction(
         event.id,
-        canvas.toDataURL("image/jpeg", JPEG_QUALITY),
+        previewUrl,
         detection.center?.x ?? null,
         detection.center?.y ?? null,
       );
@@ -358,7 +374,77 @@ export function CheckInFlow({
   }
 
   if (step === "done") {
-    return <Notice tone="good">אתם איתנו. עכשיו אפשר לראות מי עוד כאן.</Notice>;
+    if (!isFirstCheckIn) {
+      return <Notice tone="good">אתם איתנו. עכשיו אפשר לראות מי עוד כאן.</Notice>;
+    }
+
+    // "הסוואל הראשון שלך" — אותו רקע ואותו SVG של גל בדיוק כמו כרטיס
+    // "המפגש הקרוב" (NextEventCard), לא טכניקה חדשה. מוצג פעם אחת
+    // בחיי החשבון, לא בכל צ'ק-אין.
+    return (
+      <div
+        className="relative overflow-hidden rounded-2xl border border-(--color-sky)/30 p-6 text-center text-white"
+        style={{
+          background: "linear-gradient(155deg, var(--color-sea) 0%, var(--color-deep) 100%)",
+        }}
+      >
+        <svg
+          viewBox="0 0 300 220"
+          preserveAspectRatio="none"
+          aria-hidden
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            zIndex: 0,
+            pointerEvents: "none",
+          }}
+        >
+          <defs>
+            <linearGradient id="first-swell-wave-back" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#fff" stopOpacity="0" />
+              <stop offset="100%" stopColor="#fff" stopOpacity=".28" />
+            </linearGradient>
+            <linearGradient id="first-swell-wave-front" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#fff" stopOpacity="0" />
+              <stop offset="100%" stopColor="#fff" stopOpacity=".42" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M0,110 C40,85 70,85 110,105 C150,125 180,125 220,103 C250,87 275,87 300,100 L300,220 L0,220 Z"
+            fill="url(#first-swell-wave-back)"
+          />
+          <path
+            d="M0,145 C45,125 80,125 120,141 C160,157 190,155 230,137 C260,123 280,125 300,135 L300,220 L0,220 Z"
+            fill="url(#first-swell-wave-front)"
+          />
+        </svg>
+
+        <div className="relative z-[1] space-y-2">
+          {selfiePreviewUrl && (
+            <div className="mx-auto flex size-20 items-center justify-center overflow-hidden rounded-full border-2 border-white/50 bg-white/15">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={selfiePreviewUrl}
+                alt=""
+                className="size-full object-cover"
+              />
+            </div>
+          )}
+          <p className="flex items-center justify-center gap-1.5 text-[0.68rem] font-bold tracking-[0.18em] text-white/90">
+            <WaveIcon className="size-3.5 shrink-0" />
+            הסוואל הראשון שלך
+          </p>
+          <p className="font-[family-name:var(--font-display)] text-xl font-extrabold">
+            ברוכים הבאים ל-Swell!
+          </p>
+          <p className="text-sm text-white/80">
+            עכשיו אפשר לראות מי עוד היה איתכם היום בים.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   if (variant === "compact") {
