@@ -2,8 +2,9 @@ import Link from "next/link";
 import type { SwellEvent, Gender } from "@/lib/types";
 import { formatWeekdayName, formatTime, relativeTime } from "@/lib/format";
 import { checkInWindow } from "@/lib/checkin";
-import { WaveIcon } from "./social-icons";
+import { WaveIcon, CheckIcon } from "./social-icons";
 import { HomeRsvpToggle } from "./home-rsvp-toggle";
+import { CheckInFlow } from "./check-in-flow";
 
 /**
  * "המפגש הקרוב" — כרזה בראש דף הבית, לא שורת מפגש רגילה כמו בעמוד
@@ -29,15 +30,19 @@ import { HomeRsvpToggle } from "./home-rsvp-toggle";
  *
  * כשחלון הצ'ק-אין פתוח (checkInWindow, אותה פונקציה בדיוק כמו בעמוד
  * המפגש) הכותרת והשורה הקטנה מתחלפות להזמנה ישירה לסמן הגעה, במקום
- * ספירה לאחור למפגש שכבר קורה עכשיו בפועל.
+ * ספירה לאחור למפגש שכבר קורה עכשיו בפועל — ובמקום כפתור ה-RSVP,
+ * CheckInFlow (variant="compact") מריץ את אותו זיהוי מיקום + מצלמה +
+ * check_in בדיוק כמו בעמוד המפגש עצמו, לא שכפול של הלוגיקה.
  */
 export function NextEventCard({
   event,
   going,
+  hasAttended,
   gender,
 }: {
   event: SwellEvent;
   going: boolean;
+  hasAttended: boolean;
   gender: Gender | null;
 }) {
   const isCheckInOpen = checkInWindow(event).status === "open";
@@ -95,18 +100,27 @@ export function NextEventCard({
               "המפגש הקרוב"
             )}
           </p>
-          <HomeRsvpToggle eventId={event.id} initialGoing={going} gender={gender} />
+          {hasAttended ? (
+            <span className="flex shrink-0 items-center gap-1 rounded-full bg-(--color-verified) px-2.5 py-1 text-[0.66rem] font-bold text-white">
+              <CheckIcon className="size-2.5" />
+              הייתם איתנו
+            </span>
+          ) : isCheckInOpen ? null : (
+            <HomeRsvpToggle eventId={event.id} initialGoing={going} gender={gender} />
+          )}
         </div>
 
         <Link href={`/events/${event.id}?from=home`} className="block space-y-2">
           <p className="font-[family-name:var(--font-display)] text-2xl font-extrabold leading-tight">
-            {isCheckInOpen ? "בואו לסמן שהגעתם!" : relativeTime(event.starts_at)}
+            {isCheckInOpen && !hasAttended
+              ? "בואו לסמן שהגעתם!"
+              : relativeTime(event.starts_at)}
           </p>
 
           <div className="min-w-0">
             <p className="truncate text-sm font-bold">{event.title}</p>
             <p className="truncate text-xs text-white/80">
-              {isCheckInOpen ? (
+              {isCheckInOpen && !hasAttended ? (
                 event.location_name
               ) : (
                 <>
@@ -118,6 +132,10 @@ export function NextEventCard({
             </p>
           </div>
         </Link>
+
+        {isCheckInOpen && !hasAttended && (
+          <CheckInFlow event={event} variant="compact" />
+        )}
       </div>
     </div>
   );

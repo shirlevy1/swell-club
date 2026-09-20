@@ -45,7 +45,18 @@ function cameraErrorMessage(err: unknown): string {
 const MAX_EDGE = 1080;
 const JPEG_QUALITY = 0.7;
 
-export function CheckInFlow({ event }: { event: SwellEvent }) {
+export function CheckInFlow({
+  event,
+  variant = "card",
+}: {
+  event: SwellEvent;
+  /** "compact": כפתור מלא-רוחב בלי הכותרת/התיאור/אזהרת-ההדגמה סביבו —
+   * לשימוש בכרטיס "המפגש הקרוב" בדף הבית, שם כבר יש הזמנה משלו
+   * ("בואו לסמן שהגעתם!") ואין מקום לכרטיס מבוא שלם. שלבי camera/done
+   * זהים לגמרי בשני הווריאנטים — ברגע שנפתחה מצלמה צריך מסך מלא בכל
+   * מקרה, לא משנה מאיפה התחילו. */
+  variant?: "card" | "compact";
+}) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -348,6 +359,32 @@ export function CheckInFlow({ event }: { event: SwellEvent }) {
 
   if (step === "done") {
     return <Notice tone="good">אתם איתנו. עכשיו אפשר לראות מי עוד כאן.</Notice>;
+  }
+
+  if (variant === "compact") {
+    return (
+      <div className="space-y-2">
+        {/* !bg-white/!text-deep: כרטיס "המפגש הקרוב" כהה (sea→deep),
+            וכפתור ה-Button הרגיל (bg-sea) היה נבלע בתוכו. ה-! מכריח
+            עדיפות על BUTTON_VARIANTS בלי לגעת ברכיב Button המשותף. */}
+        <Button
+          onClick={startLocating}
+          disabled={
+            step === "locating" || step === "opening" || step === "uploading"
+          }
+          className="w-full !bg-white !text-(--color-deep) hover:!bg-white/90"
+        >
+          {step === "locating"
+            ? "מאתרים אתכם…"
+            : step === "opening"
+              ? "פותחים מצלמה…"
+              : step === "uploading"
+                ? "רגע…"
+                : "סמנו שהגעתם"}
+        </Button>
+        {error && <Notice tone="error">{error}</Notice>}
+      </div>
+    );
   }
 
   return (

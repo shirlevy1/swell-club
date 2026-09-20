@@ -3,6 +3,7 @@ import {
   getMetPeople,
   getUpcomingEvents,
   getMyGoingEventIds,
+  getMyAttendedEventIds,
   getRandomEventAlbum,
 } from "@/lib/data";
 import { getWaveForecast, getBestSwimDays } from "@/lib/gosurf";
@@ -23,15 +24,23 @@ export default async function HomePage() {
     );
   }
 
-  const [waveDays, bestDays, knownPeople, upcomingEvents, myGoingIds, randomAlbum] =
-    await Promise.all([
-      getWaveForecast(),
-      getBestSwimDays(),
-      getMetPeople(viewer.userId),
-      getUpcomingEvents(viewer.club.id),
-      getMyGoingEventIds(viewer.userId),
-      getRandomEventAlbum(),
-    ]);
+  const [
+    waveDays,
+    bestDays,
+    knownPeople,
+    upcomingEvents,
+    myGoingIds,
+    myAttendedIds,
+    randomAlbum,
+  ] = await Promise.all([
+    getWaveForecast(),
+    getBestSwimDays(),
+    getMetPeople(viewer.userId),
+    getUpcomingEvents(viewer.club.id),
+    getMyGoingEventIds(viewer.userId),
+    getMyAttendedEventIds(viewer.userId),
+    getRandomEventAlbum(),
+  ]);
   const nextEvent = upcomingEvents[0];
 
   return (
@@ -40,6 +49,7 @@ export default async function HomePage() {
         <NextEventCard
           event={nextEvent}
           going={myGoingIds.has(nextEvent.id)}
+          hasAttended={myAttendedIds.has(nextEvent.id)}
           gender={viewer.profile?.gender ?? null}
         />
       )}
