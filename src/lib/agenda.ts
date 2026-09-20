@@ -20,7 +20,7 @@ export function defaultAgendaText(startsAtISO: string): string {
   const startMs = new Date(startsAtISO).getTime();
   const lines = AGENDA_STEPS_MIN.map(
     ({ offsetMin, label }) =>
-      `${formatTime(new Date(startMs + offsetMin * 60_000).toISOString())} — ${label}`,
+      `${formatTime(new Date(startMs + offsetMin * 60_000).toISOString())} - ${label}`,
   );
   return [...lines, "", DEFAULT_AGENDA_CLOSING].join("\n");
 }

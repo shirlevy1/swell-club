@@ -171,7 +171,7 @@ export function EditSelfieButton({ eventId }: { eventId: string }) {
 
       if (uploadError) {
         return fail(
-          "העדכון נכשל. ייתכן שחלון עריכת הסלפי נסגר, או שהקליטה חלשה — נסו שוב.",
+          "העדכון נכשל. ייתכן שחלון עריכת הסלפי נסגר, או שהקליטה חלשה - נסו שוב.",
         );
       }
 

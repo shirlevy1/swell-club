@@ -377,7 +377,7 @@ export function EditEventScheduleForm({
       <Card className="space-y-4">
         <p className="text-sm font-semibold">איפה נפגשים</p>
         <p className="text-xs leading-relaxed text-(--color-ink-faint)">
-          הקלידו כתובת או שם מקום — הבחירה מהרשימה קובעת גם את המיקום
+          הקלידו כתובת או שם מקום - הבחירה מהרשימה קובעת גם את המיקום
           במפה וגם את קישור הניווט, לא רק את השם.
         </p>
 
@@ -387,7 +387,7 @@ export function EditEventScheduleForm({
               ? "כבר יש נוכחות אחת רשומה למפגש הזה."
               : `כבר יש ${attendanceCount} נוכחויות רשומות למפגש הזה.`}{" "}
             שינוי המיקום או הרדיוס כאן לא משנה את הרשומות ההיסטוריות
-            שכבר נשמרו — רק את התנאים לצ׳ק־אין מעכשיו והלאה.
+            שכבר נשמרו - רק את התנאים לצ׳ק־אין מעכשיו והלאה.
           </Notice>
         )}
 

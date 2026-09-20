@@ -114,7 +114,7 @@ export function SelfieHistory({
   if (shots.length === 0) {
     return (
       <p className="rounded-xl border border-dashed border-(--color-line) px-4 py-8 text-center text-sm text-(--color-ink-faint)">
-        עוד אין סלפים — הם נוצרים בכל צ׳ק־אין למפגש.
+        עוד אין סלפים - הם נוצרים בכל צ׳ק־אין למפגש.
       </p>
     );
   }

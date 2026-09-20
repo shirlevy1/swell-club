@@ -29,7 +29,7 @@ function cameraErrorMessage(err: unknown): string {
 
   if (name === "NotAllowedError" || name === "SecurityError") {
     return (
-      "הגישה למצלמה נדחתה. צריך לאשר אותה בהגדרות האתר בדפדפן — " +
+      "הגישה למצלמה נדחתה. צריך לאשר אותה בהגדרות האתר בדפדפן - " +
       "הסלפי הוא ההוכחה שהייתם שם, ובלעדיו אי אפשר לסמן הגעה."
     );
   }
@@ -141,7 +141,7 @@ export function CheckInFlow({
       setStep("idle");
       setError(
         "הדפדפן חוסם את המצלמה כי החיבור אינו מאובטח. צריך לפתוח את " +
-          "האתר בכתובת https (או ב-localhost בפיתוח) — אין כאן הרשאה שאפשר לאשר.",
+          "האתר בכתובת https (או ב-localhost בפיתוח) - אין כאן הרשאה שאפשר לאשר.",
       );
       return;
     }
@@ -311,7 +311,7 @@ export function CheckInFlow({
     }
 
     if (uploadError) {
-      return fail("העלאת התמונה נכשלה. הקליטה בחוף לפעמים חלשה — נסו שוב.");
+      return fail("העלאת התמונה נכשלה. הקליטה בחוף לפעמים חלשה - נסו שוב.");
     }
 
     const { error: rpcError } = await supabase.rpc("check_in", {

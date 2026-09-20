@@ -101,17 +101,17 @@ export function SeaForecast({ day }: { day: GoSurfDay }) {
                         <span className="ltr-nums">{row.heightCm}</span> ס״מ
                       </>
                     ) : (
-                      "—"
+                      "-"
                     )}
                   </td>
                   <td className={cx(TD, "text-(--color-ink-soft)")}>
-                    {row.waveDesc ?? "—"}
+                    {row.waveDesc ?? "-"}
                   </td>
                   <td className={cx(TD, "font-semibold", TONE_CLASS[tone])}>
                     {row.windKmh != null ? (
                       <span className="ltr-nums">{row.windKmh}</span>
                     ) : (
-                      "—"
+                      "-"
                     )}
                     <DirArrow dir={row.windDir} />
                   </td>
@@ -126,7 +126,7 @@ export function SeaForecast({ day }: { day: GoSurfDay }) {
                         <span className="ltr-nums">{row.swellPeriodSec}</span> שנ׳
                       </span>
                     )}
-                    {row.swellCm == null && row.swellPeriodSec == null && "—"}
+                    {row.swellCm == null && row.swellPeriodSec == null && "-"}
                     <DirArrow dir={row.swellDir} />
                   </td>
                 </tr>
