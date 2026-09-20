@@ -40,18 +40,34 @@ export default async function EventPage({
   params: Promise<{ id: string }>;
   /** מאיפה הגיעו — כדי שכפתור החזרה יוביל למקום הכי אינטואיטיבי,
       לא תמיד "לכל המפגשים". ראו גם admin/members/[id]/page.tsx
-      שמייצר את אותם פרמטרים דרך SelfieHistory. */
-  searchParams: Promise<{ from?: string; fromId?: string }>;
+      ו-people/[id]/page.tsx שמייצרים את אותם פרמטרים דרך SelfieHistory.
+      `pfrom`/`pfromId` הם ה-from/fromId שאיתם עמוד הפרופיל (person או
+      admin-member) עצמו הגיע לפני שהוא הוביל לכאן — בלעדיהם, כפתור
+      החזרה מכאן לפרופיל היה "שוכח" את השרשרת המלאה (למשל בית ← פרופיל
+      ← מפגש) ונוחת בברירת המחדל הכללית של עמוד הפרופיל, לא במקום
+      המקורי שממנו הגעתם. */
+  searchParams: Promise<{
+    from?: string;
+    fromId?: string;
+    pfrom?: string;
+    pfromId?: string;
+  }>;
 }) {
   const { id } = await params;
-  const { from, fromId } = await searchParams;
+  const { from, fromId, pfrom, pfromId } = await searchParams;
   const back =
     from === "profile"
       ? { href: "/profile", label: "בחזרה לפרופיל שלי" }
       : from === "admin-member" && fromId
-        ? { href: `/admin/members/${fromId}`, label: "בחזרה לפרופיל" }
+        ? {
+            href: `/admin/members/${fromId}${pfrom ? `?from=${pfrom}${pfromId ? `&fromId=${pfromId}` : ""}` : ""}`,
+            label: "בחזרה לפרופיל",
+          }
         : from === "person" && fromId
-          ? { href: `/people/${fromId}`, label: "בחזרה לפרופיל" }
+          ? {
+              href: `/people/${fromId}${pfrom ? `?from=${pfrom}` : ""}`,
+              label: "בחזרה לפרופיל",
+            }
           : from === "history"
             ? { href: "/events/history", label: "לכל המפגשים שהיו" }
             : from === "admin"

@@ -37,7 +37,11 @@ export default async function PersonPage({
       הייתה מ"חברים שלי מסוואל קלאב" בעמוד הבית ולא ממפגש ספציפי. שני
       שימושים: לבחור איזה סלפי להציג למעלה (הכי רלוונטי להֶקשר, לא סתם
       "הכי עדכני"), וגם לכפתור החזרה למטה — שניהם לא מוצגים בשום מקום
-      אחר, ולכן אין צורך לחטא אותו כמו את `?next=`. */
+      אחר, ולכן אין צורך לחטא אותו כמו את `?next=`. מועבר הלאה כ-`pfrom`
+      בקישורים למפגשים (SelfieHistory למטה), כדי שכפתור החזרה שם ידע
+      לחזור לכאן עם אותו `from` בדיוק — אחרת חזרה ממפגש שני (שנפתח
+      מתוך הסלפים המשותפים כאן) הייתה "שוכחת" מאיפה הגעתם לעמוד הזה
+      מלכתחילה. */
   searchParams: Promise<{ from?: string }>;
 }) {
   const { id } = await params;
@@ -194,7 +198,7 @@ export default async function PersonPage({
             <SelfieHistory
               shots={shots}
               albumsByEvent={albumsByEvent}
-              eventLinkQuery={`from=person&fromId=${id}`}
+              eventLinkQuery={`from=person&fromId=${id}${from ? `&pfrom=${from}` : ""}`}
             />
           </section>
         </>

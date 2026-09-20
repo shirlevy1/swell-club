@@ -30,6 +30,12 @@ export default async function AdminMemberPage({
 }) {
   const { id } = await params;
   const { from, fromId } = await searchParams;
+  // מועבר הלאה כ-pfrom/pfromId בקישור למפגש (SelfieHistory למטה), כדי
+  // שכפתור החזרה שם ידע לחזור לכאן עם אותו from/fromId בדיוק — אחרת
+  // חזרה ממפגש שני (שנפתח מתוך הסלפים המשותפים כאן) הייתה "שוכחת"
+  // מאיפה המנהלת הגיעה לעמוד הזה מלכתחילה (בית/ניהול/תמונות ממתינות/
+  // מפגש אחר).
+  const relay = from ? `&pfrom=${from}${fromId ? `&pfromId=${fromId}` : ""}` : "";
   const back =
     from === "event" && fromId
       ? { href: `/events/${fromId}`, label: "בחזרה למפגש" }
@@ -141,7 +147,7 @@ export default async function AdminMemberPage({
         <SelfieHistory
           shots={shots}
           albumsByEvent={albumsByEvent}
-          eventLinkQuery={`from=admin-member&fromId=${id}`}
+          eventLinkQuery={`from=admin-member&fromId=${id}${relay}`}
         />
       </section>
     </div>
