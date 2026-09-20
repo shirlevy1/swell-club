@@ -55,7 +55,7 @@ const LAYOUTS: Record<number, { grid: string; cells: string[] }> = {
 };
 
 /**
- * "רגעים מהמפגש האחרון" — קולאז' תמונות מהאלבום של המפגש האחרון
+ * "רגעים מהסוואל האחרון" — קולאז' תמונות מהאלבום של המפגש האחרון
  * שהצופה/ת עצמו/ה נכח/ה בו (getLastAttendedEventAlbum ב-lib/data.ts).
  * כל התמונות שייכות לאותו מפגש, ולכן כל הקולאז' הוא קישור אחד אליו,
  * עם from=home כדי שהחזרה תחזור לבית. לא מוצג אם אין מספיק תמונות.
@@ -80,7 +80,7 @@ export function LastAlbumCollage({
     >
       <p className="flex items-center gap-1.5 font-[family-name:var(--font-display)] text-sm font-bold text-(--color-deep)">
         <WaveIcon className="size-4 shrink-0" />
-        רגעים מהמפגש האחרון שלכם
+        רגעים מהסוואל האחרון
       </p>
 
       <Link
