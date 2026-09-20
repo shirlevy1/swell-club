@@ -1,19 +1,27 @@
 import { WaveIcon } from "./social-icons";
 
-/** "אדם אחד" ליחיד, "X אנשים" (עם ltr-nums על הספרה בלבד) לרבים —
- * אותו כלל יחיד/רבים כמו בכל מקום אחר באתר. */
-function PeopleCount({ count }: { count: number }) {
-  if (count === 1) return "אדם אחד";
+function StatTile({ count, label }: { count: number; label: string }) {
   return (
-    <>
-      <span className="ltr-nums">{count}</span> אנשים
-    </>
+    <div
+      className="flex flex-col items-center gap-1 rounded-2xl border border-(--color-sea)/20 py-5 text-center"
+      style={{
+        background: "linear-gradient(155deg, #eef5fa 0%, #e2eef5 55%, #d8e9f1 100%)",
+      }}
+    >
+      <WaveIcon className="size-4 shrink-0 text-(--color-sea)" />
+      <p className="ltr-nums font-[family-name:var(--font-display)] text-3xl font-extrabold text-(--color-deep)">
+        {count}
+      </p>
+      <p className="text-xs font-semibold text-(--color-ink-soft)">{label}</p>
+    </div>
   );
 }
 
 /**
- * שתי סטטיסטיקות שקטות בתחתית דף הבית — לא כרזה, רק שורה עם מספר.
- * שני הנתונים מתעדכנים בכל טעינה (getClubMemberCount/getMetPeopleCount
+ * שני "מלבנים" ויזואליים בתחתית דף הבית — מספר גדול + אייקון, לא
+ * משפט זורם — באותה שפה כמו שאר כרטיסי הבית (KnownPeopleStrip,
+ * RandomEventAlbumCard): גרדיאנט תכלת בהיר, גל, גופן הכותרות. שני
+ * הנתונים מתעדכנים בכל טעינה (getClubMemberCount/getMetPeopleCount
  * ב-lib/data.ts), לא מטמון: "עדכני תמיד" היה תנאי מפורש.
  */
 export function CommunityStats({
@@ -24,21 +32,9 @@ export function CommunityStats({
   metCount: number;
 }) {
   return (
-    <div className="space-y-2 rounded-2xl border border-(--color-line) bg-(--color-surface) p-4">
-      <p className="flex items-center gap-2 text-sm text-(--color-ink-soft)">
-        <WaveIcon className="size-4 shrink-0 text-(--color-sea)" />
-        <b className="font-bold text-(--color-ink)">
-          <PeopleCount count={memberCount} />
-        </b>
-        בקהילה
-      </p>
-      <p className="flex items-center gap-2 text-sm text-(--color-ink-soft)">
-        <WaveIcon className="size-4 shrink-0 text-(--color-sea)" />
-        <b className="font-bold text-(--color-ink)">
-          <PeopleCount count={metCount} />
-        </b>
-        שפגשתי
-      </p>
+    <div className="grid grid-cols-2 gap-3">
+      <StatTile count={memberCount} label="אנשים בקהילה" />
+      <StatTile count={metCount} label="אנשים שפגשתי" />
     </div>
   );
 }
