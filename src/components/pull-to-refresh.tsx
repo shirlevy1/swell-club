@@ -5,6 +5,14 @@ import { useRouter } from "next/navigation";
 
 const THRESHOLD = 70;
 const MAX_PULL = 90;
+/** תזוזה כלפי מטה קטנה מזה מתעלמת לגמרי — לא רק לא מפעילה משיכה,
+ * אלא גם לא קוראת ל-preventDefault בכלל. בלעדי זה, כל תנועה טבעית
+ * ולא-ישרה של אצבע (רועדת מעט מטה לפני שממשיכה למעלה לגלילה רגילה)
+ * הייתה "מרעילה" את כל המחווה: ברגע ש-preventDefault נקרא פעם אחת
+ * על touchmove ראשון, ספארי באייפון מחליט שהמחווה כולה מטופלת ע"י
+ * JS ומסרב לגלול באופן טבעי עד סוף המגע, גם אם ה-touchmove הבאים
+ * לא קוראים ל-preventDefault שוב — בדיוק זה גרם לתחושת "דף תקוע". */
+const MIN_DELTA_TO_INTERCEPT = 8;
 
 /**
  * משיכה למטה כדי לרענן, כמו באינסטגרם. ב-PWA שמור למסך הבית אין
@@ -52,7 +60,7 @@ export function PullToRefresh({
         return;
       }
       const delta = e.touches[0].clientY - startY.current;
-      if (delta <= 0) return;
+      if (delta <= MIN_DELTA_TO_INTERCEPT) return;
       e.preventDefault();
       const next = Math.min(delta * 0.5, MAX_PULL);
       pullValue.current = next;
