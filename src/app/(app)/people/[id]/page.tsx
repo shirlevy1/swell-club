@@ -183,7 +183,7 @@ export default async function PersonPage({
                   רגעים מהמפגשים שהייתם בהם ביחד.
                 </p>
               </div>
-              <span className="flex shrink-0 items-center gap-1 rounded-full border border-(--color-sea)/40 bg-(--color-sea)/10 px-2 py-0.5 text-[0.7rem] font-bold text-(--color-sea)">
+              <span className="flex shrink-0 items-center gap-1 text-[0.7rem] font-bold text-(--color-sea)">
                 <WaveIcon className="size-2.5" />
                 {person.sharedCount === 1 ? (
                   "מפגש אחד"
