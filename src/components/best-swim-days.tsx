@@ -1,24 +1,34 @@
+import type { ReactNode } from "react";
 import type { BestSwimDay } from "@/lib/gosurf";
 import { StarIcon } from "./social-icons";
 
-function joinDayNames(names: string[]): string {
-  if (names.length <= 1) return names[0] ?? "";
-  if (names.length === 2) return `${names[0]} ו${names[1]}`;
-  return `${names.slice(0, -1).join(", ")} ו${names[names.length - 1]}`;
+/** "שני (4 ⭐)" — יחיד. בין הימים: פסיק לאמצעיים, "ו" לפני האחרון —
+ * אותו כלל חיבור עברי בדיוק כמו בכל רשימה אחרת באתר. */
+function renderDayList(days: BestSwimDay[]): ReactNode[] {
+  return days.map((d, i) => {
+    const isLast = i === days.length - 1;
+    const prefix = i === 0 ? "" : isLast ? " ו" : ", ";
+    return (
+      <span key={d.dateISO}>
+        {prefix}
+        <b className="font-bold text-(--color-deep)">{d.dayName}</b> (
+        <span className="ltr-nums">{d.stars}</span>
+        <StarIcon className="mx-0.5 inline size-3 -translate-y-px text-(--color-sea)" />)
+      </span>
+    );
+  });
 }
 
 /**
  * "הבקרים הכי טובים לשחייה השבוע" — תוספת בתוך כרטיס "תחזית גלים
  * ורוח" (לא כרטיס נפרד משלה), הימים בשבוע הקרוב שקיבלו 3.5+ כוכבים
  * לפי computeBestSwimStars (lib/sea-score.ts), על סמך תחזית GoSurf
- * לשעה 7:00 בבוקר — ממוינים מהציון הגבוה לנמוך, אבל הציון עצמו לא
- * מוצג (רק שמות הימים) לפי הניסוח שהוגדר. לא מוצג בכלל אם אין אף
- * יום כזה השבוע.
+ * לשעה 7:00 בבוקר — ממוינים מהציון הגבוה לנמוך, כל אחד עם הציון שלו
+ * בסוגריים. לא מוצג בכלל אם אין אף יום כזה השבוע.
  */
 export function BestSwimDaysHighlight({ days }: { days: BestSwimDay[] }) {
   if (days.length === 0) return null;
 
-  const namesText = joinDayNames(days.map((d) => d.dayName));
   const verb = days.length === 1 ? "נראה" : "נראים";
 
   return (
@@ -31,7 +41,7 @@ export function BestSwimDaysHighlight({ days }: { days: BestSwimDay[] }) {
       <p className="text-sm leading-relaxed text-(--color-ink)">
         בדקנו את מצב הים ל־<span className="ltr-nums">7:00</span>.
         <br />
-        <b className="font-bold text-(--color-deep)">{namesText}</b> {verb} הכי טוב.
+        {renderDayList(days)} {verb} הכי טוב.
       </p>
     </div>
   );
