@@ -87,6 +87,19 @@ export function CheckInFlow({
   const [selfiePreviewUrl, setSelfiePreviewUrl] = useState<string | null>(
     null,
   );
+  /** מסך "הסוואל הראשון שלך" מוצג ככיסוי מלא על גבי כל המסך למשך 10
+   * שניות בדיוק ואז נעלם מעצמו — לא נשאר תלוי עד שהעמוד מתרענן. עוקבים
+   * אחרי "האם כבר נדחה" (לא "האם מוצג") כדי ש-useEffect לא יצטרך
+   * לקרוא ל-setState באופן סינכרוני בגוף האפקט עצמו — ברירת המחדל
+   * false כבר שקולה ל"עדיין מוצג", יחד עם הבדיקות על step/isFirstCheckIn. */
+  const [firstCheckInOverlayDismissed, setFirstCheckInOverlayDismissed] =
+    useState(false);
+
+  useEffect(() => {
+    if (step !== "done" || !isFirstCheckIn) return;
+    const t = setTimeout(() => setFirstCheckInOverlayDismissed(true), 10_000);
+    return () => clearTimeout(t);
+  }, [step, isFirstCheckIn]);
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -272,8 +285,10 @@ export function CheckInFlow({
       // רענון מיידי היה מחליף את מסך ה"done" ברשימת הנוכחים תוך שנייה
       // (hasAttended בעמוד הקורא הופך ל-true ומסיר את CheckInFlow כולו
       // מה-DOM) — לא מספיק זמן לקרוא אותו, ובטח לא את מסך "הסוואל
-      // הראשון שלך". השהיה נותנת רגע לראות את המסך לפני שהוא מוחלף.
-      setTimeout(() => router.refresh(), isFirstCheckIn ? 4000 : 2000);
+      // הראשון שלך" (מוצג בכיסוי מסך מלא 10 שניות בדיוק — ראו
+      // firstCheckInOverlayDismissed למעלה). השהיה נותנת זמן לראות את המסך
+      // לפני שהוא מוחלף.
+      setTimeout(() => router.refresh(), isFirstCheckIn ? 10_000 : 2000);
       return;
     }
 
@@ -336,7 +351,7 @@ export function CheckInFlow({
     setStep("done");
     // ראו הערה מקבילה בענף ה-demoMode למעלה — בלי ההשהיה הזו מסך
     // ה"done" נעלם כמעט מיד, כי הרענון מגלה ל-hasAttended להיות true.
-    setTimeout(() => router.refresh(), isFirstCheckIn ? 4000 : 2000);
+    setTimeout(() => router.refresh(), isFirstCheckIn ? 10_000 : 2000);
   }
 
   function cancel() {
@@ -380,56 +395,37 @@ export function CheckInFlow({
   }
 
   if (step === "done") {
-    if (!isFirstCheckIn) {
+    if (!isFirstCheckIn || firstCheckInOverlayDismissed) {
       return <Notice tone="good">אתם איתנו. עכשיו אפשר לראות מי עוד כאן.</Notice>;
     }
 
-    // "הסוואל הראשון שלך" — אותו רקע ואותו SVG של גל בדיוק כמו כרטיס
-    // "המפגש הקרוב" (NextEventCard), לא טכניקה חדשה. מוצג פעם אחת
-    // בחיי החשבון, לא בכל צ'ק-אין.
+    // "הסוואל הראשון שלך" — כיסוי מסך מלא (fixed, לא חלק מזרימת
+    // העמוד), כדי שהרגע יתפוס את כל תשומת הלב במקום להיראות כמו עוד
+    // כרטיס ברשימה. רקע בהיר — אותו גרדיאנט/זוהר בדיוק כמו MorningGlow
+    // בדף הנחיתה ובמסכי הרשמה/התחברות, לא הגל הכהה שהיה כאן קודם:
+    // שיר ביקשה מפורשות מסך בהיר, וטכניקת הגל-בגרדיאנט ממילא לא עובדת
+    // על רקע לבן (נלמד באיטרציות קודמות של הכרטיס הזה). נעלם לבד אחרי
+    // 10 שניות בדיוק — ראו firstCheckInOverlayDismissed למעלה.
     return (
-      <div
-        className="relative overflow-hidden rounded-2xl border border-(--color-sky)/30 p-6 text-center text-white"
-        style={{
-          background: "linear-gradient(155deg, var(--color-sea) 0%, var(--color-deep) 100%)",
-        }}
-      >
-        <svg
-          viewBox="0 0 300 220"
-          preserveAspectRatio="none"
-          aria-hidden
+      <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden bg-(--color-page) px-6 text-center">
+        <div
+          className="pointer-events-none absolute inset-0"
           style={{
-            position: "absolute",
-            inset: 0,
-            width: "100%",
-            height: "100%",
-            zIndex: 0,
-            pointerEvents: "none",
+            background:
+              "linear-gradient(180deg, #ffffff 0%, #f2f7fa 42%, #dbe8f1 100%)",
           }}
-        >
-          <defs>
-            <linearGradient id="first-swell-wave-back" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#fff" stopOpacity="0" />
-              <stop offset="100%" stopColor="#fff" stopOpacity=".28" />
-            </linearGradient>
-            <linearGradient id="first-swell-wave-front" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#fff" stopOpacity="0" />
-              <stop offset="100%" stopColor="#fff" stopOpacity=".42" />
-            </linearGradient>
-          </defs>
-          <path
-            d="M0,110 C40,85 70,85 110,105 C150,125 180,125 220,103 C250,87 275,87 300,100 L300,220 L0,220 Z"
-            fill="url(#first-swell-wave-back)"
-          />
-          <path
-            d="M0,145 C45,125 80,125 120,141 C160,157 190,155 230,137 C260,123 280,125 300,135 L300,220 L0,220 Z"
-            fill="url(#first-swell-wave-front)"
-          />
-        </svg>
+        />
+        <div
+          className="pointer-events-none absolute inset-x-0 top-1/2 h-[30rem] -translate-y-1/2"
+          style={{
+            background:
+              "radial-gradient(64% 46% at 50% 50%, color-mix(in oklab, var(--color-sky) 46%, transparent), transparent 72%)",
+          }}
+        />
 
-        <div className="relative z-[1] space-y-2">
+        <div className="relative z-[1] space-y-3">
           {selfiePreviewUrl && (
-            <div className="mx-auto flex size-20 items-center justify-center overflow-hidden rounded-full border-2 border-white/50 bg-white/15">
+            <div className="mx-auto flex size-24 items-center justify-center overflow-hidden rounded-full border-2 border-(--color-sea)/30 bg-(--color-surface) shadow-lg">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={selfiePreviewUrl}
@@ -438,14 +434,14 @@ export function CheckInFlow({
               />
             </div>
           )}
-          <p className="flex items-center justify-center gap-1.5 text-[0.68rem] font-bold tracking-[0.18em] text-white/90">
+          <p className="flex items-center justify-center gap-1.5 text-[0.7rem] font-bold tracking-[0.18em] text-(--color-sea)">
             <WaveIcon className="size-3.5 shrink-0" />
             הסוואל הראשון שלך
           </p>
-          <p className="font-[family-name:var(--font-display)] text-xl font-extrabold">
-            ברוכים הבאים ל-Swell!
+          <p className="font-[family-name:var(--font-display)] text-2xl font-extrabold text-balance text-(--color-ink)">
+            ברוכים הבאים ל-Swell Club!!!
           </p>
-          <p className="text-sm text-white/80">
+          <p className="text-sm text-(--color-ink-soft)">
             עכשיו אפשר לראות מי עוד היה איתכם היום בים.
           </p>
         </div>
