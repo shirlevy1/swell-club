@@ -37,7 +37,11 @@ export default async function HomePage() {
   return (
     <div className="space-y-8">
       {nextEvent && (
-        <NextEventCard event={nextEvent} going={myGoingIds.has(nextEvent.id)} />
+        <NextEventCard
+          event={nextEvent}
+          going={myGoingIds.has(nextEvent.id)}
+          gender={viewer.profile?.gender ?? null}
+        />
       )}
       <KnownPeopleStrip people={knownPeople} />
       {randomAlbum && (
