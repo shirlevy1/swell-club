@@ -122,7 +122,7 @@ export function NextEventCard({
         <Link href={`/events/${event.id}?from=home`} className="block space-y-2">
           <p className="font-[family-name:var(--font-display)] text-2xl font-extrabold leading-tight">
             {isCheckInOpen && !hasAttended
-              ? "מגיעים? סמנו הגעה"
+              ? "הגעתם?"
               : relativeTime(event.starts_at)}
           </p>
 
