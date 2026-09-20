@@ -66,12 +66,12 @@ export default async function RemovedMembersPage() {
   const removedCsv = [
     [
       "שם",
-      "אימייל",
       "מגדר",
       "גיל",
       "תאריך לידה",
       "עיר מגורים",
       "טלפון",
+      "אימייל",
       "אינסטגרם",
       "רמת שחייה",
       "תאריך הצטרפות",
@@ -84,12 +84,12 @@ export default async function RemovedMembersPage() {
     ],
     ...removed.map((m) => [
       m.fullName,
-      m.email ?? "",
       genderLabel(m.gender),
       ageInYears(m.birthDate)?.toString() ?? "",
       m.birthDate ?? "",
       m.city ?? "",
       formatPhone(m.phone) ?? "",
+      m.email ?? "",
       normalizeInstagram(m.instagram) ?? "",
       swimLevelLabel(m.swimLevel) ?? "",
       formatDate(m.createdAt),

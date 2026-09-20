@@ -117,12 +117,12 @@ export default async function AdminPage() {
   const membersCsv = [
     [
       "שם",
-      "אימייל",
       "מגדר",
       "גיל",
       "תאריך לידה",
       "עיר מגורים",
       "טלפון",
+      "אימייל",
       "אינסטגרם",
       "רמת שחייה",
       "תאריך הצטרפות",
@@ -133,12 +133,12 @@ export default async function AdminPage() {
     // members כבר ממוין לפי תאריך הצטרפות ב-getAdminData
     ...members.map((m) => [
       m.profile.full_name,
-      m.email ?? "",
       genderLabel(m.profile.gender),
       ageInYears(m.profile.birth_date)?.toString() ?? "",
       m.profile.birth_date ?? "",
       m.profile.city ?? "",
       formatPhone(m.profile.phone) ?? "",
+      m.email ?? "",
       // מנורמל: בטופס אנשים הכניסו גם קישורים מלאים וגם שמות משתמש
       normalizeInstagram(m.profile.instagram) ?? "",
       swimLevelLabel(m.profile.swim_level) ?? "",
