@@ -1,0 +1,85 @@
+import Link from "next/link";
+import { WaveIcon } from "./social-icons";
+
+/**
+ * מסגרת הרשת + מיקום כל תא, לפי כמות התמונות (5, 6 או 7 — הטווח
+ * היחיד ש-getLastAttendedEventAlbum מחזיר). תמיד שתי שורות, בלי
+ * חורים ריקים: 5 = תמונה גדולה אחת + 4 קטנות; 6 = רשת אחידה 3×2;
+ * 7 = תמונה רחבה אחת בשורה עליונה + 2 לידה, ו-4 קטנות בשורה התחתונה.
+ */
+const LAYOUTS: Record<number, { grid: string; cells: string[] }> = {
+  5: {
+    grid: "grid-cols-4 grid-rows-2",
+    cells: [
+      "col-span-2 row-span-2",
+      "col-start-3 row-start-1",
+      "col-start-4 row-start-1",
+      "col-start-3 row-start-2",
+      "col-start-4 row-start-2",
+    ],
+  },
+  6: {
+    grid: "grid-cols-3 grid-rows-2",
+    cells: ["", "", "", "", "", ""],
+  },
+  7: {
+    grid: "grid-cols-4 grid-rows-2",
+    cells: [
+      "col-span-2 row-start-1",
+      "row-start-1",
+      "row-start-1",
+      "row-start-2",
+      "row-start-2",
+      "row-start-2",
+      "row-start-2",
+    ],
+  },
+};
+
+/**
+ * "רגעים מהמפגש האחרון" — קולאז' תמונות מהאלבום של המפגש האחרון
+ * שהצופה/ת עצמו/ה נכח/ה בו (getLastAttendedEventAlbum ב-lib/data.ts).
+ * כל התמונות שייכות לאותו מפגש, ולכן כל הקולאז' הוא קישור אחד אליו,
+ * עם from=home כדי שהחזרה תחזור לבית. לא מוצג אם אין מספיק תמונות.
+ */
+export function LastAlbumCollage({
+  eventId,
+  photoUrls,
+}: {
+  eventId: string;
+  photoUrls: string[];
+}) {
+  const layout = LAYOUTS[photoUrls.length];
+  if (!layout) return null;
+
+  return (
+    <div
+      className="space-y-3 rounded-2xl border border-(--color-sea)/20 p-4"
+      style={{
+        background:
+          "radial-gradient(120% 140% at 15% 0%, rgba(146,173,197,.35), transparent 60%), linear-gradient(155deg, #eef5fa 0%, #e2eef5 55%, #d8e9f1 100%)",
+      }}
+    >
+      <p className="flex items-center gap-1.5 font-[family-name:var(--font-display)] text-sm font-bold text-(--color-deep)">
+        <WaveIcon className="size-4 shrink-0" />
+        רגעים מהמפגש האחרון שלכם
+      </p>
+
+      <Link
+        href={`/events/${eventId}?from=home`}
+        className={`grid ${layout.grid} aspect-[4/3] gap-1 overflow-hidden rounded-xl bg-(--color-haze)`}
+      >
+        {photoUrls.map((url, i) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={url}
+            src={url}
+            alt=""
+            loading="lazy"
+            className={`size-full object-cover ${layout.cells[i]}`}
+          />
+        ))}
+      </Link>
+    </div>
+  );
+}

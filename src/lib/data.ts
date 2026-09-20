@@ -1349,6 +1349,46 @@ export async function getRandomMoment(): Promise<RandomMoment | null> {
   return { eventId: row.event_id, photoUrl };
 }
 
+export type LastEventAlbum = {
+  eventId: string;
+  photoUrls: string[];
+};
+
+/** קולאז' דורש כמות סבירה של תמונות כדי להיראות מכוון — פחות מזה
+ * עדיף פשוט לא להציג את הקטע, לא קולאז' דליל. */
+const LAST_ALBUM_MIN_PHOTOS = 5;
+/** תקרה עליונה — כשיש יותר, בוחרים אקראית בכל טעינה (sampleRandom). */
+const LAST_ALBUM_MAX_PHOTOS = 7;
+
+/**
+ * קולאז' תמונות מהאלבום של המפגש **האחרון שהצופה/ת עצמו/ה נכח/ה
+ * בו** — לא "האחרון בקהילה" כמו getRandomMoment/met_people; זה
+ * היסטוריה אישית, כמו כרטיס הרצף בעמוד הפרופיל, ולכן בכוונה בלי
+ * חריג למנהלת. משתמשת ב-getPastEvents (ממוין מהחדש לישן) ו-
+ * getMyAttendedEventIds שכבר קיימים, בלי לשכפל שאילתה חדשה. מחזירה
+ * null אם אין מפגש עבר שנכחו בו, או שיש בו פחות מ-5 תמונות מאושרות.
+ */
+export async function getLastAttendedEventAlbum(
+  userId: string,
+  clubId: string,
+): Promise<LastEventAlbum | null> {
+  const [pastEvents, attendedIds] = await Promise.all([
+    getPastEvents(clubId),
+    getMyAttendedEventIds(userId),
+  ]);
+  const lastEvent = pastEvents.find((e) => attendedIds.has(e.id));
+  if (!lastEvent) return null;
+
+  const photos = await getEventPhotos(lastEvent.id);
+  const approved = photos.filter((p) => p.status === "approved");
+  if (approved.length < LAST_ALBUM_MIN_PHOTOS) return null;
+
+  return {
+    eventId: lastEvent.id,
+    photoUrls: sampleRandom(approved, LAST_ALBUM_MAX_PHOTOS).map((p) => p.url),
+  };
+}
+
 // -------------------------------------------------------------- דף ניהול
 
 export type AdminEvent = SwellEvent & {
