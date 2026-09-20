@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import webpush from "web-push";
 import { formatTime } from "./format";
+import { sendEmail, buildEmailHtml } from "./email-server";
 
 /**
  * שליחת Push מיידית (לא מ-cron) — לכל האירועים שקורים בפעולה אחת:
@@ -96,10 +97,103 @@ export function eveningThresholdBefore(eventStartsAt: string): Date {
 }
 
 /**
- * שולחת ל-profile_id-ים נתונים, ומנקה מנויים מתים (404/410) — אותו
- * ניקוי בדיוק שכבר קיים ב-send/route.ts. שקטה אם push לא מוגדר, כדי
- * שקריאה ל-API route-ים החדשים לא תשבור פעולה עיקרית (יצירת מפגש,
- * RSVP וכו') רק כי מישהו עדיין לא הפעיל תזכורות.
+ * המייל שמקבל את התראת "משהו שבור במערכת ה-push" (ראו alertPushBroken
+ * למטה) — מקובע בקוד בכוונה: מועדון יחיד, בלי חשבונות-על נוספים,
+ * ואין טעם במסך הגדרות רק בשביל זה. אותה כתובת כבר מופיעה ב-actions.ts
+ * כאיש קשר טכני.
+ */
+const OPS_ALERT_EMAIL = "shirshir2001@gmail.com";
+
+/**
+ * מתריעה במייל כשמשהו במנגנון ה-push עצמו שבור — לא "המנוי הזה פג",
+ * אלא "כל השליחות נכשלות מסיבה אחרת". התראת push על כך שה-push שבור
+ * לא הגיונית (זה בדיוק הערוץ שהתקלקל), ולכן מייל, לא push. בלי סף/
+ * throttling: הקהילה קטנה כרגע, אז תדירות הקריאות לכאן נמוכה מספיק
+ * שזה לא צפוי להציף — אם זה ישתנה, שווה להוסיף.
+ */
+async function alertPushBroken(detail: string): Promise<void> {
+  try {
+    await sendEmail(
+      OPS_ALERT_EMAIL,
+      "התראות Push לא נשלחות בסוואל",
+      buildEmailHtml({
+        title: "התראות Push לא נשלחות",
+        bodyHtml: `<p style="direction:rtl; text-align:right; font-family:'Assistant', -apple-system, 'Segoe UI', Arial, sans-serif; font-size:15px; line-height:1.7; color:#42596e; margin:0 0 12px;">
+          ${detail}
+        </p>
+        <p style="direction:rtl; text-align:right; font-family:'Assistant', -apple-system, 'Segoe UI', Arial, sans-serif; font-size:15px; line-height:1.7; color:#42596e; margin:0;">
+          כדאי לבדוק את מפתחות ה-VAPID ומשתני הסביבה בשרת.
+        </p>`,
+      }),
+    );
+  } catch (err) {
+    console.error("alertPushBroken: failed to send alert email", err);
+  }
+}
+
+/**
+ * הליבה המשותפת של שליחת push לרשימת מנויים: שולחת, מנקה מנויים מתים
+ * (404/410), ומתריעה אם כל השליחות נכשלו מסיבה אחרת. משמשת גם את
+ * sendPushToProfiles למטה וגם את שני נתיבי ה-cron ב-api/push/send —
+ * קודם כל אחד שכפל את הלולאה הזו בעצמו, מה שהשאיר את נתיב ה-cron
+ * בלי הלוג ובלי ההתראה שיש כאן.
+ */
+export async function sendWebPushBatch(
+  db: ReturnType<typeof adminDb>,
+  subs: { endpoint: string; p256dh: string; auth: string }[],
+  payload: PushPayload,
+): Promise<{ successCount: number }> {
+  const json = JSON.stringify(payload);
+  const dead: string[] = [];
+  let successCount = 0;
+  let hardFailureCount = 0;
+
+  await Promise.all(
+    subs.map(async (s) => {
+      try {
+        await webpush.sendNotification(
+          { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
+          json,
+        );
+        successCount++;
+      } catch (err) {
+        const status = (err as { statusCode?: number })?.statusCode;
+        if (status === 404 || status === 410) {
+          dead.push(s.endpoint);
+          return;
+        }
+        // כל כשל אחר (לא "המנוי הזה כבר לא קיים") היה נבלע בשקט —
+        // בלי זה, כשל אמיתי בשליחה (למשל מפתחות שגויים, תקלה זמנית
+        // אצל הדפדפן) לא משאיר שום עקבה שאפשר לבדוק אחר כך.
+        hardFailureCount++;
+        console.error("sendWebPushBatch: send failed", {
+          endpoint: s.endpoint,
+          status,
+          message: (err as { message?: string })?.message,
+        });
+      }
+    }),
+  );
+
+  if (dead.length) {
+    await db.from("push_subscriptions").delete().in("endpoint", dead);
+  }
+
+  // כל השליחות נכשלו, ולא כי המנויים פגי-תוקף (אלה כבר סוננו ל-dead
+  // למעלה) — סימן שמשהו במנגנון עצמו שבור, לא רק שאף אחד לא מחובר.
+  if (subs.length > 0 && hardFailureCount === subs.length) {
+    await alertPushBroken(
+      `${hardFailureCount} מתוך ${subs.length} שליחות push נכשלו ברצף (לא בגלל מנוי שפג תוקף).`,
+    );
+  }
+
+  return { successCount };
+}
+
+/**
+ * שולחת ל-profile_id-ים נתונים. שקטה אם push לא מוגדר, כדי שקריאה
+ * ל-API route-ים החדשים לא תשבור פעולה עיקרית (יצירת מפגש, RSVP וכו')
+ * רק כי מישהו עדיין לא הפעיל תזכורות.
  */
 export async function sendPushToProfiles(
   profileIds: string[],
@@ -121,36 +215,9 @@ export async function sendPushToProfiles(
   if (subsError) {
     console.error("sendPushToProfiles: subscriptions lookup failed", subsError);
   }
+  if (!subs || subs.length === 0) return;
 
-  const json = JSON.stringify(payload);
-  const dead: string[] = [];
-  await Promise.all(
-    (subs ?? []).map(async (s) => {
-      try {
-        await webpush.sendNotification(
-          { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
-          json,
-        );
-      } catch (err) {
-        const status = (err as { statusCode?: number })?.statusCode;
-        if (status === 404 || status === 410) {
-          dead.push(s.endpoint);
-          return;
-        }
-        // כל כשל אחר (לא "המנוי הזה כבר לא קיים") היה נבלע בשקט —
-        // בלי זה, כשל אמיתי בשליחה (למשל מפתחות שגויים, תקלה זמנית
-        // אצל הדפדפן) לא משאיר שום עקבה שאפשר לבדוק אחר כך.
-        console.error("sendPushToProfiles: send failed", {
-          endpoint: s.endpoint,
-          status,
-          message: (err as { message?: string })?.message,
-        });
-      }
-    }),
-  );
-  if (dead.length) {
-    await db.from("push_subscriptions").delete().in("endpoint", dead);
-  }
+  await sendWebPushBatch(db, subs, payload);
 }
 
 /**

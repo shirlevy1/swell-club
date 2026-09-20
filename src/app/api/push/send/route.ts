@@ -4,6 +4,7 @@ import {
   adminDb,
   buildReminderPayload,
   eveningThresholdBefore,
+  sendWebPushBatch,
 } from "@/lib/push-server";
 
 /**
@@ -176,33 +177,14 @@ async function sendPhotosReadyReminder(
       .in("profile_id", ids);
     if (!subs || subs.length === 0) return;
 
-    const payload = JSON.stringify({
+    const { successCount } = await sendWebPushBatch(db, subs, {
       title: "הרגעים מסוואל מוכנים",
       body: "התמונות מהבוקר מחכות לכם באפליקציה.",
       tag: `photos-ready-${eventId}`,
       url: `/events/${eventId}`,
     });
-
-    const dead: string[] = [];
-    let successCount = 0;
-    await Promise.all(
-      subs.map(async (s) => {
-        try {
-          await webpush.sendNotification(
-            { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
-            payload,
-          );
-          successCount++;
-          sent.photos_ready = (sent.photos_ready ?? 0) + 1;
-        } catch (err) {
-          const status = (err as { statusCode?: number })?.statusCode;
-          if (status === 404 || status === 410) dead.push(s.endpoint);
-        }
-      }),
-    );
-
-    if (dead.length) {
-      await db.from("push_subscriptions").delete().in("endpoint", dead);
+    if (successCount > 0) {
+      sent.photos_ready = (sent.photos_ready ?? 0) + successCount;
     }
 
     // אף שליחה לא הצליחה בפועל — לא משאירים את התפיסה נעולה, כדי שטיק
@@ -268,30 +250,13 @@ async function sendReminder(
       .in("profile_id", ids);
     if (!subs || subs.length === 0) return;
 
-    const payload = JSON.stringify(buildReminderPayload(kind, event));
-
-    const dead: string[] = [];
-    let successCount = 0;
-    await Promise.all(
-      subs.map(async (s) => {
-        try {
-          await webpush.sendNotification(
-            { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
-            payload,
-          );
-          successCount++;
-          sent[kind] = (sent[kind] ?? 0) + 1;
-        } catch (err) {
-          // 404/410 = המנוי בוטל בצד הדפדפן. לנקות, אחרת הטבלה
-          // מתמלאת ביעדים מתים וכל ריצה מנסה אותם שוב.
-          const status = (err as { statusCode?: number })?.statusCode;
-          if (status === 404 || status === 410) dead.push(s.endpoint);
-        }
-      }),
+    const { successCount } = await sendWebPushBatch(
+      db,
+      subs,
+      buildReminderPayload(kind, event),
     );
-
-    if (dead.length) {
-      await db.from("push_subscriptions").delete().in("endpoint", dead);
+    if (successCount > 0) {
+      sent[kind] = (sent[kind] ?? 0) + successCount;
     }
 
     // היו מכשירים לשלוח אליהם, אבל אף שליחה לא הצליחה — לא באמת
