@@ -1,7 +1,7 @@
 import { getViewer } from "@/lib/data";
-import { getSeaScoreForecast } from "@/lib/gosurf";
+import { getWaveForecast } from "@/lib/gosurf";
 import { EmptyState } from "@/components/ui";
-import { SeaScoreStrip } from "@/components/sea-score-strip";
+import { WaveForecastStrip } from "@/components/wave-forecast-strip";
 
 export default async function HomePage() {
   const viewer = await getViewer();
@@ -14,11 +14,11 @@ export default async function HomePage() {
     );
   }
 
-  const seaScoreDays = await getSeaScoreForecast();
+  const waveDays = await getWaveForecast();
 
   return (
     <div className="space-y-8">
-      <SeaScoreStrip days={seaScoreDays} />
+      <WaveForecastStrip days={waveDays} />
     </div>
   );
 }

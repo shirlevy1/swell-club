@@ -1,5 +1,4 @@
 import * as cheerio from "cheerio";
-import { computeSwellScore } from "./sea-score";
 
 /**
  * תחזית ים מ-GoSurf. כרגע כל המפגשים הם על חוף תל אביב, ולכן אזור
@@ -93,8 +92,8 @@ function parseGoSurfHtml(html: string): GoSurfDay[] {
  * מהאתר בכל טעינה (מכבד את השרת שלהם), אבל גם לא יתקע על נתון ישן —
  * זה בדיוק מה שנותן את ה"מתעדכן אוטומטית" שהתבקש.
  *
- * מיוצאת (לא רק שימוש פנימי) כדי ש-getSeaScoreForecast ב-lib/data.ts
- * תוכל להשתמש באותם ימים בדיוק בשביל Swell Score, בלי לשלוף פעמיים.
+ * מיוצאת (לא רק שימוש פנימי) כדי ש-getWaveForecast (למטה, באותו קובץ)
+ * תוכל להשתמש באותם ימים בדיוק, בלי לשלוף מ-GoSurf פעמיים.
  */
 export async function fetchGoSurfDays(): Promise<GoSurfDay[]> {
   const res = await fetch(`https://gosurf.co.il/forecast/${GOSURF_LOCATION_SLUG}`, {
@@ -182,24 +181,53 @@ export async function getSeaForecastForEvent(
   }
 }
 
-export type SeaScoreDay = {
+export type WaveForecastDay = {
   dateISO: string;
   dayName: string;
-  stars: number;
+  /** הגבוה מבין שני קצוות הטווח המדווח ("30 - 50") — קריאה שמרנית. */
+  heightCm: number;
+  /** זווית לסיבוב חץ הרוח (0 = צפון, בכיוון השעון). */
+  windDeg: number;
 };
 
 /**
  * מ-11:00 בבוקר (שעון ישראל) והלאה, "היום" כבר לא רלוונטי — חלון
- * השחייה של הבוקר (06:00–09:00, שעליו כל הניקוד מבוסס) כבר עבר.
+ * השחייה של הבוקר (06:00–09:00) כבר עבר.
  */
 const TODAY_CUTOFF_HOUR = 11;
 
+const WIND_DIRECTION_DEGREES: Record<string, number> = {
+  "צפונית": 0,
+  "צפון מזרחית": 45,
+  "מזרחית": 90,
+  "דרום מזרחית": 135,
+  "דרומית": 180,
+  "דרום מערבית": 225,
+  "מערבית": 270,
+  "צפון מערבית": 315,
+};
+
+function windDirectionDegrees(dir: string | null | undefined): number {
+  if (!dir) return 0;
+  return WIND_DIRECTION_DEGREES[dir] ?? 0;
+}
+
+function parseHeightCm(heightCm: string | null | undefined): number | null {
+  if (!heightCm) return null;
+  const nums = heightCm.match(/\d+(\.\d+)?/g);
+  if (!nums || nums.length === 0) return null;
+  return Math.max(...nums.map(Number));
+}
+
 /**
- * ניקוד Swell Score לכל הימים שיש להם תחזית ב-GoSurf כרגע (בד"כ
- * שבוע קדימה) — למדור "הדופק של הקהילה" בעמוד הבית. ראו sea-score.ts
- * לנוסחה עצמה. מחזירה מערך ריק בכל כשל, לא מפילה את עמוד הבית.
+ * תחזית גלים ורוח לכל הימים שיש להם תחזית ב-GoSurf כרגע (בד"כ שבוע
+ * קדימה) — למדור בעמוד הבית, אותה תחזית בדיוק כמו ב-gosurf.co.il
+ * (גובה גל בס"מ + כיוון רוח), רק בעיצוב של Swell. לכל יום נבחרת
+ * השורה השמרנית מבין 06:00/09:00 (הגבוהה מביניהן), ונשמרת יחד איתה
+ * גם כיוון הרוח שלה — לא מערבבים גובה משעה אחת עם רוח משעה אחרת.
+ * מחזירה מערך ריק בכל כשל, לא מפילה את עמוד הבית.
  */
-export async function getSeaScoreForecast(): Promise<SeaScoreDay[]> {
+export async function getWaveForecast(): Promise<WaveForecastDay[]> {
   try {
     const days = await fetchGoSurfDays();
     const now = new Date();
@@ -215,8 +243,20 @@ export async function getSeaScoreForecast(): Promise<SeaScoreDay[]> {
 
     return days.flatMap((day) => {
       if (day.dateISO === todayISO && !showToday) return [];
-      const stars = computeSwellScore(day);
-      return stars == null ? [] : [{ dateISO: day.dateISO, dayName: day.dayName, stars }];
+      const row06 = day.rows.find((r) => r.hour === "06");
+      const row09 = day.rows.find((r) => r.hour === "09");
+      const h06 = parseHeightCm(row06?.heightCm);
+      const h09 = parseHeightCm(row09?.heightCm);
+      const chosen = (h06 ?? -1) >= (h09 ?? -1) ? { height: h06, row: row06 } : { height: h09, row: row09 };
+      if (chosen.height == null) return [];
+      return [
+        {
+          dateISO: day.dateISO,
+          dayName: day.dayName,
+          heightCm: chosen.height,
+          windDeg: windDirectionDegrees(chosen.row?.windDir),
+        },
+      ];
     });
   } catch {
     return [];
