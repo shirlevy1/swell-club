@@ -18,6 +18,14 @@ export function StreakCard({
 }) {
   const { weeks, current, windowWeeks } = streak;
 
+  // המילוי מציג רק את הרצף הפעיל הרציף — לא כל שבוע שאי-פעם הייתה
+  // בו שחייה בטווח. שבוע ישן ומבודד (שחייה לפני פער, לא חלק מהרצף
+  // הנוכחי) נשאר ריק בכוונה, אחרת נקודה "תקועה" באמצע השורה נראית
+  // כמו טעות. הבלוק הרציף מתחיל ב-i=0 (השבוע) אם כבר הייתה בו שחייה,
+  // או ב-i=1 (שבוע שעבר) אם השבוע עוד פתוח — בדיוק ההבדל בין "מלא
+  // עכשיו" ל"מלא משבוע שעבר, השבוע עוד ריק עם מסגרת".
+  const streakStart = weeks[weeks.length - 1] ? 0 : 1;
+
   return (
     <Card className="space-y-3">
       <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
@@ -42,15 +50,10 @@ export function StreakCard({
         </p>
       </div>
 
-      {/* מיפוי ליטרלי ל-weeks (לוח שבועות קלנדרי אמיתי, ראו lib/streak.ts):
-          i=0 (מימין, "השבוע") הוא weeks האחרון, i=1 הוא שבוע לפניו וכו'.
-          אם השבוע הנוכחי עוד לא כלל שחייה, העיגול שלו נשאר ריק (עם
-          המסגרת) והמלאים מתחילים מהעיגול שאחריו — לא "דוחפים" מילוי
-          לעיגול של השבוע רק כי יש רצף פעיל. */}
       <div className="flex gap-1.5 py-0.5">
         {Array.from({ length: windowWeeks }, (_, i) => {
           const isNow = i === 0;
-          const filled = weeks[weeks.length - 1 - i];
+          const filled = i >= streakStart && i < streakStart + current;
           return (
             <span
               key={i}
