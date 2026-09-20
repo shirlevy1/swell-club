@@ -184,53 +184,106 @@ export async function getSeaForecastForEvent(
 export type WaveForecastDay = {
   dateISO: string;
   dayName: string;
-  /** הגבוה מבין שני קצוות הטווח המדווח ("30 - 50") — קריאה שמרנית. */
   heightCm: number;
-  /** זווית לסיבוב חץ הרוח (0 = צפון, בכיוון השעון). */
+  /** זווית לסיבוב חץ הרוח, ישירות מ-GoSurf (0 = צפון, בכיוון השעון). */
   windDeg: number;
 };
 
 /**
  * מ-11:00 בבוקר (שעון ישראל) והלאה, "היום" כבר לא רלוונטי — חלון
- * השחייה של הבוקר (06:00–09:00) כבר עבר.
+ * השחייה של הבוקר כבר עבר.
  */
 const TODAY_CUTOFF_HOUR = 11;
 
-const WIND_DIRECTION_DEGREES: Record<string, number> = {
-  "צפונית": 0,
-  "צפון מזרחית": 45,
-  "מזרחית": 90,
-  "דרום מזרחית": 135,
-  "דרומית": 180,
-  "דרום מערבית": 225,
-  "מערבית": 270,
-  "צפון מערבית": 315,
-};
-
-function windDirectionDegrees(dir: string | null | undefined): number {
-  if (!dir) return 0;
-  return WIND_DIRECTION_DEGREES[dir] ?? 0;
-}
-
-function parseHeightCm(heightCm: string | null | undefined): number | null {
-  if (!heightCm) return null;
-  const nums = heightCm.match(/\d+(\.\d+)?/g);
-  if (!nums || nums.length === 0) return null;
-  return Math.max(...nums.map(Number));
+/** "20/09" + "עכשיו" (ספטמבר) → שנה נכונה גם סביב מעבר דצמבר-ינואר:
+ * אם התאריך המתקבל עם השנה הנוכחית יוצא רחוק בעבר, זו בעצם השנה הבאה. */
+function resolveYear(day: number, month: number, now: Date): number {
+  const year = now.getFullYear();
+  const candidate = Date.UTC(year, month - 1, day);
+  const diffDays = (candidate - now.getTime()) / 86_400_000;
+  return diffDays < -30 ? year + 1 : year;
 }
 
 /**
- * תחזית גלים ורוח לכל הימים שיש להם תחזית ב-GoSurf כרגע (בד"כ שבוע
- * קדימה) — למדור בעמוד הבית, אותה תחזית בדיוק כמו ב-gosurf.co.il
- * (גובה גל בס"מ + כיוון רוח), רק בעיצוב של Swell. לכל יום נבחרת
- * השורה השמרנית מבין 06:00/09:00 (הגבוהה מביניהן), ונשמרת יחד איתה
- * גם כיוון הרוח שלה — לא מערבבים גובה משעה אחת עם רוח משעה אחרת.
- * מחזירה מערך ריק בכל כשל, לא מפילה את עמוד הבית.
+ * מ-#website_forecast_weekly_cont: כותרות 7 הימים (שם + תאריך) וזווית
+ * חץ הרוח — כבר מוכנה ב-GoSurf עצמו (rotate(Ndeg) על אייקון החץ),
+ * אין צורך במיפוי כיוון-למעלה משלנו.
+ */
+function parseWeeklyHeaders(
+  $: cheerio.CheerioAPI,
+  now: Date,
+): { dayName: string; dateISO: string; windDeg: number }[] {
+  const headers: { dayName: string; dateISO: string; windDeg: number }[] = [];
+  $("table.weekly_cont td").each((_, td) => {
+    const $td = $(td);
+    const groups = $td.find("> div.fw");
+    const dayName = groups.eq(0).text().trim();
+    const dateText = groups.eq(1).find("span").first().text().trim();
+    const m = dateText.match(/(\d{2})\/(\d{2})/);
+    if (!dayName || !m) return;
+    const [, ddStr, mmStr] = m;
+    const dd = Number(ddStr);
+    const mm = Number(mmStr);
+    const year = resolveYear(dd, mm, now);
+    const pad = (n: number) => String(n).padStart(2, "0");
+
+    const style = $td.find("img.weekly-wind-icon").attr("style") ?? "";
+    const rotateMatch = style.match(/rotate\((-?\d+(?:\.\d+)?)deg\)/);
+    const windDeg = rotateMatch ? Number(rotateMatch[1]) : 0;
+
+    headers.push({
+      dayName,
+      dateISO: `${year}-${pad(mm)}-${pad(dd)}`,
+      windDeg,
+    });
+  });
+  return headers;
+}
+
+/**
+ * הגבהים המדויקים (בס"מ) שמוצגים על גרף ה-Chart.js של GoSurf עצמו
+ * (var weeklyData/labels בתוך <script>), לא נגזרים משורות 06:00/09:00
+ * שלנו — "1:1" עם מה שהם מציגים, כמו שהתבקש. המערך הגולמי בנוי בסדר
+ * הפוך כרונולוגית (כדי שציור LTR רגיל של הקנבס ייצא נכון בעמוד RTL
+ * שלהם) — reverse מחזיר אותו לסדר כרונולוגי רגיל.
+ */
+function parseWeeklyHeights(html: string): number[] {
+  const match = html.match(/labels:\s*\[([\s\S]*?)\]/);
+  if (!match) return [];
+  const items = match[1].match(/"((?:[^"\\]|\\.)*)"/g) ?? [];
+  const heights: number[] = [];
+  for (const item of items) {
+    const numMatch = item.match(/(\d+(?:\.\d+)?)/);
+    if (numMatch) heights.push(Number(numMatch[1]));
+  }
+  return heights.reverse();
+}
+
+/**
+ * תחזית גלים ורוח — בדיוק מה שמוצג ב"תחזית גלים ורוח - 7 הימים
+ * הבאים" בגוף העמוד של gosurf.co.il (לא נוסחה/בחירה משלנו), רק
+ * בגופנים ובצבעים של Swell. מחזירה מערך ריק בכל כשל, לא מפילה את
+ * עמוד הבית.
  */
 export async function getWaveForecast(): Promise<WaveForecastDay[]> {
   try {
-    const days = await fetchGoSurfDays();
+    const res = await fetch(`https://gosurf.co.il/forecast/${GOSURF_LOCATION_SLUG}`, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      },
+      next: { revalidate: 1800 },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return [];
+    const html = await res.text();
+
     const now = new Date();
+    const $ = cheerio.load(html);
+    const headers = parseWeeklyHeaders($, now);
+    const heights = parseWeeklyHeights(html);
+    if (headers.length === 0 || headers.length !== heights.length) return [];
+
     const todayISO = now.toLocaleDateString("en-CA", { timeZone: "Asia/Jerusalem" });
     const israelHour = Number(
       new Intl.DateTimeFormat("en-US", {
@@ -241,22 +294,9 @@ export async function getWaveForecast(): Promise<WaveForecastDay[]> {
     );
     const showToday = israelHour < TODAY_CUTOFF_HOUR;
 
-    return days.flatMap((day) => {
-      if (day.dateISO === todayISO && !showToday) return [];
-      const row06 = day.rows.find((r) => r.hour === "06");
-      const row09 = day.rows.find((r) => r.hour === "09");
-      const h06 = parseHeightCm(row06?.heightCm);
-      const h09 = parseHeightCm(row09?.heightCm);
-      const chosen = (h06 ?? -1) >= (h09 ?? -1) ? { height: h06, row: row06 } : { height: h09, row: row09 };
-      if (chosen.height == null) return [];
-      return [
-        {
-          dateISO: day.dateISO,
-          dayName: day.dayName,
-          heightCm: chosen.height,
-          windDeg: windDirectionDegrees(chosen.row?.windDir),
-        },
-      ];
+    return headers.flatMap((h, i) => {
+      if (h.dateISO === todayISO && !showToday) return [];
+      return [{ dateISO: h.dateISO, dayName: h.dayName, heightCm: heights[i], windDeg: h.windDeg }];
     });
   } catch {
     return [];
