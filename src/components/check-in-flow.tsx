@@ -269,7 +269,11 @@ export function CheckInFlow({
       );
       markJustCheckedIn();
       setStep("done");
-      router.refresh();
+      // רענון מיידי היה מחליף את מסך ה"done" ברשימת הנוכחים תוך שנייה
+      // (hasAttended בעמוד הקורא הופך ל-true ומסיר את CheckInFlow כולו
+      // מה-DOM) — לא מספיק זמן לקרוא אותו, ובטח לא את מסך "הסוואל
+      // הראשון שלך". השהיה נותנת רגע לראות את המסך לפני שהוא מוחלף.
+      setTimeout(() => router.refresh(), isFirstCheckIn ? 4000 : 2000);
       return;
     }
 
@@ -330,7 +334,9 @@ export function CheckInFlow({
 
     markJustCheckedIn();
     setStep("done");
-    router.refresh();
+    // ראו הערה מקבילה בענף ה-demoMode למעלה — בלי ההשהיה הזו מסך
+    // ה"done" נעלם כמעט מיד, כי הרענון מגלה ל-hasAttended להיות true.
+    setTimeout(() => router.refresh(), isFirstCheckIn ? 4000 : 2000);
   }
 
   function cancel() {
