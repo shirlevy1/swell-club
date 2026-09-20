@@ -23,8 +23,9 @@ export default async function AdminMemberPage({
 }: {
   params: Promise<{ id: string }>;
   /** מגיע מההפניה האוטומטית ב-people/[id]/page.tsx כשמנהלת ניגשת
-      לעמוד "חבר קהילה" רגיל דרך מפגש (attendee-grid/going-list) —
-      כדי שכפתור החזרה כאן ידע שהיא לא הגיעה מהניהול. */
+      לעמוד "חבר קהילה" רגיל דרך מפגש (attendee-grid/going-list) או
+      דרך "חברים שלי מסוואל קלאב" בעמוד הבית — כדי שכפתור החזרה כאן
+      ידע שהיא לא הגיעה מהניהול. */
   searchParams: Promise<{ from?: string; fromId?: string }>;
 }) {
   const { id } = await params;
@@ -32,9 +33,11 @@ export default async function AdminMemberPage({
   const back =
     from === "event" && fromId
       ? { href: `/events/${fromId}`, label: "בחזרה למפגש" }
-      : from === "admin-photos"
-        ? { href: "/admin#pending-photos", label: "לניהול" }
-        : { href: "/admin#members", label: "לניהול" };
+      : from === "home"
+        ? { href: "/home", label: "בחזרה לבית" }
+        : from === "admin-photos"
+          ? { href: "/admin#pending-photos", label: "לניהול" }
+          : { href: "/admin#members", label: "לניהול" };
   const viewer = await getViewer();
   if (!viewer?.club || viewer.role !== "organizer") redirect("/events");
 

@@ -33,23 +33,31 @@ export default async function PersonPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  /** `from` הוא event_id בלבד. שני שימושים: לבחור איזה סלפי להציג
-      למעלה (הכי רלוונטי להֶקשר, לא סתם "הכי עדכני"), וגם לכפתור
-      החזרה למטה — שניהם לא מוצגים בשום מקום אחר, ולכן אין צורך
-      לחטא אותו כמו את `?next=`. */
+  /** `from` הוא בדרך כלל event_id, עם ערך מיוחד אחד — `"home"` — כשההגעה
+      הייתה מ"חברים שלי מסוואל קלאב" בעמוד הבית ולא ממפגש ספציפי. שני
+      שימושים: לבחור איזה סלפי להציג למעלה (הכי רלוונטי להֶקשר, לא סתם
+      "הכי עדכני"), וגם לכפתור החזרה למטה — שניהם לא מוצגים בשום מקום
+      אחר, ולכן אין צורך לחטא אותו כמו את `?next=`. */
   searchParams: Promise<{ from?: string }>;
 }) {
   const { id } = await params;
   const { from } = await searchParams;
+  const fromEventId = from && from !== "home" ? from : undefined;
   const viewer = await getViewer();
   if (!viewer) redirect("/login");
   if (id === viewer.userId) redirect("/profile");
   // למנהלת יש כבר עמוד חבר מלא — טלפון, אינסטגרם וכל הסלפים. אין טעם
   // לשכפל כאן גרסה מצומצמת שתיראה לה שבורה. מעבירים את from הלאה כדי
-  // שכפתור החזרה שם ידע שהיא הגיעה ממפגש, לא מהניהול.
+  // שכפתור החזרה שם ידע מאיפה היא הגיעה.
   if (viewer.role === "organizer") {
     redirect(
-      `/admin/members/${id}${from ? `?from=event&fromId=${from}` : ""}`,
+      `/admin/members/${id}${
+        from === "home"
+          ? "?from=home"
+          : fromEventId
+            ? `?from=event&fromId=${fromEventId}`
+            : ""
+      }`,
     );
   }
 
@@ -67,7 +75,7 @@ export default async function PersonPage({
   const shots = allShots.filter((s) => mine.has(s.eventId));
   // הסלפי מהמפגש שממנו הגענו — לא סתם "הכי עדכני". נופל חזרה לראשון
   // ברשימה אם הגעתם ישירות לעמוד, או אם אותו מפגש לא נמצא ברשימה.
-  const headerShot = (from && shots.find((s) => s.eventId === from)) || shots[0];
+  const headerShot = (fromEventId && shots.find((s) => s.eventId === fromEventId)) || shots[0];
   const albumsByEvent = await getEventPhotoCollages(shots.map((s) => s.eventId));
 
   const ig = instagramUrl(person.instagram);
@@ -75,8 +83,8 @@ export default async function PersonPage({
 
   return (
     <div className="space-y-6">
-      <BackLink href={from ? `/events/${from}` : "/events"}>
-        {from ? "בחזרה למפגש" : "לכל המפגשים"}
+      <BackLink href={from === "home" ? "/home" : fromEventId ? `/events/${fromEventId}` : "/events"}>
+        {from === "home" ? "בחזרה לבית" : fromEventId ? "בחזרה למפגש" : "לכל המפגשים"}
       </BackLink>
 
       <header className="flex items-center gap-4">

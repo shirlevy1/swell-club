@@ -43,7 +43,7 @@ export function KnownPeopleStrip({ people }: { people: KnownPerson[] }) {
       >
         {people.map(({ profileId, fullName, selfieUrl, faceX, faceY }) => (
           <li key={profileId} className="w-[68px] text-center">
-            <Link href={`/people/${profileId}`}>
+            <Link href={`/people/${profileId}?from=home`}>
               <div className="mx-auto mb-1.5 flex size-16 items-center justify-center overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)">
                 {selfieUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
