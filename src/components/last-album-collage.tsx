@@ -2,12 +2,30 @@ import Link from "next/link";
 import { WaveIcon } from "./social-icons";
 
 /**
- * מסגרת הרשת + מיקום כל תא, לפי כמות התמונות (5, 6 או 7 — הטווח
- * היחיד ש-getLastAttendedEventAlbum מחזיר). תמיד שתי שורות, בלי
- * חורים ריקים: 5 = תמונה גדולה אחת + 4 קטנות; 6 = רשת אחידה 3×2;
- * 7 = תמונה רחבה אחת בשורה עליונה + 2 לידה, ו-4 קטנות בשורה התחתונה.
+ * מסגרת הרשת + מיקום כל תא, לפי כמות התמונות (1 עד 7 — getLastAttendedEventAlbum
+ * מציג בדיוק כמה שיש, עד תקרה של 7). 1-4 הן אותן פריסות בדיוק כמו
+ * EventThumbnail ב-selfie-history.tsx, לעקביות עם שאר האתר. 5-7:
+ * תמיד שתי שורות, בלי חורים ריקים — 5 = תמונה גדולה אחת + 4 קטנות;
+ * 6 = רשת אחידה 3×2; 7 = תמונה רחבה אחת למעלה + 2 לידה, ו-4 קטנות
+ * למטה.
  */
 const LAYOUTS: Record<number, { grid: string; cells: string[] }> = {
+  1: {
+    grid: "grid-cols-1 grid-rows-1",
+    cells: [""],
+  },
+  2: {
+    grid: "grid-cols-2 grid-rows-1",
+    cells: ["", ""],
+  },
+  3: {
+    grid: "grid-cols-2 grid-rows-2",
+    cells: ["row-span-2", "", ""],
+  },
+  4: {
+    grid: "grid-cols-2 grid-rows-2",
+    cells: ["", "", "", ""],
+  },
   5: {
     grid: "grid-cols-4 grid-rows-2",
     cells: [

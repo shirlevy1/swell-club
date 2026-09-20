@@ -1354,10 +1354,8 @@ export type LastEventAlbum = {
   photoUrls: string[];
 };
 
-/** קולאז' דורש כמות סבירה של תמונות כדי להיראות מכוון — פחות מזה
- * עדיף פשוט לא להציג את הקטע, לא קולאז' דליל. */
-const LAST_ALBUM_MIN_PHOTOS = 5;
-/** תקרה עליונה — כשיש יותר, בוחרים אקראית בכל טעינה (sampleRandom). */
+/** תקרה עליונה — כשיש יותר, בוחרים אקראית בכל טעינה (sampleRandom).
+ * פחות מזה, מציגים בדיוק כמה שיש (גם תמונה אחת). */
 const LAST_ALBUM_MAX_PHOTOS = 7;
 
 /**
@@ -1366,7 +1364,7 @@ const LAST_ALBUM_MAX_PHOTOS = 7;
  * היסטוריה אישית, כמו כרטיס הרצף בעמוד הפרופיל, ולכן בכוונה בלי
  * חריג למנהלת. משתמשת ב-getPastEvents (ממוין מהחדש לישן) ו-
  * getMyAttendedEventIds שכבר קיימים, בלי לשכפל שאילתה חדשה. מחזירה
- * null אם אין מפגש עבר שנכחו בו, או שיש בו פחות מ-5 תמונות מאושרות.
+ * null אם אין מפגש עבר שנכחו בו, או שאין בו אף תמונה מאושרת.
  */
 export async function getLastAttendedEventAlbum(
   userId: string,
@@ -1381,7 +1379,7 @@ export async function getLastAttendedEventAlbum(
 
   const photos = await getEventPhotos(lastEvent.id);
   const approved = photos.filter((p) => p.status === "approved");
-  if (approved.length < LAST_ALBUM_MIN_PHOTOS) return null;
+  if (approved.length === 0) return null;
 
   return {
     eventId: lastEvent.id,
