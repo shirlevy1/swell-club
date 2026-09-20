@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { SwellEvent, Gender } from "@/lib/types";
 import { formatWeekdayName, formatTime, relativeTime } from "@/lib/format";
+import { checkInWindow } from "@/lib/checkin";
 import { WaveIcon } from "./social-icons";
 import { HomeRsvpToggle } from "./home-rsvp-toggle";
 
@@ -25,6 +26,10 @@ import { HomeRsvpToggle } from "./home-rsvp-toggle";
  * בפלטת סוואל (ראו AGENTS.md: "אין צבע שלישי") — לא כחול-נייבי חדש
  * וכהה יותר משניהם. sea למעלה (בהיר יותר, מאחורי הכותרת) ו-deep למטה
  * (כהה יותר, נותן ניגודיות טובה יותר לגל הבהיר שיושב שם).
+ *
+ * כשחלון הצ'ק-אין פתוח (checkInWindow, אותה פונקציה בדיוק כמו בעמוד
+ * המפגש) הכותרת והשורה הקטנה מתחלפות להזמנה ישירה לסמן הגעה, במקום
+ * ספירה לאחור למפגש שכבר קורה עכשיו בפועל.
  */
 export function NextEventCard({
   event,
@@ -35,6 +40,8 @@ export function NextEventCard({
   going: boolean;
   gender: Gender | null;
 }) {
+  const isCheckInOpen = checkInWindow(event).status === "open";
+
   return (
     <div
       className="relative overflow-hidden rounded-2xl border border-(--color-sky)/30 p-4 text-white"
@@ -79,22 +86,35 @@ export function NextEventCard({
         <div className="flex items-center justify-between gap-2">
           <p className="flex items-center gap-1.5 text-[0.68rem] font-bold tracking-[0.18em] text-white/90">
             <WaveIcon className="size-3.5 shrink-0" />
-            המפגש הקרוב
+            {isCheckInOpen ? (
+              <span className="flex items-center gap-1">
+                <span className="size-1.5 animate-pulse rounded-full bg-white" />
+                הצ׳ק-אין פתוח עכשיו
+              </span>
+            ) : (
+              "המפגש הקרוב"
+            )}
           </p>
           <HomeRsvpToggle eventId={event.id} initialGoing={going} gender={gender} />
         </div>
 
         <Link href={`/events/${event.id}?from=home`} className="block space-y-2">
           <p className="font-[family-name:var(--font-display)] text-2xl font-extrabold leading-tight">
-            {relativeTime(event.starts_at)}
+            {isCheckInOpen ? "בואו לסמן שהגעתם!" : relativeTime(event.starts_at)}
           </p>
 
           <div className="min-w-0">
             <p className="truncate text-sm font-bold">{event.title}</p>
             <p className="truncate text-xs text-white/80">
-              יום {formatWeekdayName(event.starts_at)},{" "}
-              <span className="ltr-nums">{formatTime(event.starts_at)}</span> ·{" "}
-              {event.location_name}
+              {isCheckInOpen ? (
+                event.location_name
+              ) : (
+                <>
+                  יום {formatWeekdayName(event.starts_at)},{" "}
+                  <span className="ltr-nums">{formatTime(event.starts_at)}</span> ·{" "}
+                  {event.location_name}
+                </>
+              )}
             </p>
           </div>
         </Link>
