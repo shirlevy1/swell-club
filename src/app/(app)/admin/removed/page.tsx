@@ -66,6 +66,7 @@ export default async function RemovedMembersPage() {
   const removedCsv = [
     [
       "שם",
+      "אימייל",
       "מגדר",
       "גיל",
       "תאריך לידה",
@@ -76,14 +77,14 @@ export default async function RemovedMembersPage() {
       "תאריך הצטרפות",
       "מפגשים",
       "אחוז הגעה",
-      "אישרו כתב ויתור",
-      "אישרו הצהרת פרטיות",
+      "אישרו את תנאי ההצטרפות",
       "תאריכי מפגשים שהגיעו אליהם",
       "תאריך עזיבה",
       "סיבה",
     ],
     ...removed.map((m) => [
       m.fullName,
+      m.email ?? "",
       genderLabel(m.gender),
       ageInYears(m.birthDate)?.toString() ?? "",
       m.birthDate ?? "",
@@ -95,7 +96,6 @@ export default async function RemovedMembersPage() {
       `${m.attendedDates.length} מתוך ${heldCount}`,
       `${heldCount ? Math.round((m.attendedDates.length / heldCount) * 100) : 0}%`,
       m.waiverAcceptedAt ? "כן" : "",
-      m.privacyAcceptedAt ? "כן" : "",
       m.attendedDates.map((d) => formatDateTimeNumeric(d)).join(" | "),
       m.removedAt ? formatDate(m.removedAt) : "",
       m.removedReason ? reasonLabel(m.removedReason, m.gender) : "",

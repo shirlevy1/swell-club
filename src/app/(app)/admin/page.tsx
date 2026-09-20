@@ -117,6 +117,7 @@ export default async function AdminPage() {
   const membersCsv = [
     [
       "שם",
+      "אימייל",
       "מגדר",
       "גיל",
       "תאריך לידה",
@@ -127,12 +128,12 @@ export default async function AdminPage() {
       "תאריך הצטרפות",
       "מפגשים",
       "אחוז הגעה",
-      "אישרו כתב ויתור",
-      "אישרו הצהרת פרטיות",
+      "אישרו את תנאי ההצטרפות",
     ],
     // members כבר ממוין לפי תאריך הצטרפות ב-getAdminData
     ...members.map((m) => [
       m.profile.full_name,
+      m.email ?? "",
       genderLabel(m.profile.gender),
       ageInYears(m.profile.birth_date)?.toString() ?? "",
       m.profile.birth_date ?? "",
@@ -146,10 +147,9 @@ export default async function AdminPage() {
       // (יוני 2030!) ולא כטקסט, למרות שזה בכלל לא תאריך.
       `${m.attendedCount} מתוך ${heldCount}`,
       `${heldCount ? Math.round((m.attendedCount / heldCount) * 100) : 0}%`,
-      // התאריך עצמו לא מוסיף מידע — הוא תמיד זהה לתאריך ההצטרפות,
-      // כי אי אפשר ליצור פרופיל בלי לאשר את שניהם. רק אישור/לא.
+      // תיבת אישור אחת בהרשמה (legal_accepted) שומרת waiver+privacy
+      // באותו רגע בדיוק — שני העמודים תמיד זהים, ולכן עמודה אחת מספיקה.
       m.profile.waiver_accepted_at ? "כן" : "",
-      m.profile.privacy_accepted_at ? "כן" : "",
     ]),
   ];
 

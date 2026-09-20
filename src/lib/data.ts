@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { createClient } from "./supabase/server";
+import { adminDb } from "./push-server";
 import { demoMode, TRUSTED_USER_ID_HEADER } from "./config";
 import { ageInYears } from "./format";
 import type {
@@ -183,8 +184,11 @@ export type RemovedMember = {
   instagram: string | null;
   swimLevel: SwimLevel | null;
   createdAt: string;
+  // תיבת אישור אחת בהרשמה (legal_accepted) שומרת waiver+privacy באותו
+  // רגע בדיוק — לכן מספיק שדה אחד כדי לדעת אם האדם אישר את התנאים.
   waiverAcceptedAt: string | null;
-  privacyAcceptedAt: string | null;
+  // מ-auth.users, לא מ-profiles — יש רק לייצוא ה-CSV. null בהדגמה.
+  email: string | null;
   removedAt: string | null;
   removedReason: RemovedReason | null;
   /** תאריכי כל המפגשים שבהם האדם נכח בפועל בזמן שהיה/הייתה חבר/ה. */
@@ -272,6 +276,10 @@ export async function getRemovedMembers(
     attended_dates: string[] | null;
   }[];
 
+  const emailByProfileId = await emailsByProfileId(
+    rows.map((row) => row.profile_id),
+  );
+
   return rows.map((row) => ({
     profileId: row.profile_id,
     fullName: row.full_name,
@@ -283,7 +291,7 @@ export async function getRemovedMembers(
     swimLevel: row.swim_level,
     createdAt: row.created_at,
     waiverAcceptedAt: row.waiver_accepted_at,
-    privacyAcceptedAt: row.privacy_accepted_at,
+    email: emailByProfileId.get(row.profile_id) ?? null,
     removedAt: row.removed_at,
     removedReason: row.removed_reason,
     attendedDates: row.attended_dates ?? [],
@@ -1437,7 +1445,28 @@ export type AdminMember = {
   // מרכז הפנים של latestSelfieUrl (0–1). ראו lib/face-position.ts
   latestFaceX: number | null;
   latestFaceY: number | null;
+  // מ-auth.users, לא מ-profiles — יש רק לייצוא ה-CSV. null בהדגמה.
+  email: string | null;
 };
+
+/** אימייל חי רק ב-auth.users (Supabase Auth), לא בטבלת profiles — הדרך
+ * היחידה לקרוא אותו היא ה-admin API עם service_role, כמו ב-
+ * api/email/notify-restored. נקרא במקביל לכל המזהים כי מספר החברים
+ * בקהילה קטן, ואין endpoint לקרוא כמה משתמשים לפי מזהה בבת אחת. */
+async function emailsByProfileId(
+  profileIds: string[],
+): Promise<Map<string, string>> {
+  if (profileIds.length === 0) return new Map();
+  const db = adminDb();
+  const results = await Promise.all(
+    profileIds.map((id) => db.auth.admin.getUserById(id)),
+  );
+  const map = new Map<string, string>();
+  results.forEach(({ data }, i) => {
+    if (data?.user?.email) map.set(profileIds[i], data.user.email);
+  });
+  return map;
+}
 
 export async function getAdminData(clubId: string) {
   if (demoMode) {
@@ -1483,6 +1512,7 @@ export async function getAdminData(clubId: string) {
         latestSelfieUrl: latest?.selfie ?? null,
         latestFaceX: latest?.faceX ?? null,
         latestFaceY: latest?.faceY ?? null,
+        email: null,
       };
     };
 
@@ -1580,6 +1610,10 @@ export async function getAdminData(clubId: string) {
     profiles: Profile | null;
   }[];
 
+  const emailByProfileId = await emailsByProfileId(
+    memberRowsTyped.map((m) => m.profile_id),
+  );
+
   const toAdminMember = (m: (typeof memberRowsTyped)[number]): AdminMember[] =>
     m.profiles
       ? [
@@ -1593,6 +1627,7 @@ export async function getAdminData(clubId: string) {
             })(),
             latestFaceX: latestFaceByProfile.get(m.profile_id)?.x ?? null,
             latestFaceY: latestFaceByProfile.get(m.profile_id)?.y ?? null,
+            email: emailByProfileId.get(m.profile_id) ?? null,
           },
         ]
       : [];

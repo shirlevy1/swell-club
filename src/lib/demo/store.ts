@@ -650,7 +650,7 @@ export function demoListRemovedMembers() {
         swimLevel: profile?.swim_level ?? null,
         createdAt: profile?.created_at ?? removedAt,
         waiverAcceptedAt: profile?.waiver_accepted_at ?? null,
-        privacyAcceptedAt: profile?.privacy_accepted_at ?? null,
+        email: null,
         removedAt,
         removedReason: reason,
         attendedDates,
