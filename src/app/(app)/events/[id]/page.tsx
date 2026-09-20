@@ -5,7 +5,6 @@ import {
   getEvent,
   getEventDetail,
   getEventPhotos,
-  getMyAttendedEventIds,
 } from "@/lib/data";
 import {
   formatDateTime,
@@ -107,17 +106,12 @@ export default async function EventPage({
   const [
     { myGoing, rsvpCount, going, hasAttended, attendees, firstMeetings },
     forecast,
-    attendedEventIdsBefore,
   ] = await Promise.all([
     getEventDetail(id, viewer.userId, isOrganizer),
     event.is_sea && status !== "closed"
       ? getSeaForecastForEvent(event.starts_at)
       : Promise.resolve(null),
-    getMyAttendedEventIds(viewer.userId),
   ]);
-  // isFirstCheckIn נקבע *לפני* שהצ'ק-אין הזה קרה — אם עדיין לא נכחו
-  // באף מפגש בכלל, זה יהיה הראשון אי-פעם. ראו CheckInFlow.
-  const isFirstCheckIn = attendedEventIdsBefore.size === 0;
   const agendaText = getEventAgendaText(event);
   const equipmentText = getEventEquipmentText(event);
   const equipmentHeading = getEventEquipmentHeading(event);
@@ -225,7 +219,7 @@ export default async function EventPage({
       )}
 
       {!hasAttended && status === "open" && (
-        <CheckInFlow event={event} isFirstCheckIn={isFirstCheckIn} />
+        <CheckInFlow event={event} />
       )}
 
       {!hasAttended && status === "before" && (

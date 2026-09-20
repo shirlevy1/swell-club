@@ -16,7 +16,6 @@ import { checkInAction } from "@/lib/demo/actions";
 import { detectFace } from "@/lib/face-detection";
 import type { SwellEvent } from "@/lib/types";
 import { Button, Card, Notice } from "./ui";
-import { WaveIcon } from "./social-icons";
 
 type Step = "idle" | "locating" | "opening" | "camera" | "uploading" | "done";
 
@@ -49,7 +48,6 @@ const JPEG_QUALITY = 0.7;
 export function CheckInFlow({
   event,
   variant = "card",
-  isFirstCheckIn = false,
 }: {
   event: SwellEvent;
   /** "compact": כפתור מלא-רוחב בלי הכותרת/התיאור/אזהרת-ההדגמה סביבו —
@@ -58,11 +56,6 @@ export function CheckInFlow({
    * זהים לגמרי בשני הווריאנטים — ברגע שנפתחה מצלמה צריך מסך מלא בכל
    * מקרה, לא משנה מאיפה התחילו. */
   variant?: "card" | "compact";
-  /** true אם זה הצ'ק-אין הראשון אי-פעם של המשתמש/ת בכל הקהילה (לא רק
-   * במפגש הזה) — נקבע בעמוד הקורא (events/[id]/page.tsx או דף הבית)
-   * לפי getMyAttendedEventIds לפני שהצ'ק-אין הזה קרה. משפיע רק על
-   * מסך ה"done" בסוף — שאר הזרימה זהה לגמרי. */
-  isFirstCheckIn?: boolean;
 }) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -81,25 +74,6 @@ export function CheckInFlow({
     (Coords & { accuracy: number }) | null
   >(null);
   const [checkingFace, setCheckingFace] = useState(false);
-  /** דאטה-URL של הסלפי שצולם ממש עכשיו — רק כדי להציג אותו מיד במסך
-   * "הסוואל הראשון שלך" (isFirstCheckIn), בלי לחכות לסבב-הלוך-ושוב
-   * של קישור חתום מה-storage. */
-  const [selfiePreviewUrl, setSelfiePreviewUrl] = useState<string | null>(
-    null,
-  );
-  /** מסך "הסוואל הראשון שלך" מוצג ככיסוי מלא על גבי כל המסך למשך 10
-   * שניות בדיוק ואז נעלם מעצמו — לא נשאר תלוי עד שהעמוד מתרענן. עוקבים
-   * אחרי "האם כבר נדחה" (לא "האם מוצג") כדי ש-useEffect לא יצטרך
-   * לקרוא ל-setState באופן סינכרוני בגוף האפקט עצמו — ברירת המחדל
-   * false כבר שקולה ל"עדיין מוצג", יחד עם הבדיקות על step/isFirstCheckIn. */
-  const [firstCheckInOverlayDismissed, setFirstCheckInOverlayDismissed] =
-    useState(false);
-
-  useEffect(() => {
-    if (step !== "done" || !isFirstCheckIn) return;
-    const t = setTimeout(() => setFirstCheckInOverlayDismissed(true), 10_000);
-    return () => clearTimeout(t);
-  }, [step, isFirstCheckIn]);
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -269,7 +243,6 @@ export function CheckInFlow({
     }
 
     const previewUrl = canvas.toDataURL("image/jpeg", JPEG_QUALITY);
-    setSelfiePreviewUrl(previewUrl);
 
     if (demoMode) {
       stopCamera();
@@ -284,11 +257,9 @@ export function CheckInFlow({
       setStep("done");
       // רענון מיידי היה מחליף את מסך ה"done" ברשימת הנוכחים תוך שנייה
       // (hasAttended בעמוד הקורא הופך ל-true ומסיר את CheckInFlow כולו
-      // מה-DOM) — לא מספיק זמן לקרוא אותו, ובטח לא את מסך "הסוואל
-      // הראשון שלך" (מוצג בכיסוי מסך מלא 10 שניות בדיוק — ראו
-      // firstCheckInOverlayDismissed למעלה). השהיה נותנת זמן לראות את המסך
-      // לפני שהוא מוחלף.
-      setTimeout(() => router.refresh(), isFirstCheckIn ? 10_000 : 2000);
+      // מה-DOM) — לא מספיק זמן לקרוא אותו. השהיה נותנת רגע לראות את
+      // המסך לפני שהוא מוחלף.
+      setTimeout(() => router.refresh(), 2000);
       return;
     }
 
@@ -351,7 +322,7 @@ export function CheckInFlow({
     setStep("done");
     // ראו הערה מקבילה בענף ה-demoMode למעלה — בלי ההשהיה הזו מסך
     // ה"done" נעלם כמעט מיד, כי הרענון מגלה ל-hasAttended להיות true.
-    setTimeout(() => router.refresh(), isFirstCheckIn ? 10_000 : 2000);
+    setTimeout(() => router.refresh(), 2000);
   }
 
   function cancel() {
@@ -395,58 +366,7 @@ export function CheckInFlow({
   }
 
   if (step === "done") {
-    if (!isFirstCheckIn || firstCheckInOverlayDismissed) {
-      return <Notice tone="good">אתם איתנו. עכשיו אפשר לראות מי עוד כאן.</Notice>;
-    }
-
-    // "הסוואל הראשון שלך" — כיסוי מסך מלא (fixed, לא חלק מזרימת
-    // העמוד), כדי שהרגע יתפוס את כל תשומת הלב במקום להיראות כמו עוד
-    // כרטיס ברשימה. רקע בהיר — אותו גרדיאנט/זוהר בדיוק כמו MorningGlow
-    // בדף הנחיתה ובמסכי הרשמה/התחברות, לא הגל הכהה שהיה כאן קודם:
-    // שיר ביקשה מפורשות מסך בהיר, וטכניקת הגל-בגרדיאנט ממילא לא עובדת
-    // על רקע לבן (נלמד באיטרציות קודמות של הכרטיס הזה). נעלם לבד אחרי
-    // 10 שניות בדיוק — ראו firstCheckInOverlayDismissed למעלה.
-    return (
-      <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden bg-(--color-page) px-6 text-center">
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(180deg, #ffffff 0%, #f2f7fa 42%, #dbe8f1 100%)",
-          }}
-        />
-        <div
-          className="pointer-events-none absolute inset-x-0 top-1/2 h-[30rem] -translate-y-1/2"
-          style={{
-            background:
-              "radial-gradient(64% 46% at 50% 50%, color-mix(in oklab, var(--color-sky) 46%, transparent), transparent 72%)",
-          }}
-        />
-
-        <div className="relative z-[1] space-y-3">
-          {selfiePreviewUrl && (
-            <div className="mx-auto flex size-24 items-center justify-center overflow-hidden rounded-full border-2 border-(--color-sea)/30 bg-(--color-surface) shadow-lg">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={selfiePreviewUrl}
-                alt=""
-                className="size-full object-cover"
-              />
-            </div>
-          )}
-          <p className="flex items-center justify-center gap-1.5 text-[0.7rem] font-bold tracking-[0.18em] text-(--color-sea)">
-            <WaveIcon className="size-3.5 shrink-0" />
-            הסוואל הראשון שלך
-          </p>
-          <p className="font-[family-name:var(--font-display)] text-2xl font-extrabold text-balance text-(--color-ink)">
-            ברוכים הבאים ל-Swell Club!!!
-          </p>
-          <p className="text-sm text-(--color-ink-soft)">
-            עכשיו אפשר לראות מי עוד היה איתכם היום בים.
-          </p>
-        </div>
-      </div>
-    );
+    return <Notice tone="good">אתם איתנו. עכשיו אפשר לראות מי עוד כאן.</Notice>;
   }
 
   if (variant === "compact") {

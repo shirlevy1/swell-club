@@ -58,7 +58,6 @@ export default async function HomePage() {
           going={myGoingIds.has(nextEvent.id)}
           hasAttended={myAttendedIds.has(nextEvent.id)}
           gender={viewer.profile?.gender ?? null}
-          isFirstCheckIn={myAttendedIds.size === 0}
         />
       )}
       <WaveForecastStrip days={waveDays} bestDays={bestDays} />
