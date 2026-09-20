@@ -9,7 +9,16 @@ function esc(text: string): string {
   return text.replace(/([,;\\])/g, "\\$1").replace(/\n/g, "\\n");
 }
 
-export function buildIcs(event: SwellEvent, durationMin = 90): string {
+/**
+ * משך ברירת המחדל בלוח השנה הוא בדיוק חלון הצ'ק־אין שהמנהלת קבעה
+ * (checkin_closes_after_min) — לא זמן קבוע שלא קשור למפגש עצמו.
+ * מפגש עם חלון סגירה של 120 דקות אמור להופיע כשעתיים ביומן, לא
+ * כשעה וחצי גנרית.
+ */
+export function buildIcs(
+  event: SwellEvent,
+  durationMin = event.checkin_closes_after_min,
+): string {
   const start = new Date(event.starts_at);
   const end = new Date(start.getTime() + durationMin * 60_000);
 
