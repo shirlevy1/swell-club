@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { computeBestSwimStars } from "./sea-score";
 
 /**
  * תחזית ים מ-GoSurf. כרגע כל המפגשים הם על חוף תל אביב, ולכן אזור
@@ -297,6 +298,47 @@ export async function getWaveForecast(): Promise<WaveForecastDay[]> {
     return headers.flatMap((h, i) => {
       if (h.dateISO === todayISO && !showToday) return [];
       return [{ dateISO: h.dateISO, dayName: h.dayName, heightCm: heights[i], windDeg: h.windDeg }];
+    });
+  } catch {
+    return [];
+  }
+}
+
+export type BestSwimDay = {
+  dateISO: string;
+  dayName: string;
+  stars: number;
+};
+
+/** רף הכוכבים ל"יום טוב לשחייה", כפי שהוגדר. */
+const BEST_SWIM_STAR_THRESHOLD = 4;
+
+/**
+ * הימים בשבוע הקרוב שהים בהם, בשעה 7:00 בבוקר (computeBestSwimStars
+ * ב-lib/sea-score.ts), מקבל 4+ כוכבים. אותו כלל "מ-11:00 והלאה היום
+ * כבר לא רלוונטי" כמו בתחזית הגלים והרוח למעלה — הבוקר של היום כבר
+ * עבר. מחזירה מערך ריק בכל כשל, לא מפילה את עמוד הבית.
+ */
+export async function getBestSwimDays(): Promise<BestSwimDay[]> {
+  try {
+    const days = await fetchGoSurfDays();
+
+    const now = new Date();
+    const todayISO = now.toLocaleDateString("en-CA", { timeZone: "Asia/Jerusalem" });
+    const israelHour = Number(
+      new Intl.DateTimeFormat("en-US", {
+        hour: "numeric",
+        hourCycle: "h23",
+        timeZone: "Asia/Jerusalem",
+      }).format(now),
+    );
+    const showToday = israelHour < TODAY_CUTOFF_HOUR;
+
+    return days.flatMap((day) => {
+      if (day.dateISO === todayISO && !showToday) return [];
+      const stars = computeBestSwimStars(day);
+      if (stars == null || stars < BEST_SWIM_STAR_THRESHOLD) return [];
+      return [{ dateISO: day.dateISO, dayName: day.dayName, stars }];
     });
   } catch {
     return [];
