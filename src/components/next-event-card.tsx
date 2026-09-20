@@ -15,6 +15,11 @@ import { CheckIcon, WaveIcon } from "./social-icons";
  * על כל גובה הכרטיס — לא רק חלק ממנו — כדי שהוא ידעך ברציפות ולא
  * "יתחיל" בקו חד באמצע. מיקום/שכבה נקבעים ב-style מפורש (לא בקלאס
  * Tailwind ל-z-index) כדי שלא תהיה תלות בסדר הטעינה של הסגנונות.
+ *
+ * הרקע הכהה בנוי אך ורק מ-sea/deep — שני הכחולים היחידים שקיימים
+ * בפלטת סוואל (ראו AGENTS.md: "אין צבע שלישי") — לא כחול-נייבי חדש
+ * וכהה יותר משניהם. sea למעלה (בהיר יותר, מאחורי הכותרת) ו-deep למטה
+ * (כהה יותר, נותן ניגודיות טובה יותר לגל הבהיר שיושב שם).
  */
 export function NextEventCard({
   event,
@@ -28,7 +33,7 @@ export function NextEventCard({
       href={`/events/${event.id}?from=home`}
       className="relative block overflow-hidden rounded-2xl border border-(--color-sky)/30 p-4 text-white transition hover:brightness-110"
       style={{
-        background: "linear-gradient(160deg, #1a3348 0%, #23405a 50%, #2d4f6f 100%)",
+        background: "linear-gradient(155deg, var(--color-sea) 0%, var(--color-deep) 100%)",
       }}
     >
       <svg
@@ -66,7 +71,7 @@ export function NextEventCard({
 
       <div className="relative z-[1] space-y-2">
         <div className="flex items-center justify-between gap-2">
-          <p className="flex items-center gap-1.5 text-[0.68rem] font-bold tracking-[0.18em] text-(--color-sky)">
+          <p className="flex items-center gap-1.5 text-[0.68rem] font-bold tracking-[0.18em] text-white/90">
             <WaveIcon className="size-3.5 shrink-0" />
             המפגש הקרוב
           </p>

@@ -30,8 +30,8 @@ export default async function HomePage() {
       {nextEvent && (
         <NextEventCard event={nextEvent} going={myGoingIds.has(nextEvent.id)} />
       )}
-      <WaveForecastStrip days={waveDays} bestDays={bestDays} />
       <KnownPeopleStrip people={knownPeople} />
+      <WaveForecastStrip days={waveDays} bestDays={bestDays} />
     </div>
   );
 }
