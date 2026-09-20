@@ -58,7 +58,9 @@ export default async function EventPage({
   const back =
     from === "profile"
       ? { href: "/profile", label: "בחזרה לפרופיל שלי" }
-      : from === "admin-member" && fromId
+      : from === "home"
+        ? { href: "/home", label: "בחזרה לבית" }
+        : from === "admin-member" && fromId
         ? {
             href: `/admin/members/${fromId}${pfrom ? `?from=${pfrom}${pfromId ? `&fromId=${pfromId}` : ""}` : ""}`,
             label: "בחזרה לפרופיל",

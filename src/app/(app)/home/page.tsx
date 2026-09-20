@@ -1,6 +1,7 @@
-import { getViewer, getMetPeople } from "@/lib/data";
+import { getViewer, getMetPeople, getUpcomingEvents, getMyGoingEventIds } from "@/lib/data";
 import { getWaveForecast, getBestSwimDays } from "@/lib/gosurf";
 import { EmptyState } from "@/components/ui";
+import { NextEventCard } from "@/components/next-event-card";
 import { WaveForecastStrip } from "@/components/wave-forecast-strip";
 import { KnownPeopleStrip } from "@/components/known-people-strip";
 
@@ -15,14 +16,20 @@ export default async function HomePage() {
     );
   }
 
-  const [waveDays, bestDays, knownPeople] = await Promise.all([
+  const [waveDays, bestDays, knownPeople, upcomingEvents, myGoingIds] = await Promise.all([
     getWaveForecast(),
     getBestSwimDays(),
     getMetPeople(viewer.userId),
+    getUpcomingEvents(viewer.club.id),
+    getMyGoingEventIds(viewer.userId),
   ]);
+  const nextEvent = upcomingEvents[0];
 
   return (
     <div className="space-y-8">
+      {nextEvent && (
+        <NextEventCard event={nextEvent} going={myGoingIds.has(nextEvent.id)} />
+      )}
       <WaveForecastStrip days={waveDays} bestDays={bestDays} />
       <KnownPeopleStrip people={knownPeople} />
     </div>
