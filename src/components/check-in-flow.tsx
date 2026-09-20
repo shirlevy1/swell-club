@@ -380,7 +380,7 @@ export function CheckInFlow({
               ? "פותחים מצלמה…"
               : step === "uploading"
                 ? "רגע…"
-                : "סמנו שהגעתם"}
+                : "הגעתי - לצילום סלפי"}
         </Button>
         {error && <Notice tone="error">{error}</Notice>}
       </div>
@@ -420,7 +420,7 @@ export function CheckInFlow({
             ? "פותחים מצלמה…"
             : step === "uploading"
               ? "רגע…"
-              : "הגעתי — לצילום סלפי"}
+              : "הגעתי - לצילום סלפי"}
       </Button>
     </Card>
   );
