@@ -8,25 +8,21 @@ function joinDayNames(names: string[]): string {
 }
 
 /**
- * "הימים הכי טובים לשחייה השבוע" — הימים בשבוע הקרוב שקיבלו 4+
- * כוכבים לפי computeBestSwimStars (lib/sea-score.ts), על סמך תחזית
- * GoSurf לשעה 7:00 בבוקר. לא מוצג בכלל אם אין אף יום כזה השבוע —
- * אותו כלל כמו שאר הכרטיסים המותנים בדף הבית (KnownPeopleStrip וכו').
+ * "הימים הכי טובים לשחייה השבוע" — תוספת בתוך כרטיס "תחזית גלים
+ * ורוח" (לא כרטיס נפרד משלה), הימים בשבוע הקרוב שקיבלו 3.5+ כוכבים
+ * לפי computeBestSwimStars (lib/sea-score.ts), על סמך תחזית GoSurf
+ * לשעה 7:00 בבוקר — ממוינים מהציון הגבוה לנמוך. לא מוצג בכלל אם אין
+ * אף יום כזה השבוע.
  */
-export function BestSwimDaysCard({ days }: { days: BestSwimDay[] }) {
+export function BestSwimDaysHighlight({ days }: { days: BestSwimDay[] }) {
   if (days.length === 0) return null;
 
   const names = days.map((d) => d.dayName);
 
   return (
-    <div
-      className="space-y-3 rounded-2xl border border-(--color-sea)/20 p-4"
-      style={{
-        background: "linear-gradient(155deg, #eef5fa 0%, #e2eef5 55%, #d8e9f1 100%)",
-      }}
-    >
-      <p className="flex items-center gap-1.5 font-[family-name:var(--font-display)] text-sm font-bold text-(--color-deep)">
-        <StarIcon className="size-4 shrink-0" />
+    <div className="space-y-2 border-t border-(--color-line) pt-3">
+      <p className="flex items-center gap-1.5 text-xs font-bold tracking-[0.2em] text-(--color-sea)">
+        <StarIcon className="size-3.5 shrink-0" />
         הימים הכי טובים לשחייה השבוע
       </p>
 

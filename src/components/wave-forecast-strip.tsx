@@ -1,5 +1,6 @@
-import type { WaveForecastDay } from "@/lib/gosurf";
+import type { WaveForecastDay, BestSwimDay } from "@/lib/gosurf";
 import { formatDayMonth } from "@/lib/format";
+import { BestSwimDaysHighlight } from "./best-swim-days";
 
 const CHART_HEIGHT = 96;
 const CHART_PAD = 18;
@@ -44,7 +45,13 @@ function WindArrow({ deg }: { deg: number }) {
  * גובה גל גבוה יותר = נקודה גבוהה יותר בגרף — כמו תחזית גלים אמיתית,
  * בלי שום היפוך מלאכותי.
  */
-export function WaveForecastStrip({ days }: { days: WaveForecastDay[] }) {
+export function WaveForecastStrip({
+  days,
+  bestDays,
+}: {
+  days: WaveForecastDay[];
+  bestDays: BestSwimDay[];
+}) {
   if (days.length === 0) return null;
 
   const width = days.length * COL_WIDTH;
@@ -121,6 +128,8 @@ export function WaveForecastStrip({ days }: { days: WaveForecastDay[] }) {
           </g>
         ))}
       </svg>
+
+      <BestSwimDaysHighlight days={bestDays} />
     </div>
   );
 }
