@@ -313,12 +313,17 @@ export type BestSwimDay = {
 /** רף הכוכבים ל"יום טוב לשחייה", כפי שהוגדר. */
 const BEST_SWIM_STAR_THRESHOLD = 3.5;
 
+/** לכל היותר שלושה ימים ברשימה — הכי טובים קודם, ובין ימים עם אותו
+ * ציון בדיוק, הקרוב יותר קודם (סעיף המיון למטה). */
+const BEST_SWIM_DAYS_LIMIT = 3;
+
 /**
  * הימים בשבוע הקרוב שהים בהם, בשעה 7:00 בבוקר (computeBestSwimStars
- * ב-lib/sea-score.ts), מקבל 3.5+ כוכבים — ממוינים מהציון הגבוה לנמוך.
- * אותו כלל "מ-11:00 והלאה היום כבר לא רלוונטי" כמו בתחזית הגלים והרוח
- * למעלה — הבוקר של היום כבר עבר. מחזירה מערך ריק בכל כשל, לא מפילה
- * את עמוד הבית.
+ * ב-lib/sea-score.ts), מקבל 3.5+ כוכבים — עד שלושה, ממוינים מהציון
+ * הגבוה לנמוך; כששניים מקבלים בדיוק אותו ציון, הקרוב יותר (מהיום)
+ * מנצח. אותו כלל "מ-11:00 והלאה היום כבר לא רלוונטי" כמו בתחזית
+ * הגלים והרוח למעלה — הבוקר של היום כבר עבר. מחזירה מערך ריק בכל
+ * כשל, לא מפילה את עמוד הבית.
  */
 export async function getBestSwimDays(): Promise<BestSwimDay[]> {
   try {
@@ -342,7 +347,9 @@ export async function getBestSwimDays(): Promise<BestSwimDay[]> {
       return [{ dateISO: day.dateISO, dayName: day.dayName, stars }];
     });
 
-    return bestDays.sort((a, b) => b.stars - a.stars);
+    return bestDays
+      .sort((a, b) => b.stars - a.stars || a.dateISO.localeCompare(b.dateISO))
+      .slice(0, BEST_SWIM_DAYS_LIMIT);
   } catch {
     return [];
   }
