@@ -17,6 +17,9 @@ import { CheckIcon } from "./social-icons";
  * חוזרים למצב הקודם בשקט, בלי Notice, כדי לא לשבור את הכרזה — מי
  * שרוצה משוב מלא ילחץ על הכרטיס ויגיע לעמוד המפגש.
  *
+ * מילוי מלא (לבן) כשמסומן/ת, מסגרת בלבד כשלא — ניגוד ברור בין "פעיל"
+ * ל"לא פעיל", לא רק הבדל גוון עדין שקל לפספס על רקע כהה.
+ *
  * לא בתוך ה-Link של הכרטיס (עוגן בתוך עוגן/כפתור בתוך עוגן הוא לא
  * תקין) — יושב לידו כאח, בדיוק כמו האייקונים ליד השורה בניהול חברים.
  */
@@ -88,8 +91,8 @@ export function HomeRsvpToggle({
       disabled={pending || submitting}
       className={
         going
-          ? "flex shrink-0 items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[0.66rem] font-bold text-white transition hover:bg-white/25 disabled:opacity-60"
-          : "flex shrink-0 items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[0.66rem] font-bold text-(--color-deep) transition hover:bg-white/90 disabled:opacity-60"
+          ? "flex shrink-0 items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[0.66rem] font-bold text-(--color-deep) transition hover:bg-white/90 disabled:opacity-60"
+          : "flex shrink-0 items-center gap-1 rounded-full border border-white/50 px-2.5 py-1 text-[0.66rem] font-bold text-white transition hover:border-white hover:bg-white/10 disabled:opacity-60"
       }
     >
       {going && <CheckIcon className="size-2.5" />}
