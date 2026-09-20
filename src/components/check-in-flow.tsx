@@ -253,13 +253,7 @@ export function CheckInFlow({
         detection.center?.x ?? null,
         detection.center?.y ?? null,
       );
-      markJustCheckedIn();
-      setStep("done");
-      // רענון מיידי היה מחליף את מסך ה"done" ברשימת הנוכחים תוך שנייה
-      // (hasAttended בעמוד הקורא הופך ל-true ומסיר את CheckInFlow כולו
-      // מה-DOM) — לא מספיק זמן לקרוא אותו. השהיה נותנת רגע לראות את
-      // המסך לפני שהוא מוחלף.
-      setTimeout(() => router.refresh(), 2000);
+      finishCheckIn();
       return;
     }
 
@@ -318,10 +312,26 @@ export function CheckInFlow({
       return fail(checkInErrorMessage(rpcError.message, event));
     }
 
+    finishCheckIn();
+  }
+
+  /**
+   * ניווט אחרי צ'ק־אין מוצלח, לפי מאיפה זה קרה. מכרטיס "המפגש הקרוב"
+   * בדף הבית (variant="compact") הכוונה היא לראות מי עוד שם — עמוד
+   * המפגש עצמו, לא להישאר על דף הבית. מעמוד המפגש עצמו (variant="card")
+   * נשארים במקום ומרעננים, כי זה כבר העמוד הנכון.
+   */
+  function finishCheckIn() {
     markJustCheckedIn();
+    if (variant === "compact") {
+      router.push(`/events/${event.id}`);
+      return;
+    }
     setStep("done");
-    // ראו הערה מקבילה בענף ה-demoMode למעלה — בלי ההשהיה הזו מסך
-    // ה"done" נעלם כמעט מיד, כי הרענון מגלה ל-hasAttended להיות true.
+    // רענון מיידי היה מחליף את מסך ה"done" ברשימת הנוכחים תוך שנייה
+    // (hasAttended בעמוד הקורא הופך ל-true ומסיר את CheckInFlow כולו
+    // מה-DOM) — לא מספיק זמן לקרוא אותו. השהיה נותנת רגע לראות את
+    // המסך לפני שהוא מוחלף.
     setTimeout(() => router.refresh(), 2000);
   }
 
