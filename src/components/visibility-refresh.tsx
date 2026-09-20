@@ -19,11 +19,19 @@ const NAV_KEY = "/pending-nav";
  */
 async function consumePendingNav(): Promise<string | null> {
   if (!("caches" in window)) return null;
-  const cache = await caches.open(NAV_CACHE);
-  const res = await cache.match(NAV_KEY);
-  if (!res) return null;
-  await cache.delete(NAV_KEY);
-  return await res.text();
+  try {
+    const cache = await caches.open(NAV_CACHE);
+    const res = await cache.match(NAV_KEY);
+    if (!res) return null;
+    await cache.delete(NAV_KEY);
+    return await res.text();
+  } catch (err) {
+    // בלי הלוג הזה, כשל קריאה כאן היה מסתכם ב"לחצו על התראה ולא
+    // קרה כלום" בלי שום עקבה לבדוק אחר כך — בדיוק כמו שהיה עם
+    // כשלי שליחת push לפני שהוספנו לוג ל-push-server.ts.
+    console.error("consumePendingNav failed", err);
+    return null;
+  }
 }
 
 /**

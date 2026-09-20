@@ -59,10 +59,16 @@ self.addEventListener("notificationclick", (event) => {
   // ונכשל שלוש פעמים. הפתרון: משאירים כאן יעד ממתין ב-Cache Storage,
   // וברגע שהאפליקציה קמה לתחייה (visibility-refresh.tsx כבר מקשיב
   // בדיוק לרגע הזה) היא בעצמה קוראת אותו ומנווטת.
+  //
+  // ⚠️ שתי הפעולות מריצות בנפרד, לא משורשרות: אם כתיבת ה-Cache
+  // Storage נכשלת (או נתקעת) מסיבה כלשהי, openWindow עדיין צריך
+  // לפתוח את האפליקציה — עדיף שהיא תיפתח לעמוד הלא-נכון מאשר שלא
+  // תיפתח בכלל כי שלב באמצע נכשל בשקט.
   event.waitUntil(
     caches
       .open(NAV_CACHE)
       .then((cache) => cache.put(NAV_KEY, new Response(target)))
-      .then(() => clients.openWindow(target)),
+      .catch((err) => console.error("sw: pending-nav cache write failed", err)),
   );
+  event.waitUntil(clients.openWindow(target));
 });
