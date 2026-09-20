@@ -87,27 +87,23 @@ export default async function ProfilePage() {
         )}
       </header>
 
-      {count > 0 && (
-        <StreakCard streak={streak} gender={viewer.profile?.gender ?? null} />
-      )}
+      <StreakCard streak={streak} gender={viewer.profile?.gender ?? null} />
 
-      {count > 0 && (
-        <section className="space-y-3">
-          <div className="space-y-0.5">
-            <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
-              הרגעים מהסוואל
-            </h2>
-            <p className="text-xs text-(--color-ink-faint)">
-              רגעים מהמפגשים שהייתם בהם איתנו.
-            </p>
-          </div>
-          <SelfieHistory
-            shots={shots}
-            albumsByEvent={albumsByEvent}
-            eventLinkQuery="from=profile"
-          />
-        </section>
-      )}
+      <section className="space-y-3">
+        <div className="space-y-0.5">
+          <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
+            הרגעים מהסוואל
+          </h2>
+          <p className="text-xs text-(--color-ink-faint)">
+            רגעים מהמפגשים שהייתם בהם איתנו.
+          </p>
+        </div>
+        <SelfieHistory
+          shots={shots}
+          albumsByEvent={albumsByEvent}
+          eventLinkQuery="from=profile"
+        />
+      </section>
 
       <p className="text-center text-xs leading-relaxed text-(--color-ink-faint)">
         הפרטים שלכם גלויים רק למי שהיה איתכם במים.
