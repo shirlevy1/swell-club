@@ -18,13 +18,6 @@ export function StreakCard({
 }) {
   const { weeks, current, windowWeeks } = streak;
 
-  // מד רצף אישי, לא לוח שבועות קלנדרי: כל אחד מתחיל את העיגול הראשון
-  // מימין. אם המשתמשת לא הייתה בכלל שבוע שעבר אבל כן השבוע, הרצף שלה
-  // הוא עיגול אחד — לא "עיגול ריק בשבוע שעבר, עיגול מלא השבוע". בלי
-  // dir override: איבר ראשון ב-DOM נופל מימין (RTL טבעי), ולכן ממלאים
-  // את ה-N העיגולים הראשונים ב-DOM.
-  const filledCount = Math.min(current, windowWeeks);
-
   return (
     <Card className="space-y-3">
       <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
@@ -49,10 +42,15 @@ export function StreakCard({
         </p>
       </div>
 
+      {/* מיפוי ליטרלי ל-weeks (לוח שבועות קלנדרי אמיתי, ראו lib/streak.ts):
+          i=0 (מימין, "השבוע") הוא weeks האחרון, i=1 הוא שבוע לפניו וכו'.
+          אם השבוע הנוכחי עוד לא כלל שחייה, העיגול שלו נשאר ריק (עם
+          המסגרת) והמלאים מתחילים מהעיגול שאחריו — לא "דוחפים" מילוי
+          לעיגול של השבוע רק כי יש רצף פעיל. */}
       <div className="flex gap-1.5 py-0.5">
         {Array.from({ length: windowWeeks }, (_, i) => {
           const isNow = i === 0;
-          const filled = i < filledCount;
+          const filled = weeks[weeks.length - 1 - i];
           return (
             <span
               key={i}
