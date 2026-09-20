@@ -6,6 +6,15 @@ import { WaveIcon, CheckIcon } from "./social-icons";
 import { HomeRsvpToggle } from "./home-rsvp-toggle";
 import { CheckInFlow } from "./check-in-flow";
 
+/** נקודת הפרדה מצוירת ב-CSS, לא תו יוניקוד ("·") — כדי שתמיד תשב
+ * מרכזית מבחינה אנכית בין המילים, בלי תלות באיך כל גופן/מכשיר בוחר
+ * לצייר את התו הזה. */
+function Dot() {
+  return (
+    <span className="mx-1.5 inline-block size-1 rounded-full bg-current align-middle" />
+  );
+}
+
 /**
  * "המפגש הקרוב" — כרזה בראש דף הבית, לא שורת מפגש רגילה כמו בעמוד
  * "מפגשים" (event-card.tsx): הדגש כאן על ספירה לאחור טבעית
@@ -117,20 +126,25 @@ export function NextEventCard({
               : relativeTime(event.starts_at)}
           </p>
 
-          <div className="min-w-0">
-            <p className="truncate text-sm font-bold">{event.title}</p>
-            <p className="truncate text-xs text-white/80">
-              {isCheckInOpen && !hasAttended ? (
-                event.location_name
-              ) : (
-                <>
-                  יום {formatWeekdayName(event.starts_at)},{" "}
-                  <span className="ltr-nums">{formatTime(event.starts_at)}</span> ·{" "}
-                  {event.location_name}
-                </>
-              )}
+          {isCheckInOpen && !hasAttended ? (
+            <p className="truncate text-sm font-bold">
+              {event.title}
+              <Dot />
+              <span className="ltr-nums">{formatTime(event.starts_at)}</span>
+              <Dot />
+              {event.location_name}
             </p>
-          </div>
+          ) : (
+            <div className="min-w-0">
+              <p className="truncate text-sm font-bold">{event.title}</p>
+              <p className="truncate text-xs text-white/80">
+                יום {formatWeekdayName(event.starts_at)},{" "}
+                <span className="ltr-nums">{formatTime(event.starts_at)}</span>
+                <Dot />
+                {event.location_name}
+              </p>
+            </div>
+          )}
         </Link>
 
         {isCheckInOpen && !hasAttended && (
