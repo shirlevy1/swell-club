@@ -13,7 +13,7 @@ function NoSelfieFallback() {
 }
 
 /**
- * "חברים שלי מסוואל קלאב" — מדור בעמוד הבית, מדגם אקראי של שלושה אנשים
+ * "האנשים שלי מסוואל" — מדור בעמוד הבית, מדגם אקראי של שלושה אנשים
  * מכל מי שאי-פעם חלקתם איתם מפגש (לא קשור למפגש ספציפי) — כבר מדוגם
  * אקראית ל-KNOWN_PEOPLE_LIMIT בשרת (ראו getMetPeople ב-lib/data.ts),
  * אז כל טעינה מראה שלושה אחרים. אותו פורמט בדיוק כמו "מי הכרתם היום"
@@ -32,7 +32,7 @@ export function KnownPeopleStrip({ people }: { people: KnownPerson[] }) {
     >
       <p className="flex items-center gap-1.5 font-[family-name:var(--font-display)] text-sm font-bold text-(--color-deep)">
         <WaveIcon className="size-4 shrink-0" />
-        חברים שלי מסוואל קלאב
+        האנשים שלי מסוואל
       </p>
 
       <ul

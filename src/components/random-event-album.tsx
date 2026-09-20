@@ -55,7 +55,7 @@ const LAYOUTS: Record<number, { grid: string; cells: string[] }> = {
 };
 
 /**
- * "רגעים שלי מסוואל קלאב" — קולאז' תמונות מהאלבום של מפגש אחד אקראי
+ * "הרגעים שלי מסוואל" — קולאז' תמונות מהאלבום של מפגש אחד אקראי
  * שהצופה/ת עצמו/ה נכח/ה בו (getRandomEventAlbum ב-lib/data.ts כבר
  * הגריל גם את המפגש וגם אילו תמונות מתוכו — לא רק "איזו תמונה", אלא
  * "איזה מפגש בכלל" משתנה בכל טעינה). כל התמונות שייכות לאותו מפגש,
@@ -82,7 +82,7 @@ export function RandomEventAlbumCard({
     >
       <p className="flex items-center gap-1.5 font-[family-name:var(--font-display)] text-sm font-bold text-(--color-deep)">
         <WaveIcon className="size-4 shrink-0" />
-        רגעים שלי מסוואל קלאב
+        הרגעים שלי מסוואל
       </p>
 
       <Link
