@@ -53,11 +53,11 @@ export default async function HomePage() {
           gender={viewer.profile?.gender ?? null}
         />
       )}
+      <WaveForecastStrip days={waveDays} bestDays={bestDays} />
       <KnownPeopleStrip people={knownPeople} />
       {randomAlbum && (
         <RandomEventAlbumCard eventId={randomAlbum.eventId} photoUrls={randomAlbum.photoUrls} />
       )}
-      <WaveForecastStrip days={waveDays} bestDays={bestDays} />
     </div>
   );
 }
