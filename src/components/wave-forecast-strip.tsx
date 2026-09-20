@@ -73,9 +73,22 @@ export function WaveForecastStrip({
 
   return (
     <div className="space-y-3 rounded-2xl border border-(--color-line) bg-(--color-surface) p-4">
-      <p className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
-        תחזית גלים ורוח
-      </p>
+      <div className="flex items-baseline justify-between">
+        <p className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
+          תחזית גלים ורוח
+        </p>
+        <span className="text-xs text-(--color-ink-faint)">
+          מקור:{" "}
+          <a
+            href="https://gosurf.co.il/forecast/tel-aviv"
+            target="_blank"
+            rel="noreferrer"
+            className="underline underline-offset-2"
+          >
+            GoSurf
+          </a>
+        </span>
+      </div>
 
       <div className="flex justify-between px-1">
         {days.map((d) => (
