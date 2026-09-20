@@ -1,9 +1,16 @@
-import { getViewer, getMetPeople, getUpcomingEvents, getMyGoingEventIds } from "@/lib/data";
+import {
+  getViewer,
+  getMetPeople,
+  getUpcomingEvents,
+  getMyGoingEventIds,
+  getRandomMoment,
+} from "@/lib/data";
 import { getWaveForecast, getBestSwimDays } from "@/lib/gosurf";
 import { EmptyState } from "@/components/ui";
 import { NextEventCard } from "@/components/next-event-card";
 import { WaveForecastStrip } from "@/components/wave-forecast-strip";
 import { KnownPeopleStrip } from "@/components/known-people-strip";
+import { RandomMomentCard } from "@/components/random-moment-card";
 
 export default async function HomePage() {
   const viewer = await getViewer();
@@ -16,13 +23,15 @@ export default async function HomePage() {
     );
   }
 
-  const [waveDays, bestDays, knownPeople, upcomingEvents, myGoingIds] = await Promise.all([
-    getWaveForecast(),
-    getBestSwimDays(),
-    getMetPeople(viewer.userId),
-    getUpcomingEvents(viewer.club.id),
-    getMyGoingEventIds(viewer.userId),
-  ]);
+  const [waveDays, bestDays, knownPeople, upcomingEvents, myGoingIds, randomMoment] =
+    await Promise.all([
+      getWaveForecast(),
+      getBestSwimDays(),
+      getMetPeople(viewer.userId),
+      getUpcomingEvents(viewer.club.id),
+      getMyGoingEventIds(viewer.userId),
+      getRandomMoment(),
+    ]);
   const nextEvent = upcomingEvents[0];
 
   return (
@@ -31,6 +40,7 @@ export default async function HomePage() {
         <NextEventCard event={nextEvent} going={myGoingIds.has(nextEvent.id)} />
       )}
       <KnownPeopleStrip people={knownPeople} />
+      <RandomMomentCard moment={randomMoment} />
       <WaveForecastStrip days={waveDays} bestDays={bestDays} />
     </div>
   );

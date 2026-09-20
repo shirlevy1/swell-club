@@ -471,6 +471,24 @@ export function demoEventPhotos(eventId: string) {
     .sort((a, b) => a.addedAt.localeCompare(b.addedAt));
 }
 
+/**
+ * כל תמונות האלבום המאושרות שמותר ל"אני" לראות אי-פעם, מכל המפגשים
+ * יחד — ל"רגעים שלי מסוואל קלאב" בדף הבית (הגרלה של תמונה אחת).
+ * חבר קהילה רואה רק ממפגשים שנכח בהם; מנהלת רואה מכל המפגשים, בדיוק
+ * כמו ההרשאה על סלפים (AGENTS.md, "הסלפים כזהות").
+ */
+export function demoMyVisibleApprovedPhotos(): DemoEventPhoto[] {
+  const iAmOrganizer = demoMyRole() === "organizer";
+  const myAttendedEventIds = new Set(
+    db()
+      .attendances.filter((a) => a.profileId === ME_ID)
+      .map((a) => a.eventId),
+  );
+  return db().eventPhotos.filter(
+    (p) => p.status === "approved" && (iAmOrganizer || myAttendedEventIds.has(p.eventId)),
+  );
+}
+
 /** כל הממתינות בכל המפגשים — לתור המרוכז בעמוד הניהול. */
 export function demoAllPendingPhotos() {
   return db()

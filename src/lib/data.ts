@@ -1312,6 +1312,43 @@ export async function getEventPhotoCollages(
   );
 }
 
+export type RandomMoment = {
+  eventId: string;
+  photoUrl: string;
+};
+
+/**
+ * תמונת אלבום מאושרת אחת, אקראית, ל"רגעים שלי מסוואל קלאב" בדף
+ * הבית — לא סלפי, תמונה מהאלבום המשותף. `random_moment_photo()`
+ * (migration 0055) רצה בלי security definer בכוונה, כדי שה-RLS
+ * הרגיל על event_photos יחיל את אותו כלל בדיוק כמו בכל מקום אחר:
+ * חבר קהילה רואה רק ממפגשים שנכח בהם, מנהלת רואה מכל המפגשים.
+ * מחזירה null אם עדיין אין אף תמונה מאושרת שהצופה/ת רשאי/ת לראות.
+ */
+export async function getRandomMoment(): Promise<RandomMoment | null> {
+  if (demoMode) {
+    const candidates = demo.demoMyVisibleApprovedPhotos();
+    if (candidates.length === 0) return null;
+    const pick = candidates[Math.floor(Math.random() * candidates.length)];
+    return { eventId: pick.eventId, photoUrl: pick.url };
+  }
+
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("random_moment_photo");
+  const row = (data ?? [])[0] as
+    | { event_id: string; storage_path: string }
+    | undefined;
+  if (!row) return null;
+
+  const urlByPath = await createSignedUrlsCached(supabase, "event-photos", [
+    row.storage_path,
+  ]);
+  const photoUrl = urlByPath.get(row.storage_path);
+  if (!photoUrl) return null;
+
+  return { eventId: row.event_id, photoUrl };
+}
+
 // -------------------------------------------------------------- דף ניהול
 
 export type AdminEvent = SwellEvent & {
