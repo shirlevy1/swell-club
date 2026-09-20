@@ -1,15 +1,12 @@
-import { WaveIcon } from "./social-icons";
-
 function StatTile({ count, label }: { count: number; label: string }) {
   return (
     <div
-      className="flex flex-col items-center gap-1 rounded-2xl border border-(--color-sea)/20 py-5 text-center"
+      className="rounded-2xl border border-(--color-sea)/20 px-3 py-3 text-center"
       style={{
         background: "linear-gradient(155deg, #eef5fa 0%, #e2eef5 55%, #d8e9f1 100%)",
       }}
     >
-      <WaveIcon className="size-4 shrink-0 text-(--color-sea)" />
-      <p className="ltr-nums font-[family-name:var(--font-display)] text-3xl font-extrabold text-(--color-deep)">
+      <p className="ltr-nums font-[family-name:var(--font-display)] text-xl font-extrabold text-(--color-deep)">
         {count}
       </p>
       <p className="text-xs font-semibold text-(--color-ink-soft)">{label}</p>
@@ -18,11 +15,13 @@ function StatTile({ count, label }: { count: number; label: string }) {
 }
 
 /**
- * שני "מלבנים" ויזואליים בתחתית דף הבית — מספר גדול + אייקון, לא
- * משפט זורם — באותה שפה כמו שאר כרטיסי הבית (KnownPeopleStrip,
- * RandomEventAlbumCard): גרדיאנט תכלת בהיר, גל, גופן הכותרות. שני
- * הנתונים מתעדכנים בכל טעינה (getClubMemberCount/getMetPeopleCount
- * ב-lib/data.ts), לא מטמון: "עדכני תמיד" היה תנאי מפורש.
+ * שני "מלבנים" ויזואליים בתחתית דף הבית — מספר + תווית, לא משפט
+ * זורם — בגרדיאנט התכלת הבהיר של שאר כרטיסי הבית (KnownPeopleStrip,
+ * RandomEventAlbumCard). בלי אייקון ובגודל טקסט מתון (text-xl, לא
+ * text-3xl) — גרסה קודמת עם גל וגופן ענק הרגישה גדולה מדי ולא
+ * פרופורציונלית לשאר האתר. שני הנתונים מתעדכנים בכל טעינה
+ * (getClubMemberCount/getMetPeopleCount ב-lib/data.ts), לא מטמון:
+ * "עדכני תמיד" היה תנאי מפורש.
  */
 export function CommunityStats({
   memberCount,
