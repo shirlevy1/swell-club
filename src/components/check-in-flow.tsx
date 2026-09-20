@@ -59,6 +59,10 @@ export function CheckInFlow({
 }) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
+  // התצוגה החיה מצוירת לתוך קנבס במקום שה-video עצמו יוצג על המסך —
+  // ראו ההערה המלאה ליד ה-useEffect שמצייר אליו.
+  const previewCanvasRef = useRef<HTMLCanvasElement>(null);
+  const drawLoopRef = useRef<number | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const cameraCardRef = useRef<HTMLDivElement>(null);
   // נעילה מיידית משלה, לא רק checkingFace (state) — לחיצה כפולה מהירה
@@ -169,19 +173,32 @@ export function CheckInFlow({
   }
 
   /**
-   * חיבור הזרם לאלמנט הווידאו.
+   * חיבור הזרם לאלמנט הווידאו, וציור התצוגה החיה לתוך קנבס נפרד.
    *
    * קודם זה נעשה ב-`requestAnimationFrame` מיד אחרי `setStep("camera")`,
    * וזה **מרוץ**: rAF רץ לפני הציור הבא, אבל React לא בהכרח הספיק
    * לבצע commit ל-DOM, ואז `videoRef.current` עדיין null — הזרם לא
    * מתחבר לעולם, והמשתמש מקבל מלבן שחור במקום מצלמה. `useEffect`
    * רץ **אחרי** ה-commit, ולכן האלמנט מובטח.
+   *
+   * ⚠️ **למה קנבס ולא ה-video ישירות על המסך**: אומת בפועל על מכשיר
+   * אמיתי (אייפון, אפליקציה שמורה למסך הבית) — getUserMedia מצליח,
+   * ה-stream מגיע, videoWidth/height מתמלאים — אבל ה-<video> עצמו
+   * מוצג כמלבן כהה ריק. זה באג ציור (compositing) ידוע ב-WebKit
+   * שקיים רק במצב standalone, לא בספארי רגיל — הנתונים עצמם תקינים,
+   * רק הציור הישיר של ה-video על המסך שבור. ctx.drawImage(video,...)
+   * קורא את הפריים המפוענח ישירות, לא דרך צינור הציור השבור של
+   * ה-video עצמו — בדיוק כמו שכבר עובד ב-runCapture() למטה בשביל
+   * הצילום הסופי. לכן: מציירים בלולאה לקנבס גלוי, וה-video נשאר
+   * בעמוד אבל בלתי-נראה (לא display:none — זה עלול לגרום לדפדפנים
+   * להשהות את הפענוח לגמרי, בדיוק מה שרוצים למנוע).
    */
   useEffect(() => {
     if (step !== "camera") return;
     const video = videoRef.current;
+    const canvas = previewCanvasRef.current;
     const stream = streamRef.current;
-    if (!video || !stream) return;
+    if (!video || !canvas || !stream) return;
 
     video.srcObject = stream;
     video.play().catch(() => {
@@ -193,19 +210,33 @@ export function CheckInFlow({
     // הזאת היא יכולה להיפתח מחוץ למסך — וזה נראה בדיוק כמו כלום.
     cameraCardRef.current?.scrollIntoView({ block: "center" });
 
-    // getUserMedia שמצליח לא מבטיח שיוצג פריים אמיתי: באפליקציה ששמורה
-    // למסך הבית באייפון יש באג ידוע שבו ה-video נשאר מלבן כהה חלק
-    // (הרשאה כן ניתנה, ה-stream כן חוזר) בלי אף פריים בפועל — אומת
-    // בפועל: אותה מצלמה עובדת מיד בספארי הרגיל, ולא עובדת מהאייקון.
-    // 'playing' יורה רק כשבאמת יש תוכן חי — timeout בלעדיו משאיר את
-    // מי שנתקע/ת מול מסך שחור, עם כפתור "צילום" שלא עושה כלום.
-    let started = false;
+    const ctx = canvas.getContext("2d");
+    function drawFrame() {
+      if (ctx && video && video.videoWidth > 0) {
+        if (canvas!.width !== video.videoWidth) canvas!.width = video.videoWidth;
+        if (canvas!.height !== video.videoHeight) canvas!.height = video.videoHeight;
+        // ממוראה, בדיוק כמו שהיה על ה-video עצמו קודם (scale-x-[-1])
+        ctx.save();
+        ctx.translate(canvas!.width, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, 0, 0, canvas!.width, canvas!.height);
+        ctx.restore();
+      }
+      drawLoopRef.current = requestAnimationFrame(drawFrame);
+    }
+    drawLoopRef.current = requestAnimationFrame(drawFrame);
+
+    // videoWidth>0 (לא אירוע 'playing') הוא הסימן האמין: הוא משקף
+    // שיש פריים מפוענח בפועל, גם אם הציור-על-המסך של ה-video עצמו
+    // שבור. אם גם זה אף פעם לא קורה — זה כשל אמיתי, לא רק באג ציור.
+    let resolved = false;
     const markStarted = () => {
-      started = true;
+      if (video.videoWidth > 0) resolved = true;
     };
-    video.addEventListener("playing", markStarted);
+    video.addEventListener("loadeddata", markStarted);
     const stuckTimer = setTimeout(() => {
-      if (started) return;
+      markStarted();
+      if (resolved) return;
       const isStandalone =
         window.matchMedia?.("(display-mode: standalone)").matches ||
         (navigator as unknown as { standalone?: boolean }).standalone === true;
@@ -217,8 +248,10 @@ export function CheckInFlow({
     }, 3000);
 
     return () => {
-      video.removeEventListener("playing", markStarted);
+      video.removeEventListener("loadeddata", markStarted);
       clearTimeout(stuckTimer);
+      if (drawLoopRef.current !== null) cancelAnimationFrame(drawLoopRef.current);
+      drawLoopRef.current = null;
     };
   }, [step, fail]);
 
@@ -382,12 +415,23 @@ export function CheckInFlow({
             וכפתור "צילום" יורד מתחת לסרגל התחתון. מי שלא גילל חשב
             שהמצלמה פשוט לא נפתחה. */}
         <div className="relative overflow-hidden rounded-xl bg-(--color-deep)">
+          {/* התצוגה החיה מגיעה מהקנבס, לא מה-video ישירות — ראו ההערה
+              המלאה ב-useEffect שמצייר אליו (באג ציור ידוע ב-WebKit
+              באפליקציות ששמורות למסך הבית באייפון). */}
+          <canvas
+            ref={previewCanvasRef}
+            className="aspect-3/4 max-h-[52vh] w-full object-cover"
+          />
+          {/* לא display:none: זה עלול לגרום לדפדפן להשהות את פענוח
+              הזרם לגמרי. חייב להישאר "מנגן" בפועל כדי שיהיו פריימים
+              לצייר מהם לקנבס. */}
           <video
             ref={videoRef}
             playsInline
             muted
             autoPlay
-            className="aspect-3/4 max-h-[52vh] w-full scale-x-[-1] object-cover"
+            aria-hidden
+            className="absolute size-px opacity-0"
           />
         </div>
         <p className="text-center text-sm text-(--color-ink-soft)">
