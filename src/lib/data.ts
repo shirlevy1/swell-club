@@ -1138,6 +1138,41 @@ export async function getMetPeople(userId: string): Promise<KnownPerson[]> {
   return sampleRandom(known, KNOWN_PEOPLE_LIMIT);
 }
 
+/** כמות כוללת של מי שנפגשתם איתם אי-פעם — לפני שגוזרים ל-KNOWN_PEOPLE_LIMIT
+ * לתצוגה. לסטטיסטיקת "X אנשים שפגשתי" בדף הבית, מתעדכן בכל טעינה. */
+export async function getMetPeopleCount(userId: string): Promise<number> {
+  if (demoMode) {
+    const allAttendances = demo.demoAttendances();
+    const myEventIds = new Set(
+      allAttendances.filter((a) => a.profileId === userId).map((a) => a.eventId),
+    );
+    const metIds = new Set(
+      allAttendances
+        .filter((a) => a.profileId !== userId && myEventIds.has(a.eventId))
+        .map((a) => a.profileId),
+    );
+    return metIds.size;
+  }
+
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("met_people");
+  return (data ?? []).length;
+}
+
+/** כמות חברי הקהילה המאושרים (לא ממתינים/הוסרו) — לסטטיסטיקת "X אנשים
+ * בקהילה" בדף הבית. `club_member_count()` (migration 0057) היא
+ * security definer כי חבר/ה רגיל/ה רשאי/ת לראות ב-club_members רק
+ * את השורה של עצמו/ה (RLS), לא לספור את כל הקהילה. */
+export async function getClubMemberCount(): Promise<number> {
+  if (demoMode) {
+    return demo.demoActiveProfiles().length;
+  }
+
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("club_member_count");
+  return data ?? 0;
+}
+
 export type MemberPickerRow = {
   profileId: string;
   fullName: string;

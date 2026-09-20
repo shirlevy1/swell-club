@@ -1,6 +1,8 @@
 import {
   getViewer,
   getMetPeople,
+  getMetPeopleCount,
+  getClubMemberCount,
   getUpcomingEvents,
   getMyGoingEventIds,
   getMyAttendedEventIds,
@@ -12,6 +14,7 @@ import { NextEventCard } from "@/components/next-event-card";
 import { WaveForecastStrip } from "@/components/wave-forecast-strip";
 import { KnownPeopleStrip } from "@/components/known-people-strip";
 import { RandomEventAlbumCard } from "@/components/random-event-album";
+import { CommunityStats } from "@/components/community-stats";
 
 export default async function HomePage() {
   const viewer = await getViewer();
@@ -32,6 +35,8 @@ export default async function HomePage() {
     myGoingIds,
     myAttendedIds,
     randomAlbum,
+    memberCount,
+    metCount,
   ] = await Promise.all([
     getWaveForecast(),
     getBestSwimDays(),
@@ -40,6 +45,8 @@ export default async function HomePage() {
     getMyGoingEventIds(viewer.userId),
     getMyAttendedEventIds(viewer.userId),
     getRandomEventAlbum(),
+    getClubMemberCount(),
+    getMetPeopleCount(viewer.userId),
   ]);
   const nextEvent = upcomingEvents[0];
 
@@ -58,6 +65,7 @@ export default async function HomePage() {
       {randomAlbum && (
         <RandomEventAlbumCard eventId={randomAlbum.eventId} photoUrls={randomAlbum.photoUrls} />
       )}
+      <CommunityStats memberCount={memberCount} metCount={metCount} />
     </div>
   );
 }
