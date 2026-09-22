@@ -54,7 +54,7 @@ export default function SignupPage() {
 
     // בהדגמה אין Supabase לקרוא אליו — הטופס רק מדמה הרשמה אמיתית
     if (demoMode) {
-      router.push("/events");
+      router.push("/home");
       router.refresh();
       return;
     }
@@ -122,7 +122,7 @@ export default function SignupPage() {
         return;
       }
 
-      router.push("/events");
+      router.push("/home");
       router.refresh();
     } catch {
       setPending(false);

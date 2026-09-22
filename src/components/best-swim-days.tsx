@@ -24,8 +24,9 @@ function renderDayList(days: BestSwimDay[]): ReactNode[] {
  * "הבקרים הכי טובים לשחייה השבוע" — תוספת בתוך כרטיס "תחזית גלים
  * ורוח" (לא כרטיס נפרד משלה), הימים בשבוע הקרוב שקיבלו 3.5+ כוכבים
  * לפי computeBestSwimStars (lib/sea-score.ts), על סמך תחזית GoSurf
- * לשעה 7:00 בבוקר — ממוינים מהציון הגבוה לנמוך, כל אחד עם הציון שלו
- * בסוגריים. לא מוצג בכלל אם אין אף יום כזה השבוע.
+ * לשעה 7:00 בבוקר — *נבחרים* לפי הציון הגבוה ביותר, אבל מוצגים כאן
+ * בסדר כרונולוגי (getBestSwimDays כבר ממיין ככה), כל אחד עם הציון
+ * שלו בסוגריים. לא מוצג בכלל אם אין אף יום כזה השבוע.
  */
 export function BestSwimDaysHighlight({ days }: { days: BestSwimDay[] }) {
   if (days.length === 0) return null;

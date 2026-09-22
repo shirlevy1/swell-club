@@ -65,7 +65,7 @@ export default function UpdatePasswordPage() {
         );
       }
 
-      router.push("/events");
+      router.push("/home");
       router.refresh();
     } catch {
       setPending(false);

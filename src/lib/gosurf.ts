@@ -319,11 +319,13 @@ const BEST_SWIM_DAYS_LIMIT = 3;
 
 /**
  * הימים בשבוע הקרוב שהים בהם, בשעה 7:00 בבוקר (computeBestSwimStars
- * ב-lib/sea-score.ts), מקבל 3.5+ כוכבים — עד שלושה, ממוינים מהציון
- * הגבוה לנמוך; כששניים מקבלים בדיוק אותו ציון, הקרוב יותר (מהיום)
- * מנצח. אותו כלל "מ-11:00 והלאה היום כבר לא רלוונטי" כמו בתחזית
- * הגלים והרוח למעלה — הבוקר של היום כבר עבר. מחזירה מערך ריק בכל
- * כשל, לא מפילה את עמוד הבית.
+ * ב-lib/sea-score.ts), מקבל 3.5+ כוכבים — עד שלושה. הבחירה *מי* נכנס
+ * עדיין לפי הציון הגבוה ביותר (כששניים מקבלים בדיוק אותו ציון, הקרוב
+ * יותר מהיום מנצח) — אבל סדר ה*תצוגה* הסופי הוא כרונולוגי (מהיום
+ * הקרוב לרחוק), לא לפי ציון, כדי שהמשפט ("שני, שלישי ורביעי") ייקרא
+ * כמו לוח זמנים טבעי ולא כרשימת דירוג. אותו כלל "מ-11:00 והלאה היום
+ * כבר לא רלוונטי" כמו בתחזית הגלים והרוח למעלה — הבוקר של היום כבר
+ * עבר. מחזירה מערך ריק בכל כשל, לא מפילה את עמוד הבית.
  */
 export async function getBestSwimDays(): Promise<BestSwimDay[]> {
   try {
@@ -349,7 +351,8 @@ export async function getBestSwimDays(): Promise<BestSwimDay[]> {
 
     return bestDays
       .sort((a, b) => b.stars - a.stars || a.dateISO.localeCompare(b.dateISO))
-      .slice(0, BEST_SWIM_DAYS_LIMIT);
+      .slice(0, BEST_SWIM_DAYS_LIMIT)
+      .sort((a, b) => a.dateISO.localeCompare(b.dateISO));
   } catch {
     return [];
   }
