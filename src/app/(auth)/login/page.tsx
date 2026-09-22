@@ -16,7 +16,7 @@ import { Button, Field, Input, Notice } from "@/components/ui";
  * מותר רק מסלול פנימי; `//host` נחסם כי הדפדפן קורא אותו כדומיין אחר.
  */
 function safeNext(next: string | null): string {
-  if (!next || !next.startsWith("/") || next.startsWith("//")) return "/events";
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return "/home";
   return next;
 }
 

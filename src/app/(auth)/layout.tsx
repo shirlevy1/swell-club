@@ -5,7 +5,7 @@ import { MorningGlow } from "@/components/morning-glow";
 /**
  * גם בהדגמה עוברים דרך המסכים האלה — ראו ההסתעפות ל-demoMode בתוך
  * signup/page.tsx ו-login/page.tsx. שם אין קריאה אמיתית ל-Supabase,
- * רק מעבר ל-/events אחרי מילוי הטופס.
+ * רק מעבר ל-/home אחרי מילוי הטופס.
  */
 export default function AuthLayout({
   children,
