@@ -90,7 +90,7 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.searchParams.has("error")
   ) {
     const to = request.nextUrl.clone();
-    to.pathname = "/events";
+    to.pathname = "/home";
     to.search = "";
     return NextResponse.redirect(to);
   }
