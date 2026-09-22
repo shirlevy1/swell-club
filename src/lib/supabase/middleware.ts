@@ -26,8 +26,12 @@ import {
  * תחת push לא אמור לקבל פטור אוטומטי מבדיקת ה-proxy רק בגלל הקידומת.
  * מסלול חדש תחת api/push שמתווסף כאן חייב לאמת את עצמו בעצמו, בדיוק
  * כמו ששת הקיימים — אחרת הוא נשאר פתוח לגמרי, בלי שהעורך/ת ישימו לב.
+ *
+ * /privacy ו-/terms חייבים להיות כאן: כל מי שרוצה לבדוק את הצהרת
+ * הפרטיות/תנאי השימוש (לא רק חברי קהילה — גם מבקר/ת שעוד לא נרשם/ה,
+ * עורך/ת דין וכו') צריך/ה גישה בלי להתחבר בכלל.
  */
-const PUBLIC_PATHS = ["/", "/login", "/signup", "/auth", "/update-password", "/api/push"];
+const PUBLIC_PATHS = ["/", "/login", "/signup", "/auth", "/update-password", "/api/push", "/privacy", "/terms"];
 
 function isPublic(pathname: string) {
   return PUBLIC_PATHS.some(

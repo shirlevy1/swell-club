@@ -109,6 +109,22 @@ export default async function ProfilePage() {
         הפרטים שלכם גלויים רק למי שהיה איתכם במים.
       </p>
 
+      <p className="text-center text-xs">
+        <Link
+          href="/privacy"
+          className="text-(--color-ink-faint) underline underline-offset-2 hover:text-(--color-sea)"
+        >
+          מדיניות פרטיות
+        </Link>
+        {" · "}
+        <Link
+          href="/terms"
+          className="text-(--color-ink-faint) underline underline-offset-2 hover:text-(--color-sea)"
+        >
+          תנאי שימוש
+        </Link>
+      </p>
+
       {!demoMode && <SignOutButton />}
 
       {/* מנהלת לא יכולה לעזוב ככה — קהילה בלי אף מנהלת נעולה לגמרי.
