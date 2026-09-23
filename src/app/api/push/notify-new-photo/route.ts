@@ -3,10 +3,15 @@ import { createClient } from "@/lib/supabase/server";
 import { byGender } from "@/lib/format";
 import { adminDb, getOrganizerIds, sendPushToProfiles } from "@/lib/push-server";
 
-/** נקראת מאלבום המפגש מיד אחרי add_event_photo(), רק כשהתמונה נכנסה ל"ממתין". */
+/**
+ * נקראת מאלבום המפגש אחרי סבב העלאה של חבר/ה רגיל/ה (לא מנהלת) —
+ * פעם אחת בסוף כל הסבב, לא לכל תמונה בנפרד (הקורא סופר כמה תמונות
+ * נכנסו "ממתינות" בבאצ' ושולח את הסכום כאן). אותו דפוס בדיוק כמו
+ * notify-photos-added, רק שהיעד כאן הוא המנהלת, לא שאר הנוכחים.
+ */
 export async function POST(request: Request) {
-  const { photo_id } = await request.json().catch(() => ({}));
-  if (!photo_id) {
+  const { event_id, count } = await request.json().catch(() => ({}));
+  if (!event_id || !count || count < 1) {
     return NextResponse.json({ error: "bad_request" }, { status: 400 });
   }
 
@@ -17,26 +22,15 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const db = adminDb();
-  const { data: photo, error: photoError } = await db
-    .from("event_photos")
-    .select("status, uploaded_by, events(club_id, title)")
-    .eq("id", photo_id)
+  const { data: event, error: eventError } = await db
+    .from("events")
+    .select("id, club_id, title")
+    .eq("id", event_id)
     .maybeSingle();
-  if (photoError) {
-    console.error("notify-new-photo: photo lookup failed", photoError);
+  if (eventError) {
+    console.error("notify-new-photo: event lookup failed", eventError);
   }
-
-  // מוודאים שהמתקשר/ת הוא/היא באמת מי שהעלה/תה את התמונה הזו, ושהיא
-  // עדיין ממתינה — לא מאפשרים "לעורר" התראה על תמונה של מישהו אחר
-  if (!photo || photo.status !== "pending" || photo.uploaded_by !== user.id) {
-    return NextResponse.json({ error: "not_found_or_not_pending" }, { status: 404 });
-  }
-
-  const event = photo.events as unknown as {
-    club_id: string;
-    title: string;
-  } | null;
-  if (!event) return NextResponse.json({ ok: true });
+  if (!event) return NextResponse.json({ error: "not_found" }, { status: 404 });
 
   const { data: uploader } = await db
     .from("profiles")
@@ -48,11 +42,17 @@ export async function POST(request: Request) {
   await sendPushToProfiles(organizerIds, {
     title: uploader?.full_name ?? "מישהו",
     body:
-      byGender(uploader?.gender ?? null, "העלה תמונה מ", "העלתה תמונה מ") +
-      event.title,
-    // ייחודי לכל תמונה — אחרת תמונה שנייה שממתינה מוחקת מהמגש את
-    // ההתראה על הראשונה, במקום שתישאר בנפרד לצידה (ראו rsvp לאותו דפוס)
-    tag: `new-photo-${photo_id}`,
+      count === 1
+        ? byGender(uploader?.gender ?? null, "העלה תמונה מ", "העלתה תמונה מ") +
+          event.title
+        : byGender(
+            uploader?.gender ?? null,
+            `העלה ${count} תמונות מ`,
+            `העלתה ${count} תמונות מ`,
+          ) + event.title,
+    // ייחודי לכל סבב העלאה — כדי שכמה סבבים לאותו מפגש לא ידרסו זה
+    // את זה במגש ההתראות (אותו דפוס כמו notify-photos-added)
+    tag: `new-photo-${event_id}-${user.id}-${Date.now()}`,
     url: "/admin",
   });
 

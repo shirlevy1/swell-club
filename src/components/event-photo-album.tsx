@@ -192,6 +192,7 @@ export function EventPhotoAlbum({
     let succeeded = 0;
     let failed = 0;
     let approvedByOrganizer = 0;
+    let pendingByMember = 0;
 
     for (const file of files) {
       try {
@@ -219,14 +220,10 @@ export function EventPhotoAlbum({
         );
         if (addError) throw addError;
 
-        // רק אם באמת נכנסה כ"ממתינה" — העלאת מנהלת מאושרת מיד ולא
-        // צריכה להודיע לעצמה. לא ממתינים לזה, זה לא חוסם את ההעלאה.
+        // רק סופרים כאן — העלאת מנהלת מאושרת מיד ולא צריכה להודיע
+        // לעצמה. ההתראה בפועל יוצאת פעם אחת בסוף כל סבב, לא לכל תמונה.
         if (photoRow?.status === "pending") {
-          fetch("/api/push/notify-new-photo", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ photo_id: photoRow.id }),
-          }).catch(() => {});
+          pendingByMember++;
         } else if (photoRow?.status === "approved") {
           approvedByOrganizer++;
         }
@@ -236,13 +233,20 @@ export function EventPhotoAlbum({
       }
     }
 
-    // התראה אחת לכל סבב העלאה של המנהלת, לא אחת לכל תמונה — גם אם
-    // הועלו כמה תמונות ברצף. לא ממתינים לזה, זה לא חוסם את ההעלאה.
+    // התראה אחת לכל סבב העלאה, לא אחת לכל תמונה — גם אם הועלו כמה
+    // תמונות ברצף. לא ממתינים לזה, זה לא חוסם את ההעלאה.
     if (approvedByOrganizer > 0) {
       fetch("/api/push/notify-photos-added", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ event_id: eventId, count: approvedByOrganizer }),
+      }).catch(() => {});
+    }
+    if (pendingByMember > 0) {
+      fetch("/api/push/notify-new-photo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event_id: eventId, count: pendingByMember }),
       }).catch(() => {});
     }
 
