@@ -9,7 +9,7 @@ import { BackLink, Card, PageHeader } from "@/components/ui";
 export default function TermsPage() {
   return (
     <div className="w-full space-y-4">
-      <BackLink href="/">חזרה</BackLink>
+      <BackLink href="/profile">חזור לפרופיל</BackLink>
       <Card className="space-y-5">
         <PageHeader title="כתב ויתור ותנאי שימוש" />
 

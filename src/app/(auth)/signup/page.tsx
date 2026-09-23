@@ -251,6 +251,18 @@ export default function SignupPage() {
 
             <div className="space-y-2 border-t border-(--color-line) pt-3">
               <p className="font-bold text-(--color-ink)">
+                הסכמה לקבלת הודעות (דיוור)
+              </p>
+              <p>
+                אני מאשר/ת קבלת התראות Push והודעות מייל מ-Swell Club על
+                פעילות בקהילה - מפגש חדש שנפתח, תמונה שעלתה, אישור הגעה
+                ועדכונים במפגש. אפשר לכבות את ההתראות בכל עת דרך אייקון
+                הפעמון בעמוד המפגשים.
+              </p>
+            </div>
+
+            <div className="space-y-2 border-t border-(--color-line) pt-3">
+              <p className="font-bold text-(--color-ink)">
                 כתב ויתור – השתתפות על אחריות אישית בלבד
               </p>
               <p>
@@ -304,8 +316,9 @@ export default function SignupPage() {
               className="mt-0.5 size-5 shrink-0 rounded border-(--color-line) accent-(--color-sea)"
             />
             <span>
-              קראתי ואני מאשר/ת את הצהרת הפרטיות, כתב הוויתור ותנאי השימוש
-              שלמעלה. בלי אישור אי אפשר להצטרף לקהילה.
+              קראתי ואני מאשר/ת את הצהרת הפרטיות, ההסכמה לקבלת הודעות, כתב
+              הוויתור ותנאי השימוש שלמעלה. בלי אישור אי אפשר להצטרף
+              לקהילה.
             </span>
           </label>
         </div>

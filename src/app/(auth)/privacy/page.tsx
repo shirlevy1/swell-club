@@ -9,7 +9,7 @@ import { BackLink, Card, PageHeader } from "@/components/ui";
 export default function PrivacyPage() {
   return (
     <div className="w-full space-y-4">
-      <BackLink href="/">חזרה</BackLink>
+      <BackLink href="/profile">חזור לפרופיל</BackLink>
       <Card className="space-y-4">
         <PageHeader title="הצהרת פרטיות" />
         <div className="space-y-3 text-sm leading-relaxed text-(--color-ink-soft)">
@@ -24,6 +24,18 @@ export default function PrivacyPage() {
             תמיד.
           </p>
           <p>המידע נשמר אצל Supabase, בתשתית מאובטחת.</p>
+        </div>
+
+        <div className="space-y-2 border-t border-(--color-line) pt-4">
+          <p className="font-bold text-(--color-ink)">
+            הסכמה לקבלת הודעות (דיוור)
+          </p>
+          <p className="text-sm leading-relaxed text-(--color-ink-soft)">
+            אני מאשר/ת קבלת התראות Push והודעות מייל מ-Swell Club על
+            פעילות בקהילה - מפגש חדש שנפתח, תמונה שעלתה, אישור הגעה
+            ועדכונים במפגש. אפשר לכבות את ההתראות בכל עת דרך אייקון
+            הפעמון בעמוד המפגשים.
+          </p>
         </div>
       </Card>
     </div>
