@@ -17,7 +17,7 @@ export function GenderInput({
       {GENDER_OPTIONS.map((opt) => (
         <label
           key={opt.value}
-          className="flex min-h-12 flex-1 cursor-pointer items-center justify-center rounded-xl border border-(--color-line) bg-(--color-surface) px-2 text-sm font-semibold text-(--color-ink) has-[:checked]:border-(--color-sea) has-[:checked]:bg-(--color-sea)/10 has-[:checked]:text-(--color-sea)"
+          className="flex min-h-12 flex-1 cursor-pointer items-center justify-center rounded-xl border border-(--color-line) bg-(--color-surface) px-2 text-sm font-semibold text-(--color-ink) has-[:checked]:border-(--color-sea) has-[:checked]:bg-(--color-sea)/10 has-[:checked]:text-(--color-sea) has-[:focus-visible]:border-(--color-sea) has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-(--color-sea)/45"
         >
           <input
             type="radio"

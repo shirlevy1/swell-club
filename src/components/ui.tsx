@@ -105,7 +105,7 @@ export function Field({
 const INPUT_CLASS =
   "w-full min-h-12 rounded-xl border border-(--color-line) bg-(--color-surface) px-4 " +
   "text-base text-(--color-ink) placeholder:text-(--color-ink-faint) " +
-  "focus:border-(--color-sea) focus:outline-none";
+  "focus:border-(--color-sea) focus:outline-none focus:ring-3 focus:ring-(--color-sea)/45";
 
 export function Input({ className, ...props }: ComponentProps<"input">) {
   return <input {...props} className={cx(INPUT_CLASS, className)} />;
