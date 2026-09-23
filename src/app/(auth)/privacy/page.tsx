@@ -24,6 +24,10 @@ export default function PrivacyPage() {
             תמיד.
           </p>
           <p>המידע נשמר אצל Supabase, בתשתית מאובטחת.</p>
+          <p>
+            האתר משתמש בעוגייה אחת בלבד - עוגיית התחברות הכרחית שמזהה
+            אתכם בין ביקור לביקור. אין באתר עוגיות מעקב, פרסום או ניתוח.
+          </p>
         </div>
 
         <div className="space-y-2 border-t border-(--color-line) pt-4">
