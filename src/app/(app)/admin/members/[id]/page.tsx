@@ -8,8 +8,7 @@ import {
 } from "@/lib/data";
 import { instagramUrl, whatsappUrl, byGender } from "@/lib/format";
 import { BackLink, Card } from "@/components/ui";
-import { SelfieHistory } from "@/components/selfie-history";
-import { facePositionStyle } from "@/lib/face-position";
+import { SelfieHistory, SelfieAvatarButton } from "@/components/selfie-history";
 import {
   swimLevelLabel,
   SWIM_LEVEL_COLOR,
@@ -63,17 +62,11 @@ export default async function AdminMemberPage({
       <BackLink href={back.href}>{back.label}</BackLink>
 
       <header className="flex items-center gap-4">
-        <div className="size-16 shrink-0 overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)">
-          {shots[0]?.selfieUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={shots[0].selfieUrl}
-              alt={profile.full_name}
-              className="size-full object-cover"
-              style={facePositionStyle(shots[0].faceX, shots[0].faceY)}
-            />
-          ) : null}
-        </div>
+        <SelfieAvatarButton
+          shots={shots}
+          fullName={profile.full_name}
+          className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)"
+        />
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <h1 className="truncate font-[family-name:var(--font-display)] text-2xl font-bold">
