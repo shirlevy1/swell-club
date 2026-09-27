@@ -57,7 +57,7 @@ export function geolocationErrorMessage(err: unknown): string {
   const code = (err as GeolocationPositionError)?.code;
   if (code === 1) {
     return isIOS()
-      ? "אין הרשאת מיקום. הגדרות ← Safari ← מיקום ← אישור."
+      ? "אין הרשאת מיקום. הגדרות האייפון ← Safari ← מיקום ← אישור."
       : "אין הרשאת מיקום. צריך לאשר גישה למיקום כדי לסמן הגעה.";
   }
   if (code === 2) return "לא הצלחנו לאתר אתכם. נסו שוב בעוד רגע.";
