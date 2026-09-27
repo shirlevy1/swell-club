@@ -219,16 +219,12 @@ export default async function AdminPage() {
     ]),
   ];
 
-  // אותו דפוס בדיוק כמו עמוד "מפגשים" הרגיל (events/page.tsx) — קרובים
-  // (מהקרוב ביותר), ושהיו (מהאחרון ביותר) חתוכים עם קישור להיסטוריה
-  // המלאה, כדי שקהילה עם היסטוריה ארוכה לא תטעין יותר ויותר עם הזמן.
-  const ADMIN_PAST_EVENTS_LIMIT = 3;
-  const {
-    upcoming: upcomingEvents,
-    past: pastEvents,
-    pastAll: pastEventsAll,
-  } = splitAdminEvents(events, ADMIN_PAST_EVENTS_LIMIT);
-  const hasMorePastEvents = pastEventsAll.length > ADMIN_PAST_EVENTS_LIMIT;
+  // מפגשים שהיו לא מוצגים כאן בכלל — רק כותרת עם מספר וקישור לעמוד
+  // ההיסטוריה הנפרד (admin/events/history), כדי שגלילת הניהול לא
+  // תתארך ככל שיצטברו מפגשים. אותו עיקרון בדיוק כמו עמוד "מפגשים"
+  // הרגיל (events/page.tsx), רק בלי תצוגה חתוכה בעמוד עצמו.
+  const { upcoming: upcomingEvents, pastAll: pastEventsAll } =
+    splitAdminEvents(events);
 
   return (
     <div className="space-y-8">
@@ -367,21 +363,12 @@ export default async function AdminPage() {
             מפגשים שהיו ·{" "}
             <span className="ltr-nums">{pastEventsAll.length}</span>
           </h2>
-          <ul className="space-y-3">
-            {pastEvents.map((event) => (
-              <li key={event.id}>
-                <AdminEventCard event={event} eventLinkQuery="from=admin" />
-              </li>
-            ))}
-          </ul>
-          {hasMorePastEvents && (
-            <Link
-              href="/admin/events/history"
-              className="block text-center text-sm font-semibold text-(--color-sea)"
-            >
-              כל המפגשים שהיו
-            </Link>
-          )}
+          <Link
+            href="/admin/events/history"
+            className="block text-center text-sm font-semibold text-(--color-sea)"
+          >
+            כל המפגשים שהיו
+          </Link>
         </section>
       )}
 
