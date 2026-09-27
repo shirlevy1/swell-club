@@ -7,6 +7,7 @@ import { formatDateShort, formatTime } from "@/lib/format";
 import { facePositionStyle } from "@/lib/face-position";
 import { cx } from "./ui";
 import { PhotoLightbox } from "./photo-lightbox";
+import { SwimmerIcon } from "./social-icons";
 
 function CollageImg({
   src,
@@ -82,8 +83,10 @@ function EventThumbnail({
   }
 
   return (
-    <div className="flex size-full items-center justify-center text-[0.65rem] text-(--color-ink-faint)">
-      נוסף ידנית
+    // אותו עיצוב בדיוק כמו NoSelfieFallback ב-attendee-grid.tsx — עקביות
+    // בין שני המקומות שמראים "אין סלפי", במקום שני טיפולים שונים.
+    <div className="flex size-full items-center justify-center bg-(--color-line)/40">
+      <SwimmerIcon className="size-8 text-(--color-ink-faint)" />
     </div>
   );
 }
