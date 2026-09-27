@@ -7,6 +7,7 @@ import {
   distanceMeters,
   geolocationErrorMessage,
   getCurrentPosition,
+  isIOS,
   type Coords,
 } from "@/lib/geo";
 import { checkInErrorMessage } from "@/lib/checkin";
@@ -27,10 +28,10 @@ function cameraErrorMessage(err: unknown): string {
   const name = (err as { name?: string } | null)?.name;
 
   if (name === "NotAllowedError" || name === "SecurityError") {
-    return (
-      "הגישה למצלמה נדחתה. צריך לאשר אותה בהגדרות האתר בדפדפן - " +
-      "הסלפי הוא ההוכחה שהייתם שם, ובלעדיו אי אפשר לסמן הגעה."
-    );
+    return isIOS()
+      ? "הגישה למצלמה נדחתה. הגדרות ← Safari ← מצלמה ← אישור. הסלפי הוא ההוכחה שהייתם שם, ובלעדיו אי אפשר לסמן הגעה."
+      : "הגישה למצלמה נדחתה. צריך לאשר אותה בהגדרות האתר בדפדפן - " +
+          "הסלפי הוא ההוכחה שהייתם שם, ובלעדיו אי אפשר לסמן הגעה.";
   }
   if (name === "NotFoundError" || name === "OverconstrainedError") {
     return "לא נמצאה מצלמה במכשיר הזה.";
