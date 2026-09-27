@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { demoMode } from "@/lib/config";
 import { createClient } from "@/lib/supabase/client";
+import { isIOS } from "@/lib/geo";
 import {
   hasDecidedAboutPush,
   PUSH_DECLINED_EVENT,
@@ -24,6 +25,7 @@ type State =
   | "needs-install"
   | "pending"
   | "off"
+  | "blocked"
   | "on";
 
 /**
@@ -31,6 +33,14 @@ type State =
  * "לא תודה" בהצעה האוטומטית) — הפעמון מוסתר אז, כדי לא להציג שני
  * ממשקים לאותה החלטה יחד עם notification-prompt-banner.tsx על אותו
  * מסך. ברגע שיש החלטה כלשהי, הפעמון הופך לדרך הקבועה לשלוט בה.
+ *
+ * "blocked" != "off": שניהם "בלי מנוי פעיל", אבל מסיבות שונות לגמרי.
+ * "off" הוא כיבוי הפיך בלחיצה אחת (כיבוי ידני מהפעמון, או "לא תודה"
+ * על ההצעה האוטומטית) — הדפדפן עדיין מוכן לשאול שוב. "blocked" הוא
+ * דחייה אמיתית של הרשאת הדפדפן (Notification.permission === "denied")
+ * — הדפדפן לא ישאל שוב לעולם, ולחיצה על הפעמון לא עושה כלום מועיל
+ * בלי תיקון ידני בהגדרות המכשיר קודם. שיר ביקשה שהפעמון יבדיל ביניהם
+ * ויזואלית (נקודה אדומה), לא רק בטקסט אחרי לחיצה.
  */
 async function detectState(): Promise<State> {
   if (demoMode || !VAPID) return "unsupported";
@@ -45,6 +55,7 @@ async function detectState(): Promise<State> {
     const reg = await navigator.serviceWorker.getRegistration();
     const sub = await reg?.pushManager.getSubscription();
     if (sub) return "on";
+    if (Notification.permission === "denied") return "blocked";
     return hasDecidedAboutPush() ? "off" : "pending";
   } catch {
     return hasDecidedAboutPush() ? "off" : "pending";
@@ -126,6 +137,17 @@ export function NotificationIconToggle() {
       return;
     }
 
+    // הדפדפן לא ישאל שוב לעולם — קריאה ל-requestPermission() כאן רק
+    // תחזיר "denied" מיד בלי לעשות כלום. מציגים ישר את ההנחיה לתיקון.
+    if (state === "blocked") {
+      setNotice(
+        isIOS()
+          ? "ההתראות נחסמו. הגדרות ← גללו עד Swell ברשימת האפליקציות ← התראות ← הפעילו."
+          : "ההתראות נחסמו. אפשר לפתוח אותן שוב בהגדרות האתר בדפדפן.",
+      );
+      return;
+    }
+
     setPending(true);
     try {
       if (state === "on") {
@@ -163,15 +185,27 @@ export function NotificationIconToggle() {
         type="button"
         onClick={toggle}
         disabled={pending}
-        aria-label={state === "on" ? "כיבוי תזכורות" : "הפעלת תזכורות"}
+        aria-label={
+          state === "on"
+            ? "כיבוי תזכורות"
+            : state === "blocked"
+              ? "התראות חסומות — לחצו לפרטים"
+              : "הפעלת תזכורות"
+        }
         aria-pressed={state === "on"}
         className={
-          "flex size-8 shrink-0 items-center justify-center rounded-lg border transition " +
+          "relative flex size-8 shrink-0 items-center justify-center rounded-lg border transition " +
           (state === "on"
             ? "border-(--color-sea) bg-(--color-sea) text-white hover:brightness-110"
             : "border-(--color-line) bg-(--color-haze) text-(--color-sea) hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10")
         }
       >
+        {state === "blocked" && (
+          <span
+            aria-hidden
+            className="absolute -start-1 -top-1 size-2.5 rounded-full border-2 border-(--color-haze) bg-(--color-fail)"
+          />
+        )}
         <BellIcon
           className="size-3.5"
           filled={state === "on"}
