@@ -46,8 +46,8 @@ export function getCurrentPosition(
  * שום כפתור בתוך האתר עצמו — ולכן "נסו שוב" לא עוזר בכלל, וגם
  * שהאתר "יודע" איזה מצב (סטנדאלון/טאב) לא רלוונטי, כי הנתיב זהה
  * לשניהם. אומת בפועל על מכשיר אמיתי: הגדרות ← Safari ← מצלמה, וכן
- * הגדרות ← פרטיות ואבטחה ← שירותי מיקום ← Safari Websites — שני
- * מתגים גלובליים (לא רשימה לכל אתר בנפרד).
+ * הגדרות ← Safari ← מיקום — שני מתגים גלובליים תחת אותו תפריט
+ * בדיוק (לא רשימה לכל אתר בנפרד, ולא תחת פרטיות ואבטחה הכללי).
  */
 export function isIOS(): boolean {
   return /iPhone|iPad|iPod/.test(navigator.userAgent);
@@ -57,7 +57,7 @@ export function geolocationErrorMessage(err: unknown): string {
   const code = (err as GeolocationPositionError)?.code;
   if (code === 1) {
     return isIOS()
-      ? "אין הרשאת מיקום. הגדרות ← פרטיות ואבטחה ← שירותי מיקום ← Safari Websites ← אישור."
+      ? "אין הרשאת מיקום. הגדרות ← Safari ← מיקום ← אישור."
       : "אין הרשאת מיקום. צריך לאשר גישה למיקום כדי לסמן הגעה.";
   }
   if (code === 2) return "לא הצלחנו לאתר אתכם. נסו שוב בעוד רגע.";
