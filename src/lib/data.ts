@@ -634,13 +634,17 @@ export async function getSelfieHistory(
   }
 
   const supabase = await createClient();
+  // מיון לפי checked_in_at (לא starts_at של המפגש) היה נותן סדר שגוי
+  // להוספת נוכחות ידנית: השורה נוצרת ברגע ההוספה, לא ברגע המפגש
+  // עצמו, כך ש"קפה בריבה" שנוסף ידנית אחרי "שחיית שקיעה" האמיתית
+  // (אבל התרחש לפניה בזמן) היה קופץ להיות ראשון. הסידור הסופי למטה
+  // לפי events.starts_at פותר את זה תמיד, כולל בהוספה ידנית.
   const { data } = await supabase
     .from("attendances")
     .select(
       "event_id, selfie_path, checked_in_at, face_x, face_y, events(title, starts_at)",
     )
-    .eq("profile_id", profileId)
-    .order("checked_in_at", { ascending: false });
+    .eq("profile_id", profileId);
 
   const rows = (data ?? []) as unknown as {
     event_id: string;
@@ -654,23 +658,25 @@ export async function getSelfieHistory(
   const paths = rows.map((r) => r.selfie_path).filter(Boolean) as string[];
   const urlByPath = await createSignedUrlsCached(supabase, "selfies", paths);
 
-  return rows.flatMap((r) =>
-    r.events
-      ? [
-          {
-            eventId: r.event_id,
-            eventTitle: r.events.title,
-            startsAt: r.events.starts_at,
-            selfieUrl: r.selfie_path
-              ? (urlByPath.get(r.selfie_path) ?? null)
-              : null,
-            checkedInAt: r.checked_in_at,
-            faceX: r.face_x,
-            faceY: r.face_y,
-          },
-        ]
-      : [],
-  );
+  return rows
+    .flatMap((r) =>
+      r.events
+        ? [
+            {
+              eventId: r.event_id,
+              eventTitle: r.events.title,
+              startsAt: r.events.starts_at,
+              selfieUrl: r.selfie_path
+                ? (urlByPath.get(r.selfie_path) ?? null)
+                : null,
+              checkedInAt: r.checked_in_at,
+              faceX: r.face_x,
+              faceY: r.face_y,
+            },
+          ]
+        : [],
+    )
+    .sort((a, b) => b.startsAt.localeCompare(a.startsAt));
 }
 
 export type PersonCard = {
