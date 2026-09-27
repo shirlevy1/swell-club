@@ -20,6 +20,7 @@ import { EventDateTimeInput } from "./event-datetime-input";
 import { LocationNameInput, LocationSuggestions } from "./location-suggestions";
 import { ChevronIcon } from "./social-icons";
 import { Button, Card, Field, Input, Notice, Textarea } from "./ui";
+import { useConfirmDialog } from "./confirm-dialog";
 
 // Leaflet ניגש ל-window בזמן הטעינה — חייב להיטען רק בדפדפן
 const MapPicker = dynamic(
@@ -109,14 +110,18 @@ export function EditEventScheduleForm({
   // ה-<form> עצמו), אבל שינויים במפה/בהצעות מיקום/פענוח קישור לא
   // עוברים דרך input רגיל, ולכן מסומנים ידנית בכל אחד מהם למטה.
   const [dirty, setDirty] = useState(false);
+  const { confirm, dialog } = useConfirmDialog();
 
-  function handleBackClick() {
-    if (
+  async function handleBackClick() {
+    const ok =
       !dirty ||
-      window.confirm("לצאת בלי לשמור?\nהשינוי שעשיתם עדיין לא נשמר.")
-    ) {
-      router.push(eventHref);
-    }
+      (await confirm({
+        title: "לצאת בלי לשמור?",
+        body: "השינוי שעשיתם עדיין לא נשמר.",
+        confirmText: "כן, לצאת",
+        tone: "primary",
+      }));
+    if (ok) router.push(eventHref);
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -517,6 +522,7 @@ export function EditEventScheduleForm({
         {pending ? "שומרים…" : "שמירה"}
       </Button>
       </form>
+      {dialog}
     </div>
   );
 }

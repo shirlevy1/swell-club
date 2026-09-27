@@ -9,6 +9,7 @@ import { approveEventPhotoAction, deleteEventPhotoAction } from "@/lib/demo/acti
 import { CheckIcon, XIcon } from "./social-icons";
 import { Notice } from "./ui";
 import { PhotoLightbox } from "./photo-lightbox";
+import { useConfirmDialog } from "./confirm-dialog";
 import type { PendingEventPhoto } from "@/lib/data";
 
 /** כל התמונות שאדם אחד העלה למפגש אחד — אישור/דחייה בלחיצה אחת על
@@ -28,6 +29,7 @@ export function PendingPhotoGroup({
   const [busy, setBusy] = useState<"approve" | "reject" | string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  const { confirm, dialog } = useConfirmDialog();
 
   async function approvePhotos(toApprove: PendingEventPhoto[]) {
     try {
@@ -106,9 +108,12 @@ export function PendingPhotoGroup({
   }
 
   async function rejectAll() {
-    const confirmed = window.confirm(
-      `לדחות את ${photos.length === 1 ? "התמונה" : `${photos.length} התמונות`} של ${uploaderName}? הפעולה לא הפיכה.`,
-    );
+    const confirmed = await confirm({
+      title: `לדחות את ${photos.length === 1 ? "התמונה" : `${photos.length} התמונות`} של ${uploaderName}?`,
+      body: "הפעולה לא הפיכה.",
+      confirmText: photos.length === 1 ? "כן, לדחות" : "כן, לדחות הכל",
+      tone: "danger",
+    });
     if (!confirmed) return;
 
     setError(null);
@@ -120,7 +125,12 @@ export function PendingPhotoGroup({
   }
 
   async function rejectOne(photo: PendingEventPhoto) {
-    const confirmed = window.confirm("לדחות את התמונה הזו? הפעולה לא הפיכה.");
+    const confirmed = await confirm({
+      title: "לדחות את התמונה הזו?",
+      body: "הפעולה לא הפיכה.",
+      confirmText: "כן, לדחות",
+      tone: "danger",
+    });
     if (!confirmed) return;
 
     setError(null);
@@ -233,6 +243,7 @@ export function PendingPhotoGroup({
           }
         />
       )}
+      {dialog}
     </div>
   );
 }

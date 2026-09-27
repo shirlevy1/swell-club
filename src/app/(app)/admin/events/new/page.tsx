@@ -19,7 +19,9 @@ import {
   LocationNameInput,
   LocationSuggestions,
 } from "@/components/location-suggestions";
-import { BackLink, Button, Card, Field, Input, Notice, Textarea } from "@/components/ui";
+import { Button, Card, Field, Input, Notice, Textarea } from "@/components/ui";
+import { ChevronIcon } from "@/components/social-icons";
+import { useConfirmDialog } from "@/components/confirm-dialog";
 
 // Leaflet ניגש ל-window בזמן הטעינה — חייב להיטען רק בדפדפן
 const MapPicker = dynamic(
@@ -55,6 +57,25 @@ export default function NewEventPage() {
     skipInitialSearch: true,
   });
   const [radius, setRadius] = useState(150);
+  // כל שינוי בטופס מסמן dirty, כדי שכפתור "לניהול" יזהיר לפני יציאה
+  // בלי שמירה — אותו דפוס בדיוק כמו edit-event-schedule-form.tsx: רוב
+  // השדות תופסים את זה לבד (מבעבע דרך onChange על ה-<form> עצמו),
+  // אבל שינויים במפה/בהצעות מיקום/פענוח קישור לא עוברים דרך input
+  // רגיל, ולכן מסומנים ידנית בכל אחד מהם למטה.
+  const [dirty, setDirty] = useState(false);
+  const { confirm, dialog } = useConfirmDialog();
+
+  async function handleBackClick() {
+    const ok =
+      !dirty ||
+      (await confirm({
+        title: "לצאת בלי לשמור?",
+        body: "המפגש שהתחלתם ליצור עדיין לא נשמר, וכל הפרטים שמילאתם יאבדו.",
+        confirmText: "כן, לצאת",
+        tone: "primary",
+      }));
+    if (ok) router.push("/admin#events");
+  }
 
   // null בהתחלה כדי שלא יהיה פער בין מה שהשרת רינדר למה שהדפדפן
   // מחשב (לשעה המקומית) — מתמלא ברגע שהעמוד עולה בדפדפן.
@@ -230,13 +251,20 @@ export default function NewEventPage() {
 
   return (
     <div className="space-y-6">
-      <BackLink href="/admin#events">לניהול</BackLink>
+      <button
+        type="button"
+        onClick={handleBackClick}
+        className="-ms-2 inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-(--color-ink-faint) transition hover:text-(--color-sea)"
+      >
+        <ChevronIcon className="size-3.5 shrink-0" />
+        לניהול
+      </button>
 
       <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold">
         מפגש חדש
       </h1>
 
-      <form onSubmit={onSubmit} className="space-y-5">
+      <form onSubmit={onSubmit} onChange={() => setDirty(true)} className="space-y-5">
         <Card className="space-y-4">
           <Field label="שם המפגש">
             <Input
@@ -399,7 +427,10 @@ export default function NewEventPage() {
               suggestions={location.suggestions}
               highlightedIndex={location.highlightedIndex}
               onHighlight={location.setHighlightedIndex}
-              onChoose={location.chooseSuggestion}
+              onChoose={(s) => {
+                setDirty(true);
+                location.chooseSuggestion(s);
+              }}
             />
           </div>
 
@@ -409,7 +440,10 @@ export default function NewEventPage() {
               lng={location.coords.lng}
               radiusM={radius}
               focusSignal={location.focusSignal}
-              onChange={location.setCoords}
+              onChange={(c) => {
+                setDirty(true);
+                location.setCoords(c);
+              }}
             />
           </div>
 
@@ -450,7 +484,10 @@ export default function NewEventPage() {
                 type="button"
                 variant="secondary"
                 disabled={location.resolvingLink || !location.mapsLinkInput.trim()}
-                onClick={location.onResolveMapsLink}
+                onClick={() => {
+                  setDirty(true);
+                  location.onResolveMapsLink();
+                }}
                 className="shrink-0"
               >
                 {location.resolvingLink ? "מאתרים…" : "עדכון מיקום"}
@@ -499,6 +536,7 @@ export default function NewEventPage() {
           {pending ? "יוצרים…" : "יצירת המפגש"}
         </Button>
       </form>
+      {dialog}
     </div>
   );
 }

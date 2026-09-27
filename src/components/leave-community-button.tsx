@@ -7,6 +7,7 @@ import { demoMode } from "@/lib/config";
 import { leaveCommunityAction } from "@/lib/demo/actions";
 import { unsubscribeFromPush } from "@/lib/push-client";
 import { Notice } from "./ui";
+import { useConfirmDialog } from "./confirm-dialog";
 
 /**
  * עזיבת הקהילה ביוזמת חבר/ת הקהילה עצמו/ה. לא מוחקת שורה — מסמנת
@@ -22,11 +23,15 @@ export function LeaveCommunityButton() {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { confirm, dialog } = useConfirmDialog();
 
   async function handleLeave() {
-    const ok = window.confirm(
-      "בטוחים שרוצים לעזוב את הגל?\nאחרי שתעזבו, המפגשים והאנשים ב־Swell Club כבר לא יופיעו לכם.\nאם תתחרטו אחר כך, מנהלת הקהילה תוכל להחזיר אתכם לגל.",
-    );
+    const ok = await confirm({
+      title: "בטוחים שרוצים לעזוב את הגל?",
+      body: "אחרי שתעזבו, המפגשים והאנשים ב־Swell Club כבר לא יופיעו לכם.\nאם תתחרטו אחר כך, מנהלת הקהילה תוכל להחזיר אתכם לגל.",
+      confirmText: "כן, לעזוב",
+      tone: "danger",
+    });
     if (!ok) return;
 
     setError(null);
@@ -70,6 +75,7 @@ export function LeaveCommunityButton() {
         {pending ? "עוזבים…" : "עזיבת הקהילה"}
       </button>
       {error && <Notice tone="error">{error}</Notice>}
+      {dialog}
     </div>
   );
 }

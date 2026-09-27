@@ -9,6 +9,7 @@ import { approveMemberAction, rejectMemberAction } from "@/lib/demo/actions";
 import { instagramUrl, whatsappUrl } from "@/lib/format";
 import { CheckIcon, InstagramIcon, WhatsAppIcon, XIcon } from "./social-icons";
 import { Notice } from "./ui";
+import { useConfirmDialog } from "./confirm-dialog";
 
 export function PendingMemberRow({
   profileId,
@@ -26,6 +27,7 @@ export function PendingMemberRow({
   const router = useRouter();
   const [pending, setPending] = useState<"approve" | "reject" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { confirm, dialog } = useConfirmDialog();
 
   const wa = whatsappUrl(phone);
   const ig = instagramUrl(instagram);
@@ -54,9 +56,12 @@ export function PendingMemberRow({
   }
 
   async function reject() {
-    const ok = window.confirm(
-      `לדחות את הבקשה של ${fullName}? הפעולה לא הפיכה - הבקשה תימחק לגמרי.`,
-    );
+    const ok = await confirm({
+      title: `לדחות את הבקשה של ${fullName}?`,
+      body: "הפעולה לא הפיכה - הבקשה תימחק לגמרי.",
+      confirmText: "כן, לדחות",
+      tone: "danger",
+    });
     if (!ok) return;
 
     setError(null);
@@ -143,6 +148,7 @@ export function PendingMemberRow({
       </div>
 
       {error && <Notice tone="error">{error}</Notice>}
+      {dialog}
     </div>
   );
 }

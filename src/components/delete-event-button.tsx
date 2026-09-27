@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useConfirmDialog } from "./confirm-dialog";
 
 /**
  * מחיקת מפגש — פעולה נדירה והרסנית, ולכן אייקון קטן ומרוחק בתחתית
@@ -23,11 +24,15 @@ export function DeleteEventButton({
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { confirm, dialog } = useConfirmDialog();
 
   async function handleDelete() {
-    const ok = window.confirm(
-      "למחוק את המפגש הזה? הפעולה לא הפיכה - כל הרישומים, הצ׳ק־אינים והתמונות שלו יימחקו יחד איתו.",
-    );
+    const ok = await confirm({
+      title: "למחוק את המפגש הזה?",
+      body: "הפעולה לא הפיכה - כל הרישומים, הצ׳ק־אינים והתמונות שלו יימחקו יחד איתו.",
+      confirmText: "כן, למחוק",
+      tone: "danger",
+    });
     if (!ok) return;
 
     setError(null);
@@ -79,6 +84,7 @@ export function DeleteEventButton({
         {pending ? "מוחק…" : "מחיקת המפגש"}
       </button>
       {error && <p className="text-xs text-(--color-fail)">{error}</p>}
+      {dialog}
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { removeMemberAction } from "@/lib/demo/actions";
 import { byGender } from "@/lib/format";
 import type { Gender } from "@/lib/types";
 import { XIcon } from "./social-icons";
+import { useConfirmDialog } from "./confirm-dialog";
 
 /**
  * הסרת חבר/ה מהקהילה ע"י המנהלת. לא מוחקת שורה — מסמנת אותה 'removed'
@@ -27,11 +28,15 @@ export function RemoveMemberButton({
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { confirm, dialog } = useConfirmDialog();
 
   async function handleRemove() {
-    const ok = window.confirm(
-      `להסיר את ${fullName} מ־Swell Club?\n${byGender(gender, "הוא לא יראה", "היא לא תראה")} יותר מפגשים או אנשים בקהילה.\nאפשר להחזיר ${byGender(gender, "אותו", "אותה")} לגל בכל שלב דרך "מי שכבר לא בקהילה" בעמוד הניהול.`,
-    );
+    const ok = await confirm({
+      title: `להסיר את ${fullName} מ־Swell Club?`,
+      body: `${byGender(gender, "הוא לא יראה", "היא לא תראה")} יותר מפגשים או אנשים בקהילה.\nאפשר להחזיר ${byGender(gender, "אותו", "אותה")} לגל בכל שלב דרך "מי שכבר לא בקהילה" בעמוד הניהול.`,
+      confirmText: "כן, להסיר",
+      tone: "danger",
+    });
     if (!ok) return;
 
     setError(null);
@@ -76,6 +81,7 @@ export function RemoveMemberButton({
           {error}
         </p>
       )}
+      {dialog}
     </div>
   );
 }

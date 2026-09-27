@@ -12,6 +12,7 @@ import {
 import { compressImageFile, blobToDataUrl, ALBUM_PHOTO_OPTIONS } from "@/lib/image";
 import { Button, Notice } from "@/components/ui";
 import { PhotoLightbox } from "@/components/photo-lightbox";
+import { useConfirmDialog } from "@/components/confirm-dialog";
 import { CheckIcon, DownloadIcon, XIcon } from "@/components/social-icons";
 import type { EventPhoto } from "@/lib/data";
 
@@ -121,6 +122,7 @@ export function EventPhotoAlbum({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const { confirm, dialog } = useConfirmDialog();
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
@@ -297,7 +299,13 @@ export function EventPhotoAlbum({
   async function onDelete(photo: EventPhoto) {
     // אותה בטוחה בדיוק כמו מחיקת מפגש שלם (delete-event-button.tsx) —
     // גם מחיקת תמונה בלתי הפיכה, ולא הייתה לה שום "רגע לפני" עד עכשיו.
-    if (!window.confirm("למחוק את התמונה הזו? הפעולה לא הפיכה.")) return;
+    const ok = await confirm({
+      title: "למחוק את התמונה הזו?",
+      body: "הפעולה לא הפיכה.",
+      confirmText: "כן, למחוק",
+      tone: "danger",
+    });
+    if (!ok) return;
 
     setBusyId(photo.id);
     try {
@@ -608,6 +616,7 @@ export function EventPhotoAlbum({
           }
         />
       )}
+      {dialog}
     </div>
   );
 }

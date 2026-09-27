@@ -17,11 +17,31 @@ import { GenderInput } from "@/components/gender-input";
 import { SwimLevelInput } from "@/components/swim-level-input";
 import type { Gender, Profile, SwimLevel } from "@/lib/types";
 import { Button, Card, Field, Input, Notice } from "./ui";
+import { ChevronIcon } from "./social-icons";
+import { useConfirmDialog } from "./confirm-dialog";
 
 export function ProfileForm({ profile }: { profile: Profile }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // כל שינוי בטופס מסמן dirty, כדי שכפתור "לפרופיל" יזהיר לפני יציאה
+  // בלי שמירה — כל השדות כאן הם input/select/radio אמיתיים, אז
+  // onChange על ה-<form> עצמו תופס את כולם בלי סימון ידני בכל שדה
+  // (בניגוד לטופס עריכת מפגש, שיש בו גם מפה שלא עוברת דרך input רגיל).
+  const [dirty, setDirty] = useState(false);
+  const { confirm, dialog } = useConfirmDialog();
+
+  async function handleBackClick() {
+    const ok =
+      !dirty ||
+      (await confirm({
+        title: "לצאת בלי לשמור?",
+        body: "השינויים שעשיתם בפרופיל עדיין לא נשמרו.",
+        confirmText: "כן, לצאת",
+        tone: "primary",
+      }));
+    if (ok) router.push("/profile");
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -124,8 +144,27 @@ export function ProfileForm({ profile }: { profile: Profile }) {
   }
 
   return (
-    <Card>
-      <form onSubmit={onSubmit} className="space-y-4">
+    <div className="space-y-6">
+      <button
+        type="button"
+        onClick={handleBackClick}
+        className="-ms-2 inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-(--color-ink-faint) transition hover:text-(--color-sea)"
+      >
+        <ChevronIcon className="size-3.5 shrink-0" />
+        לפרופיל
+      </button>
+
+      <div className="space-y-1">
+        <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold">
+          עריכת פרופיל
+        </h1>
+        <p className="text-sm text-(--color-ink-soft)">
+          הפרטים שלכם נראים רק לחברי קהילה שהיו איתכם באותו מפגש.
+        </p>
+      </div>
+
+      <Card>
+      <form onSubmit={onSubmit} onChange={() => setDirty(true)} className="space-y-4">
         <Field label="שם מלא">
           <Input
             name="full_name"
@@ -274,6 +313,8 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           {pending ? "שומרים…" : "שמירה"}
         </Button>
       </form>
-    </Card>
+      </Card>
+      {dialog}
+    </div>
   );
 }
