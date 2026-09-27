@@ -18,23 +18,15 @@ import {
   formatTime,
   formatWeekdayName,
   genderLabel,
-  instagramUrl,
   normalizeInstagram,
-  whatsappUrl,
 } from "@/lib/format";
 import { checkInWindow } from "@/lib/checkin";
-import { facePositionStyle } from "@/lib/face-position";
-import {
-  swimLevelLabel,
-  SWIM_LEVEL_COLOR,
-  swimLevelBadgeStyle,
-} from "@/lib/swim-level";
-import { InstagramIcon, WhatsAppIcon, WaveIcon } from "@/components/social-icons";
+import { swimLevelLabel } from "@/lib/swim-level";
 import { Card, EmptyState, LinkButton, PageHeader } from "@/components/ui";
 import { ExportButton } from "@/components/export-button";
 import { AdminEventCard } from "@/components/admin-event-card";
 import { PendingMemberRow } from "@/components/pending-member-row";
-import { RemoveMemberButton } from "@/components/remove-member-button";
+import { MemberSearchList } from "@/components/member-search-list";
 import { PendingPhotoGroup } from "@/components/pending-photo-group";
 import { AdminLiveRefresh } from "@/components/admin-live-refresh";
 
@@ -420,105 +412,7 @@ export default async function AdminPage() {
             body="כשמישהו יצטרף לקהילה, הוא יופיע כאן."
           />
         ) : (
-        <Card className="divide-y divide-(--color-line)/50 p-0">
-          {members.map((m) => {
-            const age = ageInYears(m.profile.birth_date);
-            const wa = whatsappUrl(m.profile.phone);
-            const ig = instagramUrl(m.profile.instagram);
-
-            return (
-              <div
-                key={m.profile.id}
-                className="flex flex-wrap items-center gap-3 px-4 py-3 transition hover:bg-(--color-haze)/60"
-              >
-                {/* קישור לפרופיל רק על פנים+שם — כפתורי וואטסאפ/אינסטגרם
-                    בהמשך השורה הם קישורים בפני עצמם, ועוגן בתוך עוגן
-                    שובר את שניהם (כבר קרה פעם, ראו attendee-grid). */}
-                <Link
-                  href={`/admin/members/${m.profile.id}`}
-                  className="flex items-center gap-3"
-                >
-                  {/* פנים ברשימה — המנהלת מזהה אנשים ככה, לא לפי שם */}
-                  <div className="size-11 shrink-0 overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)">
-                    {m.latestSelfieUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={m.latestSelfieUrl}
-                        alt={m.profile.full_name}
-                        className="size-full object-cover"
-                        loading="lazy"
-                        style={facePositionStyle(m.latestFaceX, m.latestFaceY)}
-                      />
-                    ) : null}
-                  </div>
-                  {/* השם לא מתקצר לעולם — הוא המידע הכי חשוב בשורה. */}
-                  <p className="flex items-baseline gap-1 whitespace-nowrap text-sm font-semibold">
-                    <span>{m.profile.full_name}</span>
-                    <span className="font-normal text-(--color-ink-faint)">
-                      {age !== null && <>· {age} </>}
-                      · <span className="ltr-nums">{m.attendedCount}</span>
-                    </span>
-                  </p>
-                </Link>
-
-                {/* השם לא מתקצר לעולם, אז לשם ארוך אין תמיד מקום לשורה
-                    הזו באותה שורה — flex-wrap למעלה נותן לה לרדת לשורה
-                    שנייה במקום להיחתך/לדחוף את שאר השורה החוצה. */}
-                <div className="ms-auto flex shrink-0 items-center gap-1.5">
-                  {m.profile.swim_level && (
-                    <span
-                      className="flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-[0.72rem] font-semibold text-(--color-ink)"
-                      style={swimLevelBadgeStyle(m.profile.swim_level)}
-                    >
-                      <WaveIcon
-                        className="size-2.5"
-                        style={{ color: SWIM_LEVEL_COLOR[m.profile.swim_level] }}
-                      />
-                      {swimLevelLabel(m.profile.swim_level)}
-                    </span>
-                  )}
-
-                  {(wa || ig) && (
-                    <div className="flex shrink-0 gap-1">
-                      {wa && (
-                        <a
-                          href={wa}
-                          target="_blank"
-                          rel="noreferrer"
-                          aria-label={`וואטסאפ עם ${m.profile.full_name}`}
-                          className="flex size-8 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-verified) transition hover:border-(--color-verified)/50 hover:bg-(--color-verified)/10"
-                        >
-                          <WhatsAppIcon className="size-3.5" />
-                        </a>
-                      )}
-                      {ig && (
-                        <a
-                          href={ig}
-                          target="_blank"
-                          rel="noreferrer"
-                          aria-label={`אינסטגרם של ${m.profile.full_name}`}
-                          className="flex size-8 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
-                        >
-                          <InstagramIcon className="size-3.5" />
-                        </a>
-                      )}
-                    </div>
-                  )}
-
-                  {/* אי אפשר להסיר מנהלת — קהילה בלי אף מנהלת נעולה
-                      לגמרי. גם נאכף שוב בשרת ב-remove_member(). */}
-                  {m.role !== "organizer" && (
-                    <RemoveMemberButton
-                      profileId={m.profile.id}
-                      fullName={m.profile.full_name}
-                      gender={m.profile.gender}
-                    />
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </Card>
+          <MemberSearchList members={members} />
         )}
 
         {removedMembers.length > 0 && (
