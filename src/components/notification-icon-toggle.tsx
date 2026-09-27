@@ -214,7 +214,11 @@ export function NotificationIconToggle() {
       </button>
 
       {notice && (
-        <div className="absolute start-0 top-full z-10 mt-2 w-56 rounded-xl border border-(--color-line) bg-(--color-surface) p-3 text-xs leading-relaxed text-(--color-ink-soft) shadow-lg">
+        // end-0 (לא start-0): הפעמון הזה יושב בקצה הדף (ראו events/page.tsx —
+        // הכותרת בצד ההתחלה, הפעמון בצד הסוף), אז בועה שנפתחת לכיוון start
+        // ממשיכה החוצה מהמסך הצר של הטלפון ומצטמצמת/נחתכת. end-0 פותח אותה
+        // לכיוון מרכז המסך, איפה שיש מקום.
+        <div className="absolute end-0 top-full z-10 mt-2 w-56 max-w-[80vw] rounded-xl border border-(--color-line) bg-(--color-surface) p-3 text-xs leading-relaxed text-(--color-ink-soft) shadow-lg">
           {notice}
         </div>
       )}
