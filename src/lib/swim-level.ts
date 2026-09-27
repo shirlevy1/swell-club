@@ -20,11 +20,17 @@ export function swimLevelLabel(value: string | null): string | null {
   return SWIM_LEVEL_OPTIONS.find((o) => o.value === value)?.label ?? null;
 }
 
-/** שלוש עוצמות של אותו כחול — לא צבע שלישי, רק דרגתיות בתוך הפלטה. */
+/**
+ * שלוש עוצמות של אותו כחול — לא צבע שלישי, רק דרגתיות בתוך הפלטה.
+ * לא sky/sea/deep המשותפים (אלה משמשים גם במקומות אחרים באתר, כמו
+ * אנימציית האופק והפוקוס של כפתורים) — כאן טווח רחב יותר במיוחד,
+ * כדי שההבדל בין שלוש הרמות יישאר ברור גם בשמש חזקה על החוף, שם
+ * הבדלי-בהירות עדינים נוטים "להישטף". ראו ההדמיה שאושרה.
+ */
 export const SWIM_LEVEL_COLOR: Record<string, string> = {
-  entering: "var(--color-sky)",
+  entering: "#a9c1d6",
   flowing: "var(--color-sea)",
-  deepening: "var(--color-deep)",
+  deepening: "#0f2231",
 };
 
 /**
