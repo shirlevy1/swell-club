@@ -6,12 +6,13 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
 import { approveMemberAction, rejectMemberAction } from "@/lib/demo/actions";
-import { instagramUrl, whatsappUrl } from "@/lib/format";
+import { byGender, instagramUrl, whatsappUrl } from "@/lib/format";
 import { CheckIcon, InstagramIcon, WhatsAppIcon, XIcon } from "./social-icons";
-import { Card, Notice } from "./ui";
+import { Card, Notice, cx } from "./ui";
 import { useConfirmDialog } from "./confirm-dialog";
 import { useNewLiveIds } from "./live-refresh-context";
 import type { PendingMember } from "@/lib/data";
+import type { Gender } from "@/lib/types";
 
 /** עוטפת את כל רשימת הבקשות הממתינות — ראו useNewLiveIds: ה"זריעה"
  * הראשונית של כל ה-ids חייבת לקרות פעם אחת לכל הרשימה יחד, לא per-row
@@ -29,6 +30,7 @@ export function PendingMembersCard({ members, clubId }: { members: PendingMember
           key={m.profileId}
           profileId={m.profileId}
           fullName={m.fullName}
+          gender={m.gender}
           ageYears={m.ageYears}
           phone={m.phone}
           instagram={m.instagram}
@@ -42,6 +44,7 @@ export function PendingMembersCard({ members, clubId }: { members: PendingMember
 function PendingMemberRow({
   profileId,
   fullName,
+  gender,
   ageYears,
   phone,
   instagram,
@@ -49,6 +52,7 @@ function PendingMemberRow({
 }: {
   profileId: string;
   fullName: string;
+  gender: Gender | null;
   ageYears: number | null;
   phone: string | null;
   instagram: string | null;
@@ -117,7 +121,7 @@ function PendingMemberRow({
   }
 
   return (
-    <div className={"space-y-2 px-4 py-3 " + (isNew ? "live-highlight-row" : "")}>
+    <div className={cx("space-y-2 px-4 py-3", isNew && "live-highlight-row")}>
       <div className="flex items-center gap-2">
         {/* קישור לפרופיל המלא — טלפון, כל הסלפים, הכל. */}
         <Link
@@ -180,7 +184,7 @@ function PendingMemberRow({
       {error && <Notice tone="error">{error}</Notice>}
       {isNew && (
         <span className="sr-only" role="status">
-          {fullName} ביקש/ה להצטרף לקהילה.
+          {fullName} {byGender(gender, "ביקש להצטרף לקהילה", "ביקשה להצטרף לקהילה")}.
         </span>
       )}
       {dialog}

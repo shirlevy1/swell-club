@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { AttendeeCard as AttendeeCardData } from "@/lib/data";
-import { instagramUrl, whatsappUrl } from "@/lib/format";
+import { byGender, instagramUrl, whatsappUrl } from "@/lib/format";
 import { facePositionStyle } from "@/lib/face-position";
 import {
   swimLevelLabel,
@@ -175,7 +175,7 @@ function AttendeeTile({
 
       {isNew && !isMe && (
         <p className="sr-only" role="status">
-          {profile.full_name} הצטרף/ה לנוכחים.
+          {profile.full_name} {byGender(profile.gender, "הצטרף", "הצטרפה")} לנוכחים.
         </p>
       )}
     </li>

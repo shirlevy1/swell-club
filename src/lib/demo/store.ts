@@ -1,4 +1,4 @@
-import type { Club, MemberRole, Profile, SwellEvent } from "../types";
+import type { Club, Gender, MemberRole, Profile, SwellEvent } from "../types";
 import { DEFAULT_EVENT_LOCATION } from "../maps";
 import { defaultEventTitle } from "../agenda";
 import { checkInWindow, canUploadEventPhoto } from "../checkin";
@@ -24,6 +24,7 @@ const ME_ID = "demo-me";
 type DemoPendingMember = {
   profileId: string;
   fullName: string;
+  gender: Gender | null;
   instagram: string | null;
   city: string;
   birthDate: string;
@@ -31,15 +32,16 @@ type DemoPendingMember = {
   requestedAt: string;
 };
 
-const PENDING_PEOPLE: [string, string | null, string, string][] = [
-  ["עידו ברקאי", "ido.barkai", "פתח תקווה", "1997-08-19"],
-  ["נטע אשכנזי", null, "כפר סבא", "1990-02-05"],
+const PENDING_PEOPLE: [string, Gender, string | null, string, string][] = [
+  ["עידו ברקאי", "male", "ido.barkai", "פתח תקווה", "1997-08-19"],
+  ["נטע אשכנזי", "female", null, "כפר סבא", "1990-02-05"],
 ];
 
 function pendingMembers(): DemoPendingMember[] {
-  return PENDING_PEOPLE.map(([name, ig, city, birthDate], i) => ({
+  return PENDING_PEOPLE.map(([name, gender, ig, city, birthDate], i) => ({
     profileId: `demo-pending${i + 1}`,
     fullName: name,
+    gender,
     instagram: ig,
     city,
     birthDate,
@@ -672,6 +674,7 @@ export function demoRestoreMember(profileId: string) {
   db().pendingMembers.push({
     profileId: profile.id,
     fullName: profile.full_name,
+    gender: profile.gender,
     instagram: profile.instagram,
     city: profile.city ?? "",
     birthDate: profile.birth_date ?? "",

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { GoingPerson } from "@/lib/data";
+import { byGender } from "@/lib/format";
 import { facePositionStyle } from "@/lib/face-position";
 import {
   swimLevelLabel,
@@ -164,7 +165,7 @@ function GoingPersonTile({
       </Link>
       {isNew && !person.isMe && (
         <span className="sr-only" role="status">
-          {person.fullName} מצטרפ/ת למי שמגיעים.
+          {person.fullName} {byGender(person.gender ?? null, "מצטרף", "מצטרפת")} למי שמגיעים.
         </span>
       )}
     </li>

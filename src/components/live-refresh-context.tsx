@@ -61,6 +61,16 @@ export function useNewLiveIds(
   const [newIds, setNewIds] = useState<ReadonlySet<string>>(() => new Set());
   const key = currentIds.join(",");
 
+  // איפוס סינכרוני בזמן ה-render עצמו (לא ב-effect) כש-scope משתנה —
+  // למשל אותה קומפוננטה שמשרתת מפגש אחר אחרי ניווט בצד הלקוח. בלי זה
+  // יש פריים אחד שבו מישהו שהיה "חדש" במפגש הקודם מהבהב בטעות במפגש
+  // החדש, עד שה-effect למטה מתקן את זה רגע אחר כך.
+  const [trackedScope, setTrackedScope] = useState(scope);
+  if (scope !== trackedScope) {
+    setTrackedScope(scope);
+    setNewIds(new Set());
+  }
+
   useEffect(() => {
     const ids = key === "" ? [] : key.split(",");
     const seenBefore = readSeen(scope);
@@ -77,8 +87,16 @@ export function useNewLiveIds(
     // ESLint (react-hooks/set-state-in-effect) מסמן setState סינכרוני
     // בתוך effect. כאן זה בדיוק הכוונה (לסנכרן state מ-localStorage
     // לפי שינוי ב-props), אז רק דוחים את הקריאה עצמה.
+    //
+    // ⚠️ ממזגים עם ה-state הקודם, לא מחליפים: אם שני עדכונים חיים
+    // קרובים (שני אנשים מסמנים הגעה כמעט ביחד), העדכון השני היה מוחק
+    // את ה"חדש" של הראשון באמצע ההבהוב שלו. ה-fill-mode "both" של
+    // האנימציה הופך את זה לבטוח להשאיר לצמיתות — ברגע שהיא נגמרת היא
+    // כבר נראית בדיוק כמו כרטיס רגיל, אז אין סיכון "שישאר תקוע מודגש".
     if (fresh.length > 0) {
-      queueMicrotask(() => setNewIds(new Set(fresh)));
+      queueMicrotask(() =>
+        setNewIds((prev) => new Set([...prev, ...fresh])),
+      );
     }
   }, [scope, key]);
 

@@ -10,7 +10,7 @@ import {
   deleteEventPhotoAction,
 } from "@/lib/demo/actions";
 import { compressImageFile, blobToDataUrl, ALBUM_PHOTO_OPTIONS } from "@/lib/image";
-import { Button, Notice } from "@/components/ui";
+import { Button, Notice, cx } from "@/components/ui";
 import { PhotoLightbox } from "@/components/photo-lightbox";
 import { useConfirmDialog } from "@/components/confirm-dialog";
 import { CheckIcon, DownloadIcon, XIcon } from "@/components/social-icons";
@@ -568,6 +568,9 @@ function GridPhotoTile({
   onDelete: () => void;
 }) {
   const isPending = photo.status === "pending";
+  // לא מבהבים תמונה שהעליתם בעצמכם — אותו עיקרון כמו isMe באלבום
+  // הנוכחים וב"מי מגיע", ראו attendee-grid.tsx/going-list.tsx.
+  const showNew = isNew && !photo.isMine;
 
   return (
     <button
@@ -575,10 +578,10 @@ function GridPhotoTile({
       onClick={onOpen}
       aria-pressed={selecting ? isSelected : undefined}
       aria-label={selecting ? "בחירת תמונה" : "הצגת תמונה"}
-      className={
-        "relative aspect-square overflow-hidden rounded-lg bg-(--color-haze) " +
-        (isNew ? "live-highlight" : "")
-      }
+      className={cx(
+        "relative aspect-square overflow-hidden rounded-lg bg-(--color-haze)",
+        showNew && "live-highlight",
+      )}
     >
       {/* מקורות מעורבים (קישור חתום / data URL / נכס מקומי
           בהדגמה) — next/image דורש רשימת דומיינים מוגדרת מראש
@@ -638,7 +641,7 @@ function GridPhotoTile({
         </span>
       )}
 
-      {isNew && (
+      {showNew && (
         <span className="sr-only" role="status">
           תמונה חדשה נוספה לאלבום.
         </span>
@@ -662,8 +665,11 @@ function PendingPreviewTile({
   onApprove: () => void;
   onDelete: () => void;
 }) {
+  // לא מבהבים תמונה שהעליתם בעצמכם — ראו הערה זהה ב-GridPhotoTile.
+  const showNew = isNew && !photo.isMine;
+
   return (
-    <div className={"space-y-1.5 rounded-lg " + (isNew ? "live-highlight" : "")}>
+    <div className={cx("space-y-1.5 rounded-lg", showNew && "live-highlight")}>
       <div className="aspect-square overflow-hidden rounded-lg bg-(--color-surface)">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={photo.url} alt="" className="size-full object-cover" loading="lazy" />
@@ -689,7 +695,7 @@ function PendingPreviewTile({
           דחייה
         </button>
       </div>
-      {isNew && (
+      {showNew && (
         <span className="sr-only" role="status">
           תמונה חדשה של {photo.uploaderName} ממתינה לאישור.
         </span>

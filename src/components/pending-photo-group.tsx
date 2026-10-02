@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
 import { approveEventPhotoAction, deleteEventPhotoAction } from "@/lib/demo/actions";
 import { CheckIcon, XIcon } from "./social-icons";
-import { Notice } from "./ui";
+import { Notice, cx } from "./ui";
 import { PhotoLightbox } from "./photo-lightbox";
 import { useConfirmDialog } from "./confirm-dialog";
 import { useNewLiveIds } from "./live-refresh-context";
@@ -310,10 +310,10 @@ function PendingGroupPhotoTile({
 }) {
   return (
     <div
-      className={
-        "relative aspect-square overflow-hidden rounded-lg bg-(--color-haze) " +
-        (isNew ? "live-highlight" : "")
-      }
+      className={cx(
+        "relative aspect-square overflow-hidden rounded-lg bg-(--color-haze)",
+        isNew && "live-highlight",
+      )}
     >
       <button
         type="button"

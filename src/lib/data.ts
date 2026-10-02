@@ -169,6 +169,7 @@ export async function getViewer(): Promise<Viewer | null> {
 export type PendingMember = {
   profileId: string;
   fullName: string;
+  gender: Gender | null;
   requestedAt: string;
   ageYears: number | null;
   phone: string | null;
@@ -214,6 +215,7 @@ export async function getPendingMembers(
     return demo.demoPendingMembers().map((m) => ({
       profileId: m.profileId,
       fullName: m.fullName,
+      gender: m.gender,
       requestedAt: m.requestedAt,
       ageYears: ageInYears(m.birthDate),
       phone: m.phone,
@@ -229,6 +231,7 @@ export async function getPendingMembers(
   const rows = (data ?? []) as {
     profile_id: string;
     full_name: string;
+    gender: Gender | null;
     requested_at: string;
     birth_date: string | null;
     phone: string | null;
@@ -238,6 +241,7 @@ export async function getPendingMembers(
   return rows.map((row) => ({
     profileId: row.profile_id,
     fullName: row.full_name,
+    gender: row.gender,
     requestedAt: row.requested_at,
     ageYears: ageInYears(row.birth_date),
     phone: row.phone,
@@ -782,7 +786,7 @@ export async function getMemberProfile(
 /** בדיוק מה שכרטיס משתתף צריך. מה שלא כאן — לא יוצא מהשרת. */
 export type PublicProfile = Pick<
   Profile,
-  "id" | "full_name" | "phone" | "instagram" | "swim_level"
+  "id" | "full_name" | "gender" | "phone" | "instagram" | "swim_level"
 >;
 
 export type AttendeeCard = {
@@ -801,6 +805,9 @@ export type AttendeeCard = {
 export type GoingPerson = {
   profileId: string;
   fullName: string;
+  /** undefined במקומות שלא טורחים לשלוף את זה (למשל getGoingNamesByEvent,
+   * שמציגה רק שמות בכרטיס האירוע ולא צריכה ניסוח מגדרי). */
+  gender?: Gender | null;
   swimLevel: SwimLevel | null;
   // התמונה העדכנית של האדם — null אם עוד לא נכחתם יחד באיזשהו מפגש,
   // גם אם יש לו סלפי. ראו migration 0018.
@@ -926,6 +933,7 @@ export async function getEventDetail(
             {
               profileId: profile.id,
               fullName: profile.full_name,
+              gender: profile.gender,
               swimLevel: profile.swim_level,
               ...shot,
               isMe,
@@ -995,7 +1003,7 @@ export async function getEventDetail(
     const { data } = await supabase
       .from("attendances")
       .select(
-        "event_id, profile_id, selfie_path, checked_in_at, face_x, face_y, profiles(id, full_name, phone, instagram, swim_level)",
+        "event_id, profile_id, selfie_path, checked_in_at, face_x, face_y, profiles(id, full_name, gender, phone, instagram, swim_level)",
       )
       .eq("event_id", eventId)
       .order("checked_in_at", { ascending: true });
@@ -1046,6 +1054,7 @@ export async function getEventDetail(
   const goingRowsTyped = (goingRows ?? []) as {
     profile_id: string;
     full_name: string;
+    gender: Gender | null;
     swim_level: SwimLevel | null;
     selfie_path: string | null;
     face_x: number | null;
@@ -1061,6 +1070,7 @@ export async function getEventDetail(
   const going = goingRowsTyped.map((r) => ({
     profileId: r.profile_id,
     fullName: r.full_name,
+    gender: r.gender,
     swimLevel: r.swim_level,
     // אם הצופה עוד לא נכח יחד עם r, ה-RPC כבר מחזיר null כאן — לא
     // צריך בדיקה נוספת. אם המדיניות ב-storage תחסום בכל זאת, ה-path
