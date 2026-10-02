@@ -8,21 +8,51 @@ import { demoMode } from "@/lib/config";
 import { approveMemberAction, rejectMemberAction } from "@/lib/demo/actions";
 import { instagramUrl, whatsappUrl } from "@/lib/format";
 import { CheckIcon, InstagramIcon, WhatsAppIcon, XIcon } from "./social-icons";
-import { Notice } from "./ui";
+import { Card, Notice } from "./ui";
 import { useConfirmDialog } from "./confirm-dialog";
+import { useNewLiveIds } from "./live-refresh-context";
+import type { PendingMember } from "@/lib/data";
 
-export function PendingMemberRow({
+/** עוטפת את כל רשימת הבקשות הממתינות — ראו useNewLiveIds: ה"זריעה"
+ * הראשונית של כל ה-ids חייבת לקרות פעם אחת לכל הרשימה יחד, לא per-row
+ * (אחרת כל בקשה שכבר הייתה שם תיראה "חדשה" כי אין לה בסיס להשוואה). */
+export function PendingMembersCard({ members, clubId }: { members: PendingMember[]; clubId: string }) {
+  const newIds = useNewLiveIds(
+    `pending-members:${clubId}`,
+    members.map((m) => m.profileId),
+  );
+
+  return (
+    <Card className="divide-y divide-(--color-line)/50 p-0">
+      {members.map((m) => (
+        <PendingMemberRow
+          key={m.profileId}
+          profileId={m.profileId}
+          fullName={m.fullName}
+          ageYears={m.ageYears}
+          phone={m.phone}
+          instagram={m.instagram}
+          isNew={newIds.has(m.profileId)}
+        />
+      ))}
+    </Card>
+  );
+}
+
+function PendingMemberRow({
   profileId,
   fullName,
   ageYears,
   phone,
   instagram,
+  isNew,
 }: {
   profileId: string;
   fullName: string;
   ageYears: number | null;
   phone: string | null;
   instagram: string | null;
+  isNew: boolean;
 }) {
   const router = useRouter();
   const [pending, setPending] = useState<"approve" | "reject" | null>(null);
@@ -87,7 +117,7 @@ export function PendingMemberRow({
   }
 
   return (
-    <div className="space-y-2 px-4 py-3">
+    <div className={"space-y-2 px-4 py-3 " + (isNew ? "live-highlight-row" : "")}>
       <div className="flex items-center gap-2">
         {/* קישור לפרופיל המלא — טלפון, כל הסלפים, הכל. */}
         <Link
@@ -148,6 +178,11 @@ export function PendingMemberRow({
       </div>
 
       {error && <Notice tone="error">{error}</Notice>}
+      {isNew && (
+        <span className="sr-only" role="status">
+          {fullName} ביקש/ה להצטרף לקהילה.
+        </span>
+      )}
       {dialog}
     </div>
   );

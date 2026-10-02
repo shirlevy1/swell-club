@@ -10,20 +10,84 @@ import { CheckIcon, XIcon } from "./social-icons";
 import { Notice } from "./ui";
 import { PhotoLightbox } from "./photo-lightbox";
 import { useConfirmDialog } from "./confirm-dialog";
+import { useNewLiveIds } from "./live-refresh-context";
+import { formatDateTime } from "@/lib/format";
 import type { PendingEventPhoto } from "@/lib/data";
+
+export type PendingPhotosByEvent = {
+  eventId: string;
+  eventTitle: string;
+  eventStartsAt: string;
+  uploaderGroups: {
+    uploaderId: string;
+    uploaderName: string;
+    photos: PendingEventPhoto[];
+  }[];
+}[];
+
+/** עוטפת את כל התמונות הממתינות של הניהול, על פני כל המפגשים והמעלים
+ * יחד — ראו useNewLiveIds: ה"זריעה" הראשונית חייבת לראות את כל ה-ids
+ * בבת אחת (אחרת קבוצה שמעלים אחרים כבר הייתה, אבל נטענה "אחרי" קבוצה
+ * ראשונה שזרעה טווח חלקי, הייתה מבהבת בטעות בטעינה הראשונית). */
+export function PendingPhotosSection({
+  photosByEvent,
+  clubId,
+}: {
+  photosByEvent: PendingPhotosByEvent;
+  clubId: string;
+}) {
+  const allIds = photosByEvent.flatMap((event) =>
+    event.uploaderGroups.flatMap((g) => g.photos.map((p) => p.id)),
+  );
+  const newIds = useNewLiveIds(`pending-photos:${clubId}`, allIds);
+
+  return (
+    <div className="space-y-4">
+      {photosByEvent.map((event) => (
+        <div key={event.eventId} className="space-y-2">
+          <div className="flex items-baseline justify-between gap-2">
+            <Link
+              href={`/events/${event.eventId}?from=admin-photos`}
+              className="truncate text-sm font-bold text-(--color-sea) hover:underline"
+            >
+              {event.eventTitle}
+            </Link>
+            <p className="ltr-nums shrink-0 text-xs text-(--color-ink-faint)">
+              {formatDateTime(event.eventStartsAt)}
+            </p>
+          </div>
+          <div className="space-y-2">
+            {event.uploaderGroups.map((group) => (
+              <PendingPhotoGroup
+                key={group.uploaderId}
+                eventId={event.eventId}
+                uploaderId={group.uploaderId}
+                uploaderName={group.uploaderName}
+                photos={group.photos}
+                newPhotoIds={newIds}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 /** כל התמונות שאדם אחד העלה למפגש אחד — אישור/דחייה בלחיצה אחת על
  * כל הערימה, ועדיין אפשר להוציא תמונה בודדת ממנה אם צריך. */
-export function PendingPhotoGroup({
+function PendingPhotoGroup({
   eventId,
   uploaderId,
   uploaderName,
   photos,
+  newPhotoIds,
 }: {
   eventId: string;
   uploaderId: string;
   uploaderName: string;
   photos: PendingEventPhoto[];
+  newPhotoIds: ReadonlySet<string>;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState<"approve" | "reject" | string | null>(null);
@@ -177,38 +241,15 @@ export function PendingPhotoGroup({
 
       <div className="grid grid-cols-4 gap-1.5">
         {photos.map((photo, i) => (
-          <div
+          <PendingGroupPhotoTile
             key={photo.id}
-            className="relative aspect-square overflow-hidden rounded-lg bg-(--color-haze)"
-          >
-            <button
-              type="button"
-              onClick={() => setViewerIndex(i)}
-              aria-label="הצגת תמונה בגדול"
-              className="block size-full"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={photo.url} alt="" className="size-full object-cover" loading="lazy" />
-            </button>
-            <button
-              type="button"
-              onClick={() => approveOne(photo)}
-              disabled={busy === photo.id || busyAll}
-              aria-label="אישור תמונה זו"
-              className="absolute start-1 top-1 flex size-[26px] items-center justify-center rounded-full bg-(--color-sea) text-white disabled:opacity-40"
-            >
-              <CheckIcon className="size-[15px]" />
-            </button>
-            <button
-              type="button"
-              onClick={() => rejectOne(photo)}
-              disabled={busy === photo.id || busyAll}
-              aria-label="הסרת תמונה זו"
-              className="absolute end-1 top-1 flex size-[26px] items-center justify-center rounded-full bg-black/55 text-white disabled:opacity-40"
-            >
-              <XIcon className="size-[15px]" />
-            </button>
-          </div>
+            photo={photo}
+            busy={busy === photo.id || busyAll}
+            isNew={newPhotoIds.has(photo.id)}
+            onOpen={() => setViewerIndex(i)}
+            onApprove={() => approveOne(photo)}
+            onReject={() => rejectOne(photo)}
+          />
         ))}
       </div>
 
@@ -244,6 +285,68 @@ export function PendingPhotoGroup({
         />
       )}
       {dialog}
+    </div>
+  );
+}
+
+/** כרטיס בודד — isNew מגיע מ-PendingPhotosSection (useNewLiveIds ברמת
+ * כל התמונות הממתינות יחד, לא per-item), כדי שקבוצה חדשה שלמה שמופיעה
+ * תסומן נכון מול בסיס אחיד, לא מול "זריעה" חלקית שכל קבוצה הייתה
+ * עושה בנפרד. */
+function PendingGroupPhotoTile({
+  photo,
+  busy,
+  isNew,
+  onOpen,
+  onApprove,
+  onReject,
+}: {
+  photo: PendingEventPhoto;
+  busy: boolean;
+  isNew: boolean;
+  onOpen: () => void;
+  onApprove: () => void;
+  onReject: () => void;
+}) {
+  return (
+    <div
+      className={
+        "relative aspect-square overflow-hidden rounded-lg bg-(--color-haze) " +
+        (isNew ? "live-highlight" : "")
+      }
+    >
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label="הצגת תמונה בגדול"
+        className="block size-full"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={photo.url} alt="" className="size-full object-cover" loading="lazy" />
+      </button>
+      <button
+        type="button"
+        onClick={onApprove}
+        disabled={busy}
+        aria-label="אישור תמונה זו"
+        className="absolute start-1 top-1 flex size-[26px] items-center justify-center rounded-full bg-(--color-sea) text-white disabled:opacity-40"
+      >
+        <CheckIcon className="size-[15px]" />
+      </button>
+      <button
+        type="button"
+        onClick={onReject}
+        disabled={busy}
+        aria-label="הסרת תמונה זו"
+        className="absolute end-1 top-1 flex size-[26px] items-center justify-center rounded-full bg-black/55 text-white disabled:opacity-40"
+      >
+        <XIcon className="size-[15px]" />
+      </button>
+      {isNew && (
+        <span className="sr-only" role="status">
+          תמונה חדשה ממתינה לאישור.
+        </span>
+      )}
     </div>
   );
 }

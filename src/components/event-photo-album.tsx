@@ -14,6 +14,7 @@ import { Button, Notice } from "@/components/ui";
 import { PhotoLightbox } from "@/components/photo-lightbox";
 import { useConfirmDialog } from "@/components/confirm-dialog";
 import { CheckIcon, DownloadIcon, XIcon } from "@/components/social-icons";
+import { useNewLiveIds } from "@/components/live-refresh-context";
 import type { EventPhoto } from "@/lib/data";
 
 /**
@@ -146,6 +147,15 @@ export function EventPhotoAlbum({
   // הממתינה שלו/ה מופיעה מיד, בשקיפות חלקית, באותו מקום שבו תהיה
   // כשתאושר — ולא נעלמת ומופיעה מחדש במקום אחר.
   const gridPhotos = canManage ? approved : photos;
+
+  const newGridIds = useNewLiveIds(
+    `photos:${eventId}`,
+    gridPhotos.map((p) => p.id),
+  );
+  const newPendingIds = useNewLiveIds(
+    `photos-pending:${eventId}`,
+    pending.map((p) => p.id),
+  );
 
   // עדכון חי: כשהמנהלת מאשרת/מוחקת/מישהו מעלה, כל מי שכבר פתוח/ה בעמוד
   // המפגש מקבל/ת את זה מיד — בלי לצאת ולהיכנס מחדש. ה-RLS על event_photos
@@ -443,38 +453,14 @@ export function EventPhotoAlbum({
           </p>
           <div className="grid grid-cols-3 gap-2">
             {pending.map((photo) => (
-              <div key={photo.id} className="space-y-1.5">
-                <div className="aspect-square overflow-hidden rounded-lg bg-(--color-surface)">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={photo.url}
-                    alt=""
-                    className="size-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
-                <p className="truncate text-[0.65rem] text-(--color-ink-faint)">
-                  {photo.uploaderName}
-                </p>
-                <div className="flex gap-1">
-                  <button
-                    type="button"
-                    onClick={() => onApprove(photo.id)}
-                    disabled={busyId === photo.id}
-                    className="flex-1 rounded-lg bg-(--color-sea) py-1 text-[0.7rem] font-bold text-white disabled:opacity-40"
-                  >
-                    אישור
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onDelete(photo)}
-                    disabled={busyId === photo.id}
-                    className="flex-1 rounded-lg border border-(--color-line) bg-(--color-surface) py-1 text-[0.7rem] font-bold text-(--color-ink-soft) disabled:opacity-40"
-                  >
-                    דחייה
-                  </button>
-                </div>
-              </div>
+              <PendingPreviewTile
+                key={photo.id}
+                photo={photo}
+                busy={busyId === photo.id}
+                isNew={newPendingIds.has(photo.id)}
+                onApprove={() => onApprove(photo.id)}
+                onDelete={() => onDelete(photo)}
+              />
             ))}
           </div>
         </div>
@@ -482,78 +468,18 @@ export function EventPhotoAlbum({
 
       {gridPhotos.length > 0 ? (
         <div className="grid grid-cols-3 gap-2">
-          {gridPhotos.map((photo, i) => {
-            const isSelected = selected.has(photo.id);
-            const isPending = photo.status === "pending";
-            return (
-              <button
-                key={photo.id}
-                type="button"
-                onClick={() => (selecting ? toggleSelected(photo.id) : setViewerIndex(i))}
-                aria-pressed={selecting ? isSelected : undefined}
-                aria-label={selecting ? "בחירת תמונה" : "הצגת תמונה"}
-                className="relative aspect-square overflow-hidden rounded-lg bg-(--color-haze)"
-              >
-                {/* מקורות מעורבים (קישור חתום / data URL / נכס מקומי
-                    בהדגמה) — next/image דורש רשימת דומיינים מוגדרת מראש
-                    ולא מתאים כאן, בדיוק כמו בסלפים ב-attendee-grid. */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={photo.url}
-                  alt=""
-                  className={
-                    "size-full object-cover transition " +
-                    (isPending ? "opacity-45 " : "") +
-                    (selecting && isSelected ? "opacity-60" : "")
-                  }
-                  loading="lazy"
-                />
-
-                {/* עד שהמנהלת מאשרת, התמונה שקופה חלקית — ברגע שהיא
-                    מאושרת, אותה תמונה באותו מקום עוברת לצבע מלא. */}
-                {isPending && (
-                  <span className="pointer-events-none absolute inset-x-1 bottom-1 rounded-full bg-black/60 py-0.5 text-center text-[0.65rem] font-bold text-white">
-                    ממתין לאישור
-                  </span>
-                )}
-
-                {selecting && (
-                  <div
-                    className={
-                      "pointer-events-none absolute end-1.5 top-1.5 flex size-5 items-center justify-center rounded-full border-2 border-white " +
-                      (isSelected ? "bg-(--color-sea)" : "bg-black/30")
-                    }
-                  >
-                    {isSelected && <CheckIcon className="size-3 text-white" />}
-                  </div>
-                )}
-
-                {/* מנהלת מוחקת כל תמונה; מי שהעלה תמונה יכול/ה למחוק
-                    רק את שלו/ה, וכל עוד היא עדיין ממתינה לאישור —
-                    ברגע שאושרה, ה-X נעלם (RLS תואם, migration 0047). */}
-                {!selecting && (canManage || (isPending && photo.isMine)) && (
-                  <span
-                    role="button"
-                    tabIndex={0}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete(photo);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.stopPropagation();
-                        onDelete(photo);
-                      }
-                    }}
-                    aria-label="מחיקת תמונה"
-                    className="absolute end-1 top-1 flex size-[26px] items-center justify-center rounded-full bg-black/55 text-white"
-                  >
-                    <XIcon className="size-[15px]" />
-                  </span>
-                )}
-              </button>
-            );
-          })}
+          {gridPhotos.map((photo, i) => (
+            <GridPhotoTile
+              key={photo.id}
+              photo={photo}
+              selecting={selecting}
+              isSelected={selected.has(photo.id)}
+              canManage={canManage}
+              isNew={newGridIds.has(photo.id)}
+              onOpen={() => (selecting ? toggleSelected(photo.id) : setViewerIndex(i))}
+              onDelete={() => onDelete(photo)}
+            />
+          ))}
         </div>
       ) : (
         pending.length === 0 && (
@@ -617,6 +543,157 @@ export function EventPhotoAlbum({
         />
       )}
       {dialog}
+    </div>
+  );
+}
+
+/** כרטיס בודד ברשת הראשית. isNew מגיע מ-useNewLiveIds ברכיב האב (ראו
+ * EventPhotoAlbum), לא מחושב כאן — כדי שה"זריעה" הראשונית של כל
+ * ה-ids תקרה פעם אחת לכל הרשימה, לא per-item. */
+function GridPhotoTile({
+  photo,
+  selecting,
+  isSelected,
+  canManage,
+  isNew,
+  onOpen,
+  onDelete,
+}: {
+  photo: EventPhoto;
+  selecting: boolean;
+  isSelected: boolean;
+  canManage: boolean;
+  isNew: boolean;
+  onOpen: () => void;
+  onDelete: () => void;
+}) {
+  const isPending = photo.status === "pending";
+
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-pressed={selecting ? isSelected : undefined}
+      aria-label={selecting ? "בחירת תמונה" : "הצגת תמונה"}
+      className={
+        "relative aspect-square overflow-hidden rounded-lg bg-(--color-haze) " +
+        (isNew ? "live-highlight" : "")
+      }
+    >
+      {/* מקורות מעורבים (קישור חתום / data URL / נכס מקומי
+          בהדגמה) — next/image דורש רשימת דומיינים מוגדרת מראש
+          ולא מתאים כאן, בדיוק כמו בסלפים ב-attendee-grid. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={photo.url}
+        alt=""
+        className={
+          "size-full object-cover transition " +
+          (isPending ? "opacity-45 " : "") +
+          (selecting && isSelected ? "opacity-60" : "")
+        }
+        loading="lazy"
+      />
+
+      {/* עד שהמנהלת מאשרת, התמונה שקופה חלקית — ברגע שהיא
+          מאושרת, אותה תמונה באותו מקום עוברת לצבע מלא. */}
+      {isPending && (
+        <span className="pointer-events-none absolute inset-x-1 bottom-1 rounded-full bg-black/60 py-0.5 text-center text-[0.65rem] font-bold text-white">
+          ממתין לאישור
+        </span>
+      )}
+
+      {selecting && (
+        <div
+          className={
+            "pointer-events-none absolute end-1.5 top-1.5 flex size-5 items-center justify-center rounded-full border-2 border-white " +
+            (isSelected ? "bg-(--color-sea)" : "bg-black/30")
+          }
+        >
+          {isSelected && <CheckIcon className="size-3 text-white" />}
+        </div>
+      )}
+
+      {/* מנהלת מוחקת כל תמונה; מי שהעלה תמונה יכול/ה למחוק
+          רק את שלו/ה, וכל עוד היא עדיין ממתינה לאישור —
+          ברגע שאושרה, ה-X נעלם (RLS תואם, migration 0047). */}
+      {!selecting && (canManage || (isPending && photo.isMine)) && (
+        <span
+          role="button"
+          tabIndex={0}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.stopPropagation();
+              onDelete();
+            }
+          }}
+          aria-label="מחיקת תמונה"
+          className="absolute end-1 top-1 flex size-[26px] items-center justify-center rounded-full bg-black/55 text-white"
+        >
+          <XIcon className="size-[15px]" />
+        </span>
+      )}
+
+      {isNew && (
+        <span className="sr-only" role="status">
+          תמונה חדשה נוספה לאלבום.
+        </span>
+      )}
+    </button>
+  );
+}
+
+/** כרטיס בתצוגה המקדימה של תמונות ממתינות (לפני ה-grid הראשי). אותו
+ * דפוס highlight בדיוק כמו GridPhotoTile, ראו שם. */
+function PendingPreviewTile({
+  photo,
+  busy,
+  isNew,
+  onApprove,
+  onDelete,
+}: {
+  photo: EventPhoto;
+  busy: boolean;
+  isNew: boolean;
+  onApprove: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div className={"space-y-1.5 rounded-lg " + (isNew ? "live-highlight" : "")}>
+      <div className="aspect-square overflow-hidden rounded-lg bg-(--color-surface)">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={photo.url} alt="" className="size-full object-cover" loading="lazy" />
+      </div>
+      <p className="truncate text-[0.65rem] text-(--color-ink-faint)">
+        {photo.uploaderName}
+      </p>
+      <div className="flex gap-1">
+        <button
+          type="button"
+          onClick={onApprove}
+          disabled={busy}
+          className="flex-1 rounded-lg bg-(--color-sea) py-1 text-[0.7rem] font-bold text-white disabled:opacity-40"
+        >
+          אישור
+        </button>
+        <button
+          type="button"
+          onClick={onDelete}
+          disabled={busy}
+          className="flex-1 rounded-lg border border-(--color-line) bg-(--color-surface) py-1 text-[0.7rem] font-bold text-(--color-ink-soft) disabled:opacity-40"
+        >
+          דחייה
+        </button>
+      </div>
+      {isNew && (
+        <span className="sr-only" role="status">
+          תמונה חדשה של {photo.uploaderName} ממתינה לאישור.
+        </span>
+      )}
     </div>
   );
 }

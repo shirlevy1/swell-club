@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import type { GoingPerson } from "@/lib/data";
 import { facePositionStyle } from "@/lib/face-position";
@@ -8,6 +10,7 @@ import {
 } from "@/lib/swim-level";
 import { ChevronIcon, WaveIcon } from "./social-icons";
 import { Card } from "./ui";
+import { useNewLiveIds } from "./live-refresh-context";
 
 /**
  * אות אחת מהשם הפרטי — הפנים עצמן הן הפרס על נוכחות, ולא נחשפות כאן.
@@ -41,6 +44,13 @@ export function GoingList({
       אותו דפוס בדיוק כמו attendee-grid.tsx. */
   eventId: string;
 }) {
+  // hook חייב לרוץ בכל render, גם כשהרשימה ריקה — לכן לפני ה-return
+  // המוקדם למטה, לא אחריו.
+  const newIds = useNewLiveIds(
+    `going:${eventId}`,
+    people.map((p) => p.profileId),
+  );
+
   if (people.length === 0) return null;
 
   // "אתם" תמיד ראשון, ואחריכם לפי כמה מפגשים כבר הייתם יחד (יורד) —
@@ -73,62 +83,90 @@ export function GoingList({
 
       <ul className="flex flex-wrap gap-2">
         {sorted.map((person) => (
-          <li key={person.profileId}>
-            {/* "אתם" מוביל לפרופיל, כל השאר לעמוד האדם. מטרת מגע של
-                44px גם בידיים רטובות בחוף. */}
-            <Link
-              href={
-                person.isMe
-                  ? "/profile"
-                  : `/people/${person.profileId}?from=${eventId}`
-              }
-              className={
-                "flex min-h-11 items-center gap-2 rounded-full border py-1 ps-1 pe-3 transition hover:border-(--color-sea) hover:bg-(--color-haze) " +
-                (person.isMe
-                  ? "border-(--color-sea) bg-(--color-haze)"
-                  : "border-(--color-line)")
-              }
-            >
-              <div
-                aria-hidden
-                // flex ולא grid: grid+place-items-center מתעקש עם
-                // object-position על ה-img (מלכודת שכבר שילמנו עליה
-                // בעיצוב הפרופיל). לבן על sky הוא 2.3:1 — sky בהיר
-                // מדי לשאת טקסט, גם לבן.
-                className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-(--color-sea) text-sm font-bold text-white"
-              >
-                {person.selfieUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={person.selfieUrl}
-                    alt={person.fullName}
-                    className="size-full object-cover"
-                    style={facePositionStyle(person.faceX, person.faceY)}
-                  />
-                ) : (
-                  initial(person.fullName)
-                )}
-              </div>
-              <span className="text-sm font-semibold">
-                {person.isMe ? "אתם" : person.fullName}
-              </span>
-              {person.swimLevel && (
-                <span
-                  className="flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-[0.65rem] font-semibold text-(--color-ink)"
-                  style={swimLevelBadgeStyle(person.swimLevel)}
-                >
-                  <WaveIcon
-                    className="size-2.5"
-                    style={{ color: SWIM_LEVEL_COLOR[person.swimLevel] }}
-                  />
-                  {swimLevelLabel(person.swimLevel)}
-                </span>
-              )}
-              <ChevronIcon className="size-3.5 shrink-0 text-(--color-ink-faint)" />
-            </Link>
-          </li>
+          <GoingPersonTile
+            key={person.profileId}
+            person={person}
+            eventId={eventId}
+            isNew={newIds.has(person.profileId)}
+          />
         ))}
       </ul>
     </Card>
+  );
+}
+
+/** כרטיס בודד — isNew מגיע מ-useNewLiveIds ב-GoingList (ראו שם). זו
+ * הרשימה שמתעדכנת בפועל במפגש עתידי (לפני שחלון הצ'ק־אין נפתח) —
+ * רשת הנוכחים עצמה ריקה עד אז. */
+function GoingPersonTile({
+  person,
+  eventId,
+  isNew,
+}: {
+  person: GoingPerson;
+  eventId: string;
+  isNew: boolean;
+}) {
+  return (
+    <li>
+      {/* "אתם" מוביל לפרופיל, כל השאר לעמוד האדם. מטרת מגע של
+          44px גם בידיים רטובות בחוף. */}
+      <Link
+        href={
+          person.isMe
+            ? "/profile"
+            : `/people/${person.profileId}?from=${eventId}`
+        }
+        className={
+          "flex min-h-11 items-center gap-2 rounded-full border py-1 ps-1 pe-3 transition hover:border-(--color-sea) hover:bg-(--color-haze) " +
+          (person.isMe
+            ? "border-(--color-sea) bg-(--color-haze)"
+            : "border-(--color-line)") +
+          (isNew && !person.isMe ? " live-highlight" : "")
+        }
+      >
+        <div
+          aria-hidden
+          // flex ולא grid: grid+place-items-center מתעקש עם
+          // object-position על ה-img (מלכודת שכבר שילמנו עליה
+          // בעיצוב הפרופיל). לבן על sky הוא 2.3:1 — sky בהיר
+          // מדי לשאת טקסט, גם לבן.
+          className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-(--color-sea) text-sm font-bold text-white"
+        >
+          {person.selfieUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={person.selfieUrl}
+              alt={person.fullName}
+              className="size-full object-cover"
+              style={facePositionStyle(person.faceX, person.faceY)}
+            />
+          ) : (
+            initial(person.fullName)
+          )}
+        </div>
+        <span className="text-sm font-semibold">
+          {person.isMe ? "אתם" : person.fullName}
+        </span>
+        {person.swimLevel && (
+          <span
+            className="flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-[0.65rem] font-semibold text-(--color-ink)"
+            style={swimLevelBadgeStyle(person.swimLevel)}
+          >
+            <WaveIcon
+              className="size-2.5"
+              style={{ color: SWIM_LEVEL_COLOR[person.swimLevel] }}
+            />
+            {swimLevelLabel(person.swimLevel)}
+          </span>
+        )}
+        <ChevronIcon className="size-3.5 shrink-0 text-(--color-ink-faint)" />
+      </Link>
+      {isNew && !person.isMe && (
+        <span className="sr-only" role="status">
+          {person.fullName} מצטרפ/ת למי שמגיעים.
+        </span>
+      )}
+    </li>
   );
 }

@@ -12,7 +12,6 @@ import {
 import {
   ageInYears,
   formatDate,
-  formatDateTime,
   formatDayMonth,
   formatPhone,
   formatTime,
@@ -22,12 +21,12 @@ import {
 } from "@/lib/format";
 import { checkInWindow } from "@/lib/checkin";
 import { swimLevelLabel } from "@/lib/swim-level";
-import { Card, EmptyState, LinkButton, PageHeader } from "@/components/ui";
+import { EmptyState, LinkButton, PageHeader } from "@/components/ui";
 import { ExportButton } from "@/components/export-button";
 import { AdminEventCard } from "@/components/admin-event-card";
-import { PendingMemberRow } from "@/components/pending-member-row";
+import { PendingMembersCard } from "@/components/pending-member-row";
 import { MemberSearchList } from "@/components/member-search-list";
-import { PendingPhotoGroup } from "@/components/pending-photo-group";
+import { PendingPhotosSection } from "@/components/pending-photo-group";
 import { AdminLiveRefresh } from "@/components/admin-live-refresh";
 
 /** מקבצת לפי מפגש, ובתוך כל מפגש לפי מי שהעלה — כדי שערימת התמונות
@@ -270,18 +269,7 @@ export default async function AdminPage() {
               </>
             )}
           </h2>
-          <Card className="divide-y divide-(--color-line)/50 p-0">
-            {pendingMembers.map((m) => (
-              <PendingMemberRow
-                key={m.profileId}
-                profileId={m.profileId}
-                fullName={m.fullName}
-                ageYears={m.ageYears}
-                phone={m.phone}
-                instagram={m.instagram}
-              />
-            ))}
-          </Card>
+          <PendingMembersCard members={pendingMembers} clubId={viewer.club.id} />
         </section>
       )}
 
@@ -292,34 +280,7 @@ export default async function AdminPage() {
               ? "תמונה אחת ממתינה לאישור"
               : `${pendingPhotos.length} תמונות ממתינות לאישור`}
           </h2>
-          <div className="space-y-4">
-            {pendingPhotosByEvent.map((event) => (
-              <div key={event.eventId} className="space-y-2">
-                <div className="flex items-baseline justify-between gap-2">
-                  <Link
-                    href={`/events/${event.eventId}?from=admin-photos`}
-                    className="truncate text-sm font-bold text-(--color-sea) hover:underline"
-                  >
-                    {event.eventTitle}
-                  </Link>
-                  <p className="ltr-nums shrink-0 text-xs text-(--color-ink-faint)">
-                    {formatDateTime(event.eventStartsAt)}
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  {event.uploaderGroups.map((group) => (
-                    <PendingPhotoGroup
-                      key={group.uploaderId}
-                      eventId={event.eventId}
-                      uploaderId={group.uploaderId}
-                      uploaderName={group.uploaderName}
-                      photos={group.photos}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+          <PendingPhotosSection photosByEvent={pendingPhotosByEvent} clubId={viewer.club.id} />
         </section>
       )}
 

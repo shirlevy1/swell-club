@@ -102,6 +102,29 @@
   .rise {
     animation: rise 1.1s var(--ease-swell) both;
   }
+
+  /* רענון חי (ראו live-refresh-context.tsx): הבדל עדין וחד-פעמי בין מה
+     שכבר היה במסך לדבר שבאמת הופיע עכשיו ברקע. live-highlight לכרטיסי
+     רשת (טבעת פנימית שדועכת, דרך ::after כדי לא להתנגש בצל/ring קיים
+     על הכרטיס עצמו — למשל הטבעת של "זה אני" ב-attendee-grid). live-
+     highlight-row לשורות שטוחות בלי רדיוס (הבהוב רקע קצר במקום טבעת). */
+  .live-highlight {
+    position: relative;
+    animation: live-pop 1.8s var(--ease-swell) both;
+  }
+  .live-highlight::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--color-sea) 55%, transparent);
+    animation: live-ring 1.8s var(--ease-swell) both;
+  }
+
+  .live-highlight-row {
+    animation: live-row 1.8s var(--ease-swell) both;
+  }
 }
 
 @keyframes rise {
@@ -113,6 +136,21 @@
     opacity: 1;
     transform: none;
   }
+}
+
+@keyframes live-pop {
+  0% { opacity: 0; transform: translateY(0.25rem) scale(0.97); }
+  100% { opacity: 1; transform: none; }
+}
+
+@keyframes live-ring {
+  0%, 55% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes live-row {
+  0% { background-color: color-mix(in srgb, var(--color-sea) 16%, transparent); }
+  100% { background-color: transparent; }
 }
 
 /* נשימת האופק — הערפל שנע מעל המים */
