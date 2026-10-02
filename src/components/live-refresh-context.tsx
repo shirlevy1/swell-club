@@ -79,9 +79,15 @@ export function useNewLiveIds(
     // ברשימה השמורה.
     const fresh = seenBefore === null ? [] : ids.filter((id) => !seenBefore.has(id));
 
-    const next = new Set(seenBefore ?? []);
-    ids.forEach((id) => next.add(id));
-    writeSeen(scope, next);
+    // שומרים רק את התמונה הנוכחית (ids), לא איחוד שגדל לנצח עם כל מה
+    // שאי-פעם נראה: ברגע שפריט יוצא מהרשימה (תמונה אושרה/נדחתה, מישהו
+    // ביטל RSVP) הוא פשוט לא חלק מ-ids יותר, ונושר מה-storage מעצמו —
+    // בלי מנגנון ניקוי נפרד. זה שומר על גודל ה-storage תחום לפי מה
+    // שבאמת קיים עכשיו (למשל מספר התמונות הממתינות כרגע בקהילה), לא
+    // לפי כל מה שהמתין אי-פעם בהיסטוריה שלה. תופעת לוואי טובה: אם
+    // מישהו מבטל RSVP וחוזר עליו אחר כך, הוא יבהב שוב כ"חדש" — סביר,
+    // לא רק "לא מזיק".
+    writeSeen(scope, new Set(ids));
 
     // נדחה למיקרו-טסק (לא קריאה סינכרונית ישירה בתוך ה-effect) —
     // ESLint (react-hooks/set-state-in-effect) מסמן setState סינכרוני
