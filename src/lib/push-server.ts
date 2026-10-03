@@ -1,7 +1,17 @@
+import { createHash } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import webpush from "web-push";
 import { formatTime } from "./format";
 import { sendEmail, buildEmailHtml } from "./email-server";
+
+/**
+ * טביעת-אצבע קצרה ובלתי-הפיכה של endpoint מנוי Push, לשימוש ביומני
+ * שגיאות בלבד — מאפשרת לזהות "זה אותו מנוי שחוזר ונכשל" בין שורות
+ * לוג שונות, בלי לכתוב ליומן את הכתובת המלאה שמזהה את המכשיר עצמו.
+ */
+function endpointFingerprint(endpoint: string): string {
+  return createHash("sha256").update(endpoint).digest("hex").slice(0, 12);
+}
 
 /**
  * שליחת Push מיידית (לא מ-cron) — לכל האירועים שקורים בפעולה אחת:
@@ -167,7 +177,7 @@ export async function sendWebPushBatch(
         // אצל הדפדפן) לא משאיר שום עקבה שאפשר לבדוק אחר כך.
         hardFailureCount++;
         console.error("sendWebPushBatch: send failed", {
-          endpoint: s.endpoint,
+          endpointFingerprint: endpointFingerprint(s.endpoint),
           status,
           message: (err as { message?: string })?.message,
         });
