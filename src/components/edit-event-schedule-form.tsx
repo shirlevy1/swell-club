@@ -209,11 +209,17 @@ export function EditEventScheduleForm({
       // (למשל "2026-08-28T18:00:00+00:00") לא זהה תווית ל-toISOString()
       // הטרי ("...T18:00:00.000Z"), למרות שזה אותו רגע בדיוק — השוואת
       // מחרוזות הייתה תמיד יוצאת "שונה" ומוציאה התראה על כל שמירה בכלל.
+      //
+      // location_name בכוונה בתוך הבדיקה, לא רק lat/lng: מישהי יכולה
+      // לתקן רק את הטקסט (למשל שם מקום מדויק יותר) בלי להזיז את הסיכה
+      // על המפה בכלל — זה עדיין שינוי שמי שתכנן/ה להגיע לפי השם הישן
+      // צריך/ה לדעת עליו.
       const detailsChanged =
         new Date(patch.starts_at).getTime() !==
           new Date(event.starts_at).getTime() ||
         patch.lat !== event.lat ||
-        patch.lng !== event.lng;
+        patch.lng !== event.lng ||
+        patch.location_name !== event.location_name;
       if (detailsChanged) {
         fetch("/api/push/notify-event-changed", {
           method: "POST",
