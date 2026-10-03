@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { demoMode } from "@/lib/config";
 import { Card } from "./ui";
 import { SignOutButton } from "./sign-out-button";
@@ -65,16 +66,19 @@ export function AmbiguousMembershipScreen() {
   }, [router]);
 
   if (phase === "checking") {
+    // אותו מסך פתיחה כחול עם הלוגו שכבר מוכר מכל כניסה לאתר (ראו
+    // app-header.tsx) — לא הודעת טקסט חדשה. -mx-5 -my-6 פורצים את
+    // הריפוד של PullToRefresh כדי שהכחול יגיע עד הקצוות, לא "מסגרת".
     return (
-      <div className="flex flex-1 items-center pt-10">
-        <Card className="w-full space-y-4 text-center">
-          <h1 className="font-[family-name:var(--font-display)] text-xl font-bold">
-            רגע, בודקים את החשבון
-          </h1>
-          <p className="text-sm leading-relaxed text-(--color-ink-soft)">
-            זה ייקח רק כמה שניות.
-          </p>
-        </Card>
+      <div className="-mx-5 -my-6 flex min-h-full items-center justify-center bg-(--color-sky) py-6">
+        <Image
+          src="/logo-wordmark-white-v4.png"
+          alt=""
+          width={452}
+          height={158}
+          className="h-16 w-auto"
+          priority
+        />
       </div>
     );
   }
