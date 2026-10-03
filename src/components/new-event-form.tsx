@@ -440,9 +440,9 @@ export function NewEventForm() {
               lng={location.coords.lng}
               radiusM={radius}
               focusSignal={location.focusSignal}
-              onChange={(c) => {
+              onChange={(c, opts) => {
                 setDirty(true);
-                location.setCoords(c);
+                location.setCoords(c, opts);
               }}
             />
           </div>

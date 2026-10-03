@@ -29,7 +29,12 @@ export function MapPicker({
   radiusM: number;
   /** עולה כדי לאותת "זוזי לנקודה הזו" — לא כל שינוי קואורדינטות אמור להזיז את התצוגה. */
   focusSignal?: number;
-  onChange: (coords: { lat: number; lng: number }) => void;
+  /** resetName: true רק מ"המיקום שלי" — קפיצה לאן שהמכשיר נמצא *עכשיו*,
+   * לא תיקון עדין של אותו מקום. ראו use-event-location.ts. */
+  onChange: (
+    coords: { lat: number; lng: number },
+    opts?: { resetName?: boolean },
+  ) => void;
 }) {
   const [geoError, setGeoError] = useState<string | null>(null);
   const holder = useRef<HTMLDivElement>(null);
@@ -139,7 +144,7 @@ export function MapPicker({
                   lat: p.coords.latitude,
                   lng: p.coords.longitude,
                 };
-                onChangeRef.current(c);
+                onChangeRef.current(c, { resetName: true });
                 map.current?.setView([c.lat, c.lng], 16);
               },
               // בלי callback לשגיאה, סירוב להרשאת מיקום נראה כמו כפתור
