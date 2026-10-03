@@ -1381,23 +1381,50 @@ export async function getEventPhotos(eventId: string): Promise<EventPhoto[]> {
 /**
  * עד 4 תמונות אלבום *מאושרות* לכל מפגש, לקולאז' בכרטיסי
  * `SelfieHistory` — תמונה שממתינה לאישור לא מוצגת שם כ"זיכרון מהמפגש"
- * לפני שהמנהלת אישרה אותה. לא מוסיפה בדיקת הרשאה משלה —
- * `getEventPhotos` כבר אוכפת את זה דרך ה-RLS.
+ * לפני שהמנהלת אישרה אותה. שאילתה אחת מרוכזת על כל המפגשים (`.in`)
+ * ולא אחת לכל מפגש — אותה תבנית כמו ב-`getAdminData` למעלה באותו קובץ.
+ * לא מוסיפה בדיקת הרשאה משלה — ה-RLS על `event_photos` כבר אוכף מי
+ * רשאי/ת לראות מה, בלי קשר לצורת השאילתה.
  */
 export async function getEventPhotoCollages(
   eventIds: string[],
 ): Promise<Map<string, string[]>> {
   const unique = [...new Set(eventIds)];
-  const lists = await Promise.all(unique.map((id) => getEventPhotos(id)));
-  return new Map(
-    unique.map((id, i) => [
-      id,
-      lists[i]
-        .filter((p) => p.status === "approved")
-        .slice(0, 4)
-        .map((p) => p.url),
-    ]),
-  );
+  if (unique.length === 0) return new Map();
+
+  if (demoMode) {
+    const lists = await Promise.all(unique.map((id) => getEventPhotos(id)));
+    return new Map(
+      unique.map((id, i) => [
+        id,
+        lists[i]
+          .filter((p) => p.status === "approved")
+          .slice(0, 4)
+          .map((p) => p.url),
+      ]),
+    );
+  }
+
+  const supabase = await createClient();
+  const { data: rows } = await supabase
+    .from("event_photos")
+    .select("event_id, storage_path")
+    .in("event_id", unique)
+    .eq("status", "approved")
+    .order("created_at", { ascending: true });
+
+  const urlsByEvent = new Map<string, string[]>(unique.map((id) => [id, []]));
+  if (!rows?.length) return urlsByEvent;
+
+  const paths = rows.map((r) => r.storage_path);
+  const urlByPath = await createSignedUrlsCached(supabase, "event-photos", paths);
+
+  for (const r of rows) {
+    const url = urlByPath.get(r.storage_path);
+    const list = urlsByEvent.get(r.event_id);
+    if (url && list && list.length < 4) list.push(url);
+  }
+  return urlsByEvent;
 }
 
 export type RandomEventAlbum = {
