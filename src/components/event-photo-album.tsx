@@ -203,8 +203,11 @@ export function EventPhotoAlbum({
     // "הכול נכשל" גורפת שיכולה להיות שגויה (חלק כן הועלו בהצלחה).
     let succeeded = 0;
     let failed = 0;
-    let approvedByOrganizer = 0;
-    let pendingByMember = 0;
+    // מזהי השורות שבאמת נוצרו (לא רק מספר) — השרת מאמת אותם בעצמו
+    // מול המסד לפני שהוא שולח התראה, במקום לסמוך על מספר שהלקוח
+    // טוען שהוא נכון. ראו notify-new-photo / notify-photos-added.
+    const approvedPhotoIds: string[] = [];
+    const pendingPhotoIds: string[] = [];
 
     for (const file of files) {
       try {
@@ -232,12 +235,13 @@ export function EventPhotoAlbum({
         );
         if (addError) throw addError;
 
-        // רק סופרים כאן — העלאת מנהלת מאושרת מיד ולא צריכה להודיע
-        // לעצמה. ההתראה בפועל יוצאת פעם אחת בסוף כל סבב, לא לכל תמונה.
+        // רק אוספים את המזהה כאן — העלאת מנהלת מאושרת מיד ולא צריכה
+        // להודיע לעצמה. ההתראה בפועל יוצאת פעם אחת בסוף כל סבב, לא
+        // לכל תמונה.
         if (photoRow?.status === "pending") {
-          pendingByMember++;
+          pendingPhotoIds.push(photoRow.id);
         } else if (photoRow?.status === "approved") {
-          approvedByOrganizer++;
+          approvedPhotoIds.push(photoRow.id);
         }
         succeeded++;
       } catch {
@@ -247,18 +251,18 @@ export function EventPhotoAlbum({
 
     // התראה אחת לכל סבב העלאה, לא אחת לכל תמונה — גם אם הועלו כמה
     // תמונות ברצף. לא ממתינים לזה, זה לא חוסם את ההעלאה.
-    if (approvedByOrganizer > 0) {
+    if (approvedPhotoIds.length > 0) {
       fetch("/api/push/notify-photos-added", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event_id: eventId, count: approvedByOrganizer }),
+        body: JSON.stringify({ event_id: eventId, photo_ids: approvedPhotoIds }),
       }).catch(() => {});
     }
-    if (pendingByMember > 0) {
+    if (pendingPhotoIds.length > 0) {
       fetch("/api/push/notify-new-photo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event_id: eventId, count: pendingByMember }),
+        body: JSON.stringify({ event_id: eventId, photo_ids: pendingPhotoIds }),
       }).catch(() => {});
     }
 

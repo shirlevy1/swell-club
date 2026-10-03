@@ -8,8 +8,8 @@ import { adminDb, sendPushToProfiles } from "@/lib/push-server";
  * ושולח את הסכום כאן). נשלחת רק למי שנכח בפועל במפגש הזה.
  */
 export async function POST(request: Request) {
-  const { event_id, count } = await request.json().catch(() => ({}));
-  if (!event_id || !count || count < 1) {
+  const { event_id, photo_ids } = await request.json().catch(() => ({}));
+  if (!event_id || !Array.isArray(photo_ids) || photo_ids.length === 0) {
     return NextResponse.json({ error: "bad_request" }, { status: 400 });
   }
 
@@ -43,6 +43,21 @@ export async function POST(request: Request) {
     .maybeSingle();
   if (!membership) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+
+  // הספירה האמיתית — לא סומכים על מה שהלקוח טוען שהוא העלה: רק
+  // שורות שבאמת קיימות, שייכות למי ששלח/ה את הבקשה ולמפגש הזה,
+  // ומאושרות. מישהו יכול לשלוח מזהים מזויפים/של אחרים, אבל הם פשוט
+  // לא יתאימו לאף שורה אמיתית ולא ייספרו.
+  const { count } = await db
+    .from("event_photos")
+    .select("id", { count: "exact", head: true })
+    .in("id", photo_ids)
+    .eq("event_id", event_id)
+    .eq("uploaded_by", user.id)
+    .eq("status", "approved");
+  if (!count || count < 1) {
+    return NextResponse.json({ error: "bad_request" }, { status: 400 });
   }
 
   const { data: attendees } = await db
