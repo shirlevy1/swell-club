@@ -244,7 +244,7 @@ export function buildReminderPayload(
   const body =
     kind === "evening"
       ? "מחר במים. נתראה שם."
-      : "מגיעים לסוואל?\nעשו צ׳ק־אין כדי להופיע בתמונות ולהיות חלק מהמפגש.";
+      : "מגיעים לסוואל?\nעשו צ׳ק־אין כדי להופיע בתמונות ולהיות חלק.";
   return {
     title,
     body,
