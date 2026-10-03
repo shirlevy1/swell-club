@@ -57,6 +57,25 @@ export function useEventLocation(initial: {
   // כבר רואה בדיוק את הנקודה שבה היא לחצה.
   const [focusSignal, setFocusSignal] = useState(0);
 
+  // עוטפת את שדה השם + תיבת ההצעות (ראו new-event-form.tsx /
+  // edit-event-schedule-form.tsx) — נדרש כדי לזהות "לחיצה מחוץ לתיבה"
+  // למטה ולסגור אותה. בלי זה, תיבת ההצעות נשארת פתוחה וצפה מעל שאר
+  // הטופס (כולל כפתור השמירה למטה) עד שבוחרים הצעה או לוחצים Escape —
+  // כלומר מי שמקלידה שם ידני ולא בוחרת אף הצעה נתקעת איתה. מוחזר
+  // בנפרד מה-object הראשי למטה — ראו ההערה שם.
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showSuggestions) return;
+    function onPointerDown(e: PointerEvent) {
+      if (!containerRef.current?.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [showSuggestions]);
+
   useEffect(() => {
     if (skipNextSearch.current) {
       skipNextSearch.current = false;
@@ -190,25 +209,32 @@ export function useEventLocation(initial: {
     setFocusSignal((n) => n + 1);
   }
 
-  return {
-    locationName,
-    setLocationName,
-    coords,
-    setCoords: setCoordsManually,
-    mapsUrl,
-    suggestions,
-    searching,
-    showSuggestions,
-    searchError,
-    highlightedIndex,
-    setHighlightedIndex,
-    focusSignal,
-    chooseSuggestion,
-    onLocationInputKeyDown,
-    mapsLinkInput,
-    setMapsLinkInput,
-    resolvingLink,
-    linkError,
-    onResolveMapsLink,
-  };
+  // containerRef מוחזר בנפרד מה-object למטה, לא בתוכו: eslint (react-
+  // compiler) מסמן כל קריאת property מה-object המוחזר כ"קריאת ref
+  // בזמן רינדור" ברגע שיש בו property אחד שקשור ל-ref בכלל, גם
+  // property אחר לגמרי כמו location.resolvingLink.
+  return [
+    {
+      locationName,
+      setLocationName,
+      coords,
+      setCoords: setCoordsManually,
+      mapsUrl,
+      suggestions,
+      searching,
+      showSuggestions,
+      searchError,
+      highlightedIndex,
+      setHighlightedIndex,
+      focusSignal,
+      chooseSuggestion,
+      onLocationInputKeyDown,
+      mapsLinkInput,
+      setMapsLinkInput,
+      resolvingLink,
+      linkError,
+      onResolveMapsLink,
+    },
+    containerRef,
+  ] as const;
 }

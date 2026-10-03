@@ -47,7 +47,7 @@ function roundedNow(): Date {
 
 export function NewEventForm() {
   const router = useRouter();
-  const location = useEventLocation({
+  const [location, locationContainerRef] = useEventLocation({
     locationName: DEFAULT_EVENT_LOCATION.name,
     lat: DEFAULT_EVENT_LOCATION.lat,
     lng: DEFAULT_EVENT_LOCATION.lng,
@@ -411,7 +411,7 @@ export function NewEventForm() {
 
           {/* z-[5], לא z-20: צריך רק לנצח את המפה מתחת (z-0) — לא את
               סרגל הלוגו הקבוע (z-10), שאחרת נחצה כשהשדה מגיע לראש המסך. */}
-          <div className="relative z-[5]">
+          <div ref={locationContainerRef} className="relative z-[5]">
             <Field label="מיקום המפגש" hint="איך אנשים מכירים את המקום">
               <LocationNameInput
                 value={location.locationName}

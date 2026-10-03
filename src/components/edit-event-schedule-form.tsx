@@ -61,7 +61,7 @@ export function EditEventScheduleForm({
   // אחר בטופס (תיאור, מיקום וכו'), ומוחק שינוי שעה/תאריך שכבר נבחר.
   const [startsAtDefault] = useState(() => new Date(event.starts_at));
 
-  const location = useEventLocation({
+  const [location, locationContainerRef] = useEventLocation({
     locationName: event.location_name,
     lat: event.lat,
     lng: event.lng,
@@ -404,7 +404,7 @@ export function EditEventScheduleForm({
 
         {/* z-[5], לא z-20: צריך רק לנצח את המפה מתחת (z-0) — לא את
             סרגל הלוגו הקבוע (z-10), שאחרת נחצה כשהשדה מגיע לראש המסך. */}
-        <div className="relative z-[5]">
+        <div ref={locationContainerRef} className="relative z-[5]">
           <Field label="מיקום המפגש" hint="איך אנשים מכירים את המקום">
             <LocationNameInput
               value={location.locationName}
