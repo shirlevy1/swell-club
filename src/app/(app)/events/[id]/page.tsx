@@ -166,7 +166,7 @@ export default async function EventPage({
         <a
           href={
             event.maps_url ??
-            `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location_name)}`
+            `https://www.google.com/maps/search/?api=1&query=${event.lat},${event.lng}`
           }
           target="_blank"
           rel="noreferrer"
