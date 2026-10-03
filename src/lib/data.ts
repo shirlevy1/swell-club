@@ -145,7 +145,17 @@ export async function getViewer(): Promise<Viewer | null> {
 
   const [{ data: profile }, { data: membership }] = await Promise.all([
     withRetry(() =>
-      supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
+      supabase
+        .from("profiles")
+        // עמודות מפורשות, לא "*" — ראו ההערה המלאה ב-getMemberProfile
+        // למטה, אותה סיבה בדיוק. זה הפרופיל של הצופה עצמו/ה, אז אין
+        // כאן הגבלה על מה מותר להראות — רק מניעה שעמודה עתידית תודלף
+        // בלי החלטה מודעת.
+        .select(
+          "id, full_name, phone, instagram, birth_date, city, gender, swim_level, waiver_accepted_at, privacy_accepted_at, avatar_path, created_at",
+        )
+        .eq("id", userId)
+        .maybeSingle(),
     ),
     withRetry(() =>
       supabase
@@ -773,9 +783,16 @@ export async function getMemberProfile(
   }
 
   const supabase = await createClient();
+  // עמודות מפורשות, לא "*" — RLS הוא ברמת שורה בלבד, אז "*" על שורה
+  // שמותר לקרוא שולח גם כל עמודה עתידית שתתווסף לטבלה, גם אם אף מסך
+  // לא מציג אותה. כרגע זה בדיוק כל השדות של Profile (מנהלת רואה הכל
+  // על חבר/ה, במכוון) — הרשימה המפורשת לא מגבילה שום דבר שמוצג היום,
+  // רק מוודאת שעמודה חדשה תידרש בהחלטה מודעת, לא תידלף בשקט.
   const { data } = await supabase
     .from("profiles")
-    .select("*")
+    .select(
+      "id, full_name, phone, instagram, birth_date, city, gender, swim_level, waiver_accepted_at, privacy_accepted_at, avatar_path, created_at",
+    )
     .eq("id", profileId)
     .maybeSingle();
   return (data ?? null) as Profile | null;
