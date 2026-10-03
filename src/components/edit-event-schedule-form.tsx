@@ -395,8 +395,8 @@ export function EditEventScheduleForm({
         {attendanceCount > 0 && (
           <Notice tone="warn">
             {attendanceCount === 1
-              ? "כבר יש נוכחות אחת רשומה למפגש הזה."
-              : `כבר יש ${attendanceCount} נוכחויות רשומות למפגש הזה.`}{" "}
+              ? "כבר יש הגעה אחת רשומה למפגש הזה."
+              : `כבר יש ${attendanceCount} הגעות רשומות למפגש הזה.`}{" "}
             שינוי המיקום או הרדיוס כאן לא משנה את הרשומות ההיסטוריות
             שכבר נשמרו - רק את התנאים לצ׳ק־אין מעכשיו והלאה.
           </Notice>

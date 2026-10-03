@@ -84,7 +84,7 @@ export type MembersForAttendanceResult =
 export async function getMembersForAttendanceAction(): Promise<MembersForAttendanceResult> {
   const viewer = await getViewer();
   if (!viewer?.club || viewer.role !== "organizer") {
-    return { ok: false, error: "רק מנהלת קהילה יכולה להוסיף נוכחות." };
+    return { ok: false, error: "רק מנהלת קהילה יכולה לסמן הגעה ידנית." };
   }
 
   const members = await getClubMembersWithLatestSelfie(viewer.club.id);

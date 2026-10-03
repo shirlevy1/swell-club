@@ -175,7 +175,7 @@ function AttendeeTile({
 
       {isNew && !isMe && (
         <p className="sr-only" role="status">
-          {profile.full_name} {byGender(profile.gender, "הצטרף", "הצטרפה")} לנוכחים.
+          {profile.full_name} {byGender(profile.gender, "הצטרף", "הצטרפה")} עכשיו.
         </p>
       )}
     </li>
