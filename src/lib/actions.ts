@@ -49,6 +49,17 @@ export async function resolveMapsLinkAction(
     return { ok: false, error: "לא הצלחנו לפתוח את הקישור. בדקו ונסו שוב." };
   }
 
+  // הבדיקה למעלה (`isGoogleMapsUrl(url)`) בודקת רק את הכתובת שהודבקה -
+  // לא כל קפיצת הפניה (redirect) בדרך. כתובת קצרה (maps.app.goo.gl)
+  // היא בעצמה הפניה, אז בלי הבדיקה הזו על הכתובת הסופית, אין שום
+  // אימות שה-fetch לא "נחת" במקום שהוא לא דומיין אמיתי של גוגל.
+  if (!isGoogleMapsUrl(response.url)) {
+    return {
+      ok: false,
+      error: "הקישור הוביל לכתובת שלא נראית כמו Google Maps.",
+    };
+  }
+
   const parsed = parseGoogleMapsUrl(response.url);
   if (!parsed) {
     return {
