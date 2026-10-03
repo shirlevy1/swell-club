@@ -7,6 +7,7 @@ import { demoMode } from "@/lib/config";
 import { updateProfileAction } from "@/lib/demo/actions";
 import {
   byGender,
+  hasFirstAndLastName,
   isHebrewName,
   isValidIsraeliPhone,
   normalizeInstagram,
@@ -58,6 +59,8 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     if (fullName.length < 2) return setError("צריך שם מלא.");
     if (!isHebrewName(fullName))
       return setError("שם מלא צריך להיות בעברית בלבד.");
+    if (!hasFirstAndLastName(fullName))
+      return setError("צריך שם פרטי ושם משפחה.");
     if (!gender) return setError("צריך לבחור מגדר.");
     if (!isValidIsraeliPhone(phone))
       return setError("מספר הפלאפון לא נראה תקין.");

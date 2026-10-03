@@ -228,6 +228,16 @@ export function isHebrewName(raw: string): boolean {
   return /^[א-ת\s'"־-]+$/.test(raw.trim());
 }
 
+/**
+ * דורשת שם פרטי ושם משפחה (שתי מילים לפחות) - "שם מלא" לא אכף את זה
+ * בעצמו עד עכשיו, ואנשים מילאו מילה אחת בלבד. split על כל רצף רווחים
+ * (לא רק includes(" ")), כדי ששם עם כמה רווחים ברצף או רווח בודד
+ * בתחילת/סוף המחרוזת לא ייחשב בטעות כשתי מילים.
+ */
+export function hasFirstAndLastName(raw: string): boolean {
+  return raw.trim().split(/\s+/).filter(Boolean).length >= 2;
+}
+
 // ------------------------------------------------------------- אינסטגרם
 
 /**

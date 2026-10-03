@@ -4,7 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { isHebrewName, isValidIsraeliPhone, normalizeInstagram } from "@/lib/format";
+import {
+  hasFirstAndLastName,
+  isHebrewName,
+  isValidIsraeliPhone,
+  normalizeInstagram,
+} from "@/lib/format";
 import { demoMode } from "@/lib/config";
 import { authErrorMessage } from "@/lib/auth-errors";
 import { CityAutocomplete } from "@/components/city-autocomplete";
@@ -40,6 +45,8 @@ export default function SignupPage() {
     if (fullName.length < 2) return setError("צריך שם מלא.");
     if (!isHebrewName(fullName))
       return setError("שם מלא צריך להיות בעברית בלבד.");
+    if (!hasFirstAndLastName(fullName))
+      return setError("צריך שם פרטי ושם משפחה.");
     if (!gender) return setError("צריך לבחור מגדר.");
     if (password.length < 8) return setError("הסיסמה צריכה להיות באורך 8 תווים לפחות.");
     if (!isValidIsraeliPhone(phone))
