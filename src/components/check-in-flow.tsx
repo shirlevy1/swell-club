@@ -285,11 +285,11 @@ export function CheckInFlow({
     canvas.width = Math.round(video.videoWidth * scale);
     canvas.height = Math.round(video.videoHeight * scale);
     const ctx = canvas.getContext("2d");
-    // ממוראה כמו התצוגה המקדימה — לא רק בזמן הצילום. זיהוי הפנים
-    // רץ אחרי הציור הזה, ולכן מודד את הפנים במיקום הסופי (המוראה)
-    // ולא צריך שום תיקון נפרד.
-    ctx?.translate(canvas.width, 0);
-    ctx?.scale(-1, 1);
+    // בכוונה *לא* מוראה, בניגוד לתצוגה המקדימה (drawFrame למעלה) —
+    // שיר ביקשה שהתמונה השמורה תראה את העולם האמיתי (ימין/שמאל כמו
+    // שמישהו מולכם היה רואה), לא כמו במראה. זיהוי הפנים רץ אחרי הציור
+    // הזה ולא צריך שום תיקון: הוא פשוט מודד את הפנים איפה שהן נמצאות
+    // בתמונה הסופית, מוראה או לא.
     ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     // בדיקת פנים לפני שממשיכים לכל דבר אחר, ולפני עצירת המצלמה —
