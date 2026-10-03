@@ -197,7 +197,15 @@ export async function searchLocationAction(
         // את השם שלו ב-r.name, לא תחת road/house_number. בלי הנפילה
         // הזו ל-r.name, shortLabel היה מאבד את השם לגמרי ונשאר עם
         // שם העיר בלבד (זה מה שקרה בפועל עם "חוף מציצים" → "תל אביב").
-        const primary = street || r.name;
+        //
+        // רחוב "מנצח" את השם רק כשיש גם מספר בית — זו כתובת מדויקת
+        // וממוקדת (כמו "דיזנגוף 50"), ואז הוא באמת הכי שימושי. בלי
+        // מספר בית, רחוב הוא רק שיוך כללי וחלש (לפעמים ממש מקרי) —
+        // ואז השם עצמו עדיף. בלעדי זה, מקום בעל שם שיש לו גם רחוב
+        // משויך בלי מספר (למשל תחנת שכירת אופניים הקרויה על שם חוף,
+        // שיושבת על רחוב כלשהו) היה מאבד את השם המזהה שלו לטובת שם
+        // הרחוב התמים-לגמרי-לא-קשור שעליו היא יושבת בפועל.
+        const primary = addr.house_number ? street || r.name : r.name || street;
         const shortLabel = [primary, city].filter(Boolean).join(", ") || r.display_name;
         return {
           label: r.display_name,
