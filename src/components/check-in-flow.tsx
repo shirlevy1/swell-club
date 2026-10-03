@@ -14,7 +14,7 @@ import { checkInErrorMessage } from "@/lib/checkin";
 import { markJustCheckedIn } from "@/lib/checkin-scroll";
 import { demoMode } from "@/lib/config";
 import { checkInAction } from "@/lib/demo/actions";
-import { detectFace } from "@/lib/face-detection";
+import { detectFace, preloadFaceDetection } from "@/lib/face-detection";
 import type { SwellEvent } from "@/lib/types";
 import { Button, Card, Notice } from "./ui";
 
@@ -167,6 +167,9 @@ export function CheckInFlow({
       streamRef.current = stream;
       // ההשמה ל-video קורית ב-useEffect למטה, אחרי שהוא באמת קיים ב-DOM
       setStep("camera");
+      // מתחילה כבר עכשיו, לא רק בלחיצה על "צילום" — חופפת לזמן שלוקח
+      // למקם את הפנים מול המצלמה, ראו ההערה ב-preloadFaceDetection.
+      preloadFaceDetection();
     } catch (err) {
       setStep("idle");
       setError(cameraErrorMessage(err));

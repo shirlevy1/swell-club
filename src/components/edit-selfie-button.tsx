@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
 import { updateSelfieAction } from "@/lib/demo/actions";
-import { detectFace } from "@/lib/face-detection";
+import { detectFace, preloadFaceDetection } from "@/lib/face-detection";
 import { Button, Card, Notice } from "./ui";
 
 type Step = "idle" | "opening" | "camera" | "checking" | "uploading" | "done";
@@ -75,6 +75,9 @@ export function EditSelfieButton({ eventId }: { eventId: string }) {
       });
       streamRef.current = stream;
       setStep("camera");
+      // מתחילה כבר עכשיו, לא רק בלחיצה על "צילום" — חופפת לזמן שלוקח
+      // למקם את הפנים מול המצלמה, ראו ההערה ב-preloadFaceDetection.
+      preloadFaceDetection();
     } catch (err) {
       setStep("idle");
       setError(cameraErrorMessage(err));
