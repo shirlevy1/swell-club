@@ -8,6 +8,7 @@ import { VisibilityRefresh } from "@/components/visibility-refresh";
 import { PullToRefresh } from "@/components/pull-to-refresh";
 import { NotificationPromptBanner } from "@/components/notification-prompt-banner";
 import { SignOutButton } from "@/components/sign-out-button";
+import { AmbiguousMembershipScreen } from "@/components/ambiguous-membership-screen";
 import { Card, LinkButton } from "@/components/ui";
 import { InstagramIcon } from "@/components/social-icons";
 
@@ -93,11 +94,10 @@ export default async function AppLayout({
                 <SignOutButton />
               </Card>
             </div>
-          ) : viewer.status === "removed" || viewer.status === null ? (
-            // הוסרו מהקהילה, עזבו בעצמם, או נדחו — club_members קיימת
-            // עם status='removed' (מחיקה רכה, ראו migration 0036),
-            // או שאין שורה בכלל (חשבון ישן/מקרה תיאורטי). בלי המסך
-            // הזה כל שאר העמודים מניחים viewer.club לא ריק ומתרסקים.
+          ) : viewer.status === "removed" ? (
+            // club_members קיימת בפועל עם status='removed' (מחיקה רכה,
+            // ראו migration 0036) — עדות אמיתית וקיימת להסרה מכוונת,
+            // לא תקלת רשת. מוצג מיד, בלי ניסיון חוזר.
             <div className="flex flex-1 items-center pt-10">
               <Card className="w-full space-y-4 text-center">
                 <h1 className="font-[family-name:var(--font-display)] text-xl font-bold">
@@ -112,6 +112,12 @@ export default async function AppLayout({
                 <SignOutButton />
               </Card>
             </div>
+          ) : viewer.status === null ? (
+            // אין שום שורת club_members בכלל — יכול להיות הסרה אמיתית
+            // (חשבון ישן מאוד), אבל גם בדיוק אותה תקלת רשת רגעית
+            // שמתועדת ב-getViewer() (lib/data.ts). לא מציגים את ההודעה
+            // המבהילה מיד — ראו ambiguous-membership-screen.tsx.
+            <AmbiguousMembershipScreen />
           ) : (
             <>
               <NotificationPromptBanner recentlyRestored={recentlyRestored} />
