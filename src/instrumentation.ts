@@ -11,7 +11,17 @@ const dsn =
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs" || process.env.NEXT_RUNTIME === "edge") {
-    Sentry.init({ dsn, tracesSampleRate: 0 });
+    Sentry.init({
+      dsn,
+      tracesSampleRate: 0,
+      // ראו instrumentation-client.ts - אותה סיבה בדיוק, גם בצד שרת:
+      // בלי ip_address: null מפורש, שרת Sentry ממלא אותו בעצמו מכתובת
+      // החיבור הנכנס.
+      beforeSend(event) {
+        event.user = { ...event.user, ip_address: null };
+        return event;
+      },
+    });
   }
 }
 

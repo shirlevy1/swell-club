@@ -20,6 +20,16 @@ import * as Sentry from "@sentry/nextjs";
 Sentry.init({
   dsn: "https://f82ee8432cca9736b72b1dbfc874ec40@o4512198536658944.ingest.de.sentry.io/4512198647742544",
   tracesSampleRate: 0,
+  // ⚠️ בלי זה, Sentry ממלא בעצמו את כתובת ה-IP מהחיבור שדרכו האירוע
+  // הגיע - לא עניין של sendDefaultPii (שלא קיים בגרסה הזו בכלל, ראו
+  // למעלה), אלא התנהגות ברירת מחדל של שרת Sentry עצמו. אומת בפועל:
+  // מייל בדיקה אמיתי הראה כתובת IP למרות ה-init המינימלי שהיה כאן.
+  // ip_address: null (לא רק השמטה) הוא הדרך היחידה המתועדת לכבות את
+  // זה - משמיטה בלבד לא מספיקה כי שרת Sentry עצמו משלים את החסר.
+  beforeSend(event) {
+    event.user = { ...event.user, ip_address: null };
+    return event;
+  },
 });
 
 // נדרש ע"י Sentry עצמה (אחרת מזהירה בכל build) - נותן הקשר "איזה
