@@ -38,8 +38,16 @@ async function createSignedUrlsCached(
   const result = new Map<string, string>();
   const missing: string[] = [];
 
+  // סלפי יכול להתחלף באותו נתיב בדיוק (עריכת סלפי, צ'ק-אין חוזר עם
+  // upsert) — קישור חתום שכבר נשמר במטמון מצביע על הנתיב הנכון, אבל
+  // לא "יודע" שהקובץ מתחתיו הוחלף, ויכול להמשיך ולשרת את אותו קישור
+  // (ולכן את מה שכבר נטען ממנו בדפדפן) עד דקות ארוכות אחרי שהתמונה
+  // בפועל כבר התחלפה. לתמונות מפגש (event-photos) זה בטוח כרגיל —
+  // נתיב חדש לכל העלאה, אף פעם לא מוחלף באותו נתיב.
+  const cacheable = bucket !== "selfies";
+
   for (const path of paths) {
-    const cached = signedUrlCache.get(`${bucket}/${path}`);
+    const cached = cacheable ? signedUrlCache.get(`${bucket}/${path}`) : undefined;
     if (cached && cached.expiresAt > now) {
       result.set(path, cached.url);
     } else {
@@ -55,7 +63,9 @@ async function createSignedUrlsCached(
     for (const s of signed ?? []) {
       if (!s.error && s.signedUrl && s.path) {
         result.set(s.path, s.signedUrl);
-        signedUrlCache.set(`${bucket}/${s.path}`, { url: s.signedUrl, expiresAt });
+        if (cacheable) {
+          signedUrlCache.set(`${bucket}/${s.path}`, { url: s.signedUrl, expiresAt });
+        }
       }
     }
   }
