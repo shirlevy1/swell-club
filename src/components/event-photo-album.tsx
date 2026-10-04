@@ -528,8 +528,9 @@ export function EventPhotoAlbum({
                   type="button"
                   onClick={() => onDelete(viewerPhoto)}
                   disabled={busyId === viewerPhoto.id}
-                  className="rounded-full bg-white/10 px-4 py-2 text-xs font-bold text-white disabled:opacity-40"
+                  className="flex items-center gap-1.5 rounded-full bg-white/10 px-4 py-2 text-xs font-bold text-white disabled:opacity-40"
                 >
+                  <TrashIcon className="size-4" />
                   מחיקה
                 </button>
               )}
