@@ -2,9 +2,10 @@ import * as Sentry from "@sentry/nextjs";
 
 /**
  * חצי השרת/edge של Sentry - ראו instrumentation-client.ts להסבר המלא
- * (DSN לא סוד, sendDefaultPii כבוי במכוון). שם הקובץ (instrumentation.ts)
- * ומבנהו (export async function register) הם מוסכמה מובנית של
- * Next.js עצמו - לא המצאה של Sentry - לכן חייבים להישאר בדיוק ככה.
+ * (DSN לא סוד, dataCollection.userInfo:false במכוון - לא sendDefaultPii
+ * שלא קיים בגרסה הזו). שם הקובץ (instrumentation.ts) ומבנהו (export
+ * async function register) הם מוסכמה מובנית של Next.js עצמו - לא
+ * המצאה של Sentry - לכן חייבים להישאר בדיוק ככה.
  */
 const dsn =
   "https://f82ee8432cca9736b72b1dbfc874ec40@o4512198536658944.ingest.de.sentry.io/4512198647742544";
@@ -14,13 +15,7 @@ export async function register() {
     Sentry.init({
       dsn,
       tracesSampleRate: 0,
-      // ראו instrumentation-client.ts - אותה סיבה בדיוק, גם בצד שרת:
-      // בלי ip_address: null מפורש, שרת Sentry ממלא אותו בעצמו מכתובת
-      // החיבור הנכנס.
-      beforeSend(event) {
-        event.user = { ...event.user, ip_address: null };
-        return event;
-      },
+      dataCollection: { userInfo: false },
     });
   }
 }
