@@ -8,7 +8,6 @@
 |---|---|
 | [SPEC.md](SPEC.md) | המפרט המלא: הבעיה, הפיצ׳רים, ההחלטות והסיכונים |
 | [SETUP.md](SETUP.md) | חיבור Supabase והעלאה לאוויר |
-| [ACCOUNTS.md](ACCOUNTS.md) | אילו חשבונות צריך וכמה זה עולה |
 | [AGENTS.md](AGENTS.md) | מפת הקוד והמלכודות |
 
 ---

@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Swell
 
-אפליקציית ווב (PWA) לקהילת שחיינים. המפרט המלא: `SPEC.md`. חשבונות ועלויות: `ACCOUNTS.md`.
+אפליקציית ווב (PWA) לקהילת שחיינים. המפרט המלא: `SPEC.md`.
 
 ## הכלל שמחזיק את כל המוצר
 
