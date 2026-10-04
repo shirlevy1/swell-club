@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { headers } from "next/headers";
 import { createClient } from "./supabase/server";
 import { adminDb } from "./push-server";
@@ -110,7 +111,18 @@ async function withRetry<T extends { error: unknown }>(
 }
 
 /** הזהות של מי שמסתכל. כל עמוד ב-(app) מתחיל מכאן. */
-export async function getViewer(): Promise<Viewer | null> {
+/**
+ * עטופה ב-React cache(): נקראת פעמיים בכל טעינת עמוד מוגן - פעם
+ * אחת ב-(app)/layout.tsx (המעטפת המשותפת), ושוב בכל page.tsx בנפרד
+ * (צריך את ה-viewer שוב, לא תמיד אפשר להעביר אותו כ-prop דרך
+ * layout). בלי cache(), זו הייתה ממש שאילתה כפולה זהה למסד - פעמיים
+ * אותן שתי שאילתות (profiles + club_members) ברצף, בכל טעינת עמוד
+ * יחידה, לכל משתמש/ת - זו ה"שאלה" הכי נפוצה באתר. cache() ממדל
+ * Request-level (לא Next.js, אלא ה-React המובנה) שומר כאן את
+ * ה-promise שכבר הוחזר לקריאה הראשונה, ומחזיר אותו שוב לקריאה
+ * השנייה באותה בקשה - בלי לגעת באף אחד מהמקומות שקוראים לפונקציה.
+ */
+export const getViewer = cache(async (): Promise<Viewer | null> => {
   if (demoMode) {
     // אחרי leaveCommunityAction() בהדגמה: בדיוק כמו club_members שנמחקה
     // באמת — בלי מועדון, בלי תפקיד, ומסך "כבר לא חלק מהקהילה" בשלד.
@@ -184,7 +196,7 @@ export async function getViewer(): Promise<Viewer | null> {
     status: (membership?.status ?? null) as MemberStatus | null,
     joinedAt: (membership?.joined_at ?? null) as string | null,
   };
-}
+});
 
 export type PendingMember = {
   profileId: string;
