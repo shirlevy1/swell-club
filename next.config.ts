@@ -20,6 +20,17 @@ import type { NextConfig } from "next";
  * משתמש בהרבה style={{...}} inline. הדרך המחמירה יותר (nonce דרך
  * proxy.ts) נשקלה ונדחתה כרגע — מסבכת משמעותית מול תועלת, ושיר ביקשה
  * במפורש לתעדף "לא לשבור כלום" על פני הקשחה מקסימלית.
+ *
+ * ⚠️ 'wasm-unsafe-eval' ב-script-src חובה בשביל זיהוי הפנים: קומפילציה
+ * של WebAssembly (מה ש-face-detection.ts עושה כדי להריץ את מודל
+ * MediaPipe) נחשבת מבחינת CSP כמו eval, ונחסמת אוטומטית בלי ההיתר
+ * הזה — גם אם script-src/connect-src כבר מרשים את הדומיין שהקובץ
+ * מגיע ממנו. זה *לא* מרחיב הרשאות ל-JS רגיל (לא כמו 'unsafe-eval'
+ * המלא) — זה היתר נפרד וממוקד רק להרצת WASM. אומת ישירות: בלעדיו,
+ * טעינת המודל נכשלת ב-100% מהמקרים (לא לפעמים) בכל דפדפן שמיישם את
+ * ההגבלה הזו, ו-detectFace() נופלת אז ל-fail-open (hasFace:true) —
+ * כלומר בדיקת "יש פנים בתמונה" הופכת ללא-פעילה בשקט, בלי שגיאה גלויה
+ * באתר עצמו.
  */
 const supabaseOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL
   ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin
@@ -35,7 +46,7 @@ const csp = [
   "manifest-src 'self'",
   `img-src 'self' data: blob: ${supabaseOrigin} https://basemaps.cartocdn.com`,
   "font-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net",
   "style-src 'self' 'unsafe-inline'",
   "worker-src 'self' blob:",
   `connect-src 'self' ${supabaseOrigin} ${supabaseWs} https://cdn.jsdelivr.net https://storage.googleapis.com`,
