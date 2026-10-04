@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Rubik, Assistant } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 // רוביק לכותרות — עגול וחברי, מתאים לקהילה יותר מגופן עריכתי-פורמלי.
@@ -89,7 +90,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           פשוט יושבים כילדים רגילים של עמודת flex בגובה קבוע, ואף פעם
           לא "נוגעים" בגלילה בכלל — אין להם מה לקפוץ ממנו. svh (לא
           dvh) נשאר כאן כי הוא עדיין הכי יציב מבין יחידות הגובה בנייד. */}
-      <body className="h-svh flex flex-col overflow-hidden">{children}</body>
+      <body className="h-svh flex flex-col overflow-hidden">
+        {children}
+        <SpeedInsights />
+      </body>
     </html>
   );
 }
