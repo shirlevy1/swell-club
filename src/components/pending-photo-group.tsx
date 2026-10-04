@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
 import { approveEventPhotoAction, deleteEventPhotoAction } from "@/lib/demo/actions";
-import { CheckIcon, XIcon } from "./social-icons";
+import { CheckIcon, TrashIcon } from "./social-icons";
 import { Notice, cx } from "./ui";
 import { PhotoLightbox } from "./photo-lightbox";
 import { useConfirmDialog } from "./confirm-dialog";
@@ -340,7 +340,7 @@ function PendingGroupPhotoTile({
         aria-label="הסרת תמונה זו"
         className="absolute end-1 top-1 flex size-[26px] items-center justify-center rounded-full bg-black/55 text-white disabled:opacity-40"
       >
-        <XIcon className="size-[15px]" />
+        <TrashIcon className="size-[15px]" />
       </button>
       {isNew && (
         <span className="sr-only" role="status">

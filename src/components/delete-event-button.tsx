@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { deleteEventAction } from "@/lib/actions";
 import { useConfirmDialog } from "./confirm-dialog";
+import { TrashIcon } from "./social-icons";
 
 /**
  * מחיקת מפגש — פעולה נדירה והרסנית, ולכן אייקון קטן ומרוחק בתחתית
@@ -63,22 +64,7 @@ export function DeleteEventButton({
         aria-label="מחיקת מפגש"
         className="flex min-h-11 items-center gap-1.5 text-sm text-(--color-fail)"
       >
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.9"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="size-4 shrink-0"
-          aria-hidden
-        >
-          <path d="M4 7h16" />
-          <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-          <path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13" />
-          <path d="M10 11v6" />
-          <path d="M14 11v6" />
-        </svg>
+        <TrashIcon className="size-4 shrink-0" />
         {pending ? "מוחק…" : "מחיקת המפגש"}
       </button>
       {error && <p className="text-xs text-(--color-fail)">{error}</p>}

@@ -13,7 +13,7 @@ import { compressImageFile, blobToDataUrl, ALBUM_PHOTO_OPTIONS } from "@/lib/ima
 import { Button, Notice, cx } from "@/components/ui";
 import { PhotoLightbox } from "@/components/photo-lightbox";
 import { useConfirmDialog } from "@/components/confirm-dialog";
-import { CheckIcon, DownloadIcon, XIcon } from "@/components/social-icons";
+import { CheckIcon, DownloadIcon, TrashIcon } from "@/components/social-icons";
 import { useNewLiveIds } from "@/components/live-refresh-context";
 import type { EventPhoto } from "@/lib/data";
 
@@ -641,7 +641,7 @@ function GridPhotoTile({
           aria-label="מחיקת תמונה"
           className="absolute end-1 top-1 flex size-[26px] items-center justify-center rounded-full bg-black/55 text-white"
         >
-          <XIcon className="size-[15px]" />
+          <TrashIcon className="size-[15px]" />
         </span>
       )}
 
