@@ -30,6 +30,13 @@ Sentry.init({
     event.user = { ...event.user, ip_address: null };
     return event;
   },
+  // ⚠️ beforeSend לא נוגע ב"session tracking" (BrowserSession) - זו
+  // תכונה נפרדת של Sentry ("Release Health"/crash-free rate), שרצה
+  // ושולחת כתובת IP בעצמה, באירועי session, לא event - אומת בפועל
+  // (נבדק תוכן ה-envelope הגולמי שנשלח). לא רלוונטי בלי "Releases"
+  // מוגדרים ממילא, ומוסיף איסוף IP שלא רצינו - מוסרת מרשימת האינטגרציות
+  // המובנות לגמרי, במקום לנסות "לנקות" משהו ששולח את ה-IP בעצמו.
+  integrations: (defaults) => defaults.filter((i) => i.name !== "BrowserSession"),
 });
 
 // נדרש ע"י Sentry עצמה (אחרת מזהירה בכל build) - נותן הקשר "איזה
