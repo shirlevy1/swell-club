@@ -147,14 +147,37 @@ export function formatWeekdayName(iso: string): string {
   return formatWeekday(iso).replace(/^יום /, "");
 }
 
-/** "עוד 3 ימים" / "לפני שעתיים" */
-export function relativeTime(iso: string): string {
-  const diffMs = new Date(iso).getTime() - Date.now();
-  const rtf = new Intl.RelativeTimeFormat("he", { numeric: "auto" });
-  const abs = Math.abs(diffMs);
+/** תאריך-לוח (YYYY-MM-DD, אזור זמן ישראל) כמספר מילישניות UTC חצות -
+ * כלי עזר ל-relativeTime, כדי שאפשר יהיה לחסר שני תאריכי-לוח ולקבל
+ * בדיוק מספר הימים ביניהם, בלי רעש משעת-היום. */
+function dateOnlyUTC(iso: string): number {
+  const [y, m, d] = new Date(iso)
+    .toLocaleDateString("en-CA", { timeZone: TZ })
+    .split("-")
+    .map(Number);
+  return Date.UTC(y, m - 1, d);
+}
 
+/**
+ * "עוד 3 ימים" / "מחר" / "לפני שעתיים".
+ *
+ * ⚠️ ימים נספרים לפי תאריך-לוח (אזור זמן ישראל), לא לפי "כמה שעות
+ * נשארו, חלקי 24, מעוגל" - שני אלה *לא* אותו דבר כשהמפגש מוקדם בבוקר.
+ * דוגמה אמיתית שקרתה: בודקים ביום ראשון בערב (19:00) למפגש ביום
+ * שלישי ב-06:45 - נשארות בפועל 35.5 שעות, שמתעגלות ל"יום אחד" ("מחר"),
+ * למרות שבלוח השנה זה כבר שני ימים קדימה (א'←ב'←ג', "מחרתיים"). רק
+ * באותו יום-לוח עצמו (dayDiff===0) עדיין רלוונטי לדייק לפי שעות/דקות
+ * בפועל - שם אין את העיוות הזה.
+ */
+export function relativeTime(iso: string): string {
+  const rtf = new Intl.RelativeTimeFormat("he", { numeric: "auto" });
+
+  const dayDiff = Math.round((dateOnlyUTC(iso) - dateOnlyUTC(new Date().toISOString())) / 86_400_000);
+  if (dayDiff !== 0) return rtf.format(dayDiff, "day");
+
+  const diffMs = new Date(iso).getTime() - Date.now();
+  const abs = Math.abs(diffMs);
   const units: [Intl.RelativeTimeFormatUnit, number][] = [
-    ["day", 86_400_000],
     ["hour", 3_600_000],
     ["minute", 60_000],
   ];
