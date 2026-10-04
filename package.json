@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "vapid": "node scripts/generate-vapid.mjs"
+    "vapid": "node scripts/generate-vapid.mjs",
+    "analyze": "next build --experimental-analyze"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^1.0.1",
