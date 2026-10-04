@@ -53,7 +53,7 @@ const csp = [
   "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net",
   "style-src 'self' 'unsafe-inline'",
   "worker-src 'self' blob:",
-  `connect-src 'self' ${supabaseOrigin} ${supabaseWs} https://cdn.jsdelivr.net https://storage.googleapis.com https://o4511000776556544.ingest.de.sentry.io`,
+  `connect-src 'self' ${supabaseOrigin} ${supabaseWs} https://cdn.jsdelivr.net https://storage.googleapis.com https://o4512198536658944.ingest.de.sentry.io`,
 ].join("; ");
 
 const nextConfig: NextConfig = {

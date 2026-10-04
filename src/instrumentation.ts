@@ -7,7 +7,7 @@ import * as Sentry from "@sentry/nextjs";
  * Next.js עצמו - לא המצאה של Sentry - לכן חייבים להישאר בדיוק ככה.
  */
 const dsn =
-  "https://3471106293f14b108e3900e65caa54d@o4511000776556544.ingest.de.sentry.io/4511000824233040";
+  "https://f82ee8432cca9736b72b1dbfc874ec40@o4512198536658944.ingest.de.sentry.io/4512198647742544";
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs" || process.env.NEXT_RUNTIME === "edge") {
