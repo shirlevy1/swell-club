@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
 import { Rubik, Assistant } from "next/font/google";
 import { Button, EmptyState, LinkButton } from "@/components/ui";
 import "./globals.css";
@@ -23,11 +25,18 @@ const assistant = Assistant({
  * כמו error.tsx (ושאר האתר), כדי שגם קריסה נדירה כזו תרגיש שייכת.
  */
 export default function GlobalError({
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  // ראו error.tsx - אותה סיבה בדיוק, רק למקרה הנדיר שהקריסה היא
+  // ב-layout השורש עצמו.
+  useEffect(() => {
+    Sentry.captureException(error);
+  }, [error]);
+
   return (
     <html lang="he" dir="rtl" className={`${rubik.variable} ${assistant.variable}`}>
       <body>

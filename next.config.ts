@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs/config";
 
 /**
  * שלב 2/2: מוסיפה Content-Security-Policy לכותרות הבסיסיות משלב 1.
@@ -12,6 +13,9 @@ import type { NextConfig } from "next";
  *   - זיהוי פנים (צ'ק-אין): face-detection.ts טוען WASM מ-
  *     cdn.jsdelivr.net ומודל מ-storage.googleapis.com.
  *   - Supabase: קריאות REST ו-Realtime (WebSocket) לאותו פרויקט.
+ *   - ניטור שגיאות: Sentry שולח אירועים ל-ingest.de.sentry.io
+ *     (instrumentation-client.ts/instrumentation.ts) - בלי החריג הזה
+ *     ב-connect-src, כל דיווח שגיאה היה נחסם בשקט ע"י ה-CSP עצמו.
  *   - מייל שנשלח למנהלת/חברים (email-server.ts) כן טוען Google Fonts
  *     בעצמו — לא רלוונטי כאן, זה HTML של אימייל, לא עמוד שה-CSP חל עליו.
  *
@@ -49,7 +53,7 @@ const csp = [
   "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net",
   "style-src 'self' 'unsafe-inline'",
   "worker-src 'self' blob:",
-  `connect-src 'self' ${supabaseOrigin} ${supabaseWs} https://cdn.jsdelivr.net https://storage.googleapis.com`,
+  `connect-src 'self' ${supabaseOrigin} ${supabaseWs} https://cdn.jsdelivr.net https://storage.googleapis.com https://o4511000776556544.ingest.de.sentry.io`,
 ].join("; ");
 
 const nextConfig: NextConfig = {
@@ -73,4 +77,9 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// ⚠️ בלי SENTRY_AUTH_TOKEN (לא הוגדר - דורש יצירת טוקן בלוח הבקרה של
+// Sentry, שלב נפרד ואופציונלי), ההעלאה של source maps מדולגת בשקט -
+// הודעות השגיאה עדיין מגיעות, רק עם קוד מכווץ (מינפיקציה) בתוך
+// הדיווח במקום הקוד המקורי הקריא. אפשר להוסיף את זה מאוחר יותר בלי
+// לשנות שום דבר אחר כאן.
+export default withSentryConfig(nextConfig);

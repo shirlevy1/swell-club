@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
 import { Button, EmptyState, LinkButton } from "@/components/ui";
 
 /**
@@ -15,11 +17,20 @@ import { Button, EmptyState, LinkButton } from "@/components/ui";
  * לאנגלית ישבור את השפה העברית העקבית של שאר האתר.
  */
 export default function Error({
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  // instrumentation.ts/instrumentation-client.ts תופסות הרבה, אבל לא
+  // שגיאות רינדור שה-error boundary הזה עצמו תופס - בלי הדיווח הידני
+  // הזה, בדיוק הקריסות שהמשתמש/ת רואה בפועל (זה המסך הזה) היו היחידות
+  // שלא מגיעות ל-Sentry.
+  useEffect(() => {
+    Sentry.captureException(error);
+  }, [error]);
+
   return (
     <div className="mx-auto max-w-sm space-y-4 px-4 py-16">
       <EmptyState
