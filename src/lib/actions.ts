@@ -7,6 +7,7 @@ import {
   type MemberPickerRow,
   type EventAttendanceReportRow,
 } from "./data";
+import { adminDb } from "./push-server";
 import { isGoogleMapsUrl, parseGoogleMapsUrl } from "./maps";
 
 export type ResolveMapsLinkResult =
@@ -224,4 +225,60 @@ export async function searchLocationAction(
           : "לא הצלחנו להתחבר לשירות החיפוש.",
     };
   }
+}
+
+export type DeleteEventResult = { ok: true } | { ok: false; error: string };
+
+/**
+ * מוחקת מפגש, אחרי שניקתה קודם את קבצי התמונה שלו מה-storage (סלפים
+ * + תמונות אלבום) — לא רק את השורות עליהן במסד. מחיקת events מפעילה
+ * on delete cascade על attendances/rsvps/event_photos/event_reminders
+ * (ראו 0001_init.sql), אבל זה מנקה רק שורות, לא קבצים בפועל ב-storage
+ * - בלעדי זה, הקבצים נשארים שם לצמיתות, בלתי נגישים (RLS תלוי בשורות
+ * שכבר נמחקו) אבל עדיין תופסים מקום. נמצא בביקורת מוכנות ההשקה (DATA-2).
+ *
+ * כל הפעולה (ניקוי storage + מחיקת המפגש עצמו) עוברת לכאן, לשרת: מחיקת
+ * סלפי של מישהו/י אחר/ת דורשת service_role - אין policy RLS שמתירה
+ * למנהלת למחוק סלפי שלא שלה, ולא מוסיפים כזו (היתר רחב מדי, לא נחוץ
+ * בשום מקום אחר) - adminDb() עוקפת RLS, אבל רק כאן, אחרי בדיקת
+ * ההרשאה הידנית למטה.
+ */
+export async function deleteEventAction(
+  eventId: string,
+): Promise<DeleteEventResult> {
+  const viewer = await getViewer();
+  if (viewer?.role !== "organizer") {
+    return { ok: false, error: "רק מנהלת קהילה יכולה למחוק מפגש." };
+  }
+
+  const db = adminDb();
+
+  const [{ data: attendances }, { data: photos }] = await Promise.all([
+    db.from("attendances").select("selfie_path").eq("event_id", eventId),
+    db.from("event_photos").select("storage_path").eq("event_id", eventId),
+  ]);
+
+  const selfiePaths = (attendances ?? [])
+    .map((a) => a.selfie_path)
+    .filter((p): p is string => !!p);
+  const photoPaths = (photos ?? []).map((p) => p.storage_path);
+
+  // כישלון ניקוי storage לא אמור לחסום את מחיקת המפגש עצמה - עדיף
+  // מפגש שנמחק עם כמה קבצים יתומים (אותה תוצאה כמו לפני התיקון הזה)
+  // מאשר מנהלת שתקועה בלי יכולת למחוק מפגש בכלל.
+  await Promise.all([
+    selfiePaths.length > 0
+      ? db.storage.from("selfies").remove(selfiePaths)
+      : null,
+    photoPaths.length > 0
+      ? db.storage.from("event-photos").remove(photoPaths)
+      : null,
+  ]);
+
+  const { error } = await db.from("events").delete().eq("id", eventId);
+  if (error) {
+    return { ok: false, error: "לא הצלחנו למחוק את המפגש. נסו שוב." };
+  }
+
+  return { ok: true };
 }

@@ -2,15 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { deleteEventAction } from "@/lib/actions";
 import { useConfirmDialog } from "./confirm-dialog";
 
 /**
  * מחיקת מפגש — פעולה נדירה והרסנית, ולכן אייקון קטן ומרוחק בתחתית
- * העמוד, לא כפתור בולט. `events_organizer_all` ב-RLS כבר אוכפת
- * שרק מנהלת יכולה למחוק בפועל — ה-`isOrganizer` כאן הוא רק הסתרה
- * בממשק. כל הטבלאות שתלויות במפגש (rsvps, attendances, event_photos,
- * event_reminders) הן `on delete cascade`, אז זה נקי במסד מעצמו.
+ * העמוד, לא כפתור בולט. `deleteEventAction` (שרת) בודקת הרשאת מנהלת
+ * בעצמה - לא מסתמכת רק על ההסתרה בממשק. כל הטבלאות שתלויות במפגש
+ * (rsvps, attendances, event_photos, event_reminders) הן `on delete
+ * cascade`, אז זה נקי במסד מעצמו - אבל קבצי התמונה עצמם ב-storage
+ * לא נמחקים אוטומטית, ולכן deleteEventAction מנקה אותם קודם בשרת
+ * (צריך service_role בשביל סלפים של אחרים, אין לזה policy RLS).
  */
 export function DeleteEventButton({
   eventId,
@@ -38,13 +40,9 @@ export function DeleteEventButton({
     setError(null);
     setPending(true);
     try {
-      const { error } = await createClient()
-        .from("events")
-        .delete()
-        .eq("id", eventId);
-
-      if (error) {
-        setError("לא הצלחנו למחוק את המפגש. נסו שוב.");
+      const result = await deleteEventAction(eventId);
+      if (!result.ok) {
+        setError(result.error);
         setPending(false);
         return;
       }
