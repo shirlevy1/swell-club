@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
+  ageInYears,
   hasFirstAndLastName,
   isHebrewName,
   isValidIsraeliPhone,
@@ -52,6 +53,8 @@ export default function SignupPage() {
     if (!isValidIsraeliPhone(phone))
       return setError("מספר הפלאפון לא נראה תקין.");
     if (!birthDate) return setError("צריך תאריך לידה.");
+    const age = ageInYears(birthDate);
+    if (age !== null && age < 21) return setError("ההרשמה פתוחה מגיל 21 ומעלה.");
     if (!city) return setError("צריך לבחור עיר מגורים.");
     if (!swimLevel) return setError("צריך לבחור מה הכי מתאר אתכם במים.");
     if (!legalAccepted)
