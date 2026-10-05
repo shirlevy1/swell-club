@@ -8,4 +8,4 @@
  * ב-1, ולהעלות אותו גם ב-handle_new_user() (migration חדשה) - שני
  * המקומות לא מסתנכרנים אוטומטית.
  */
-export const CURRENT_LEGAL_VERSION = 4;
+export const CURRENT_LEGAL_VERSION = 5;
