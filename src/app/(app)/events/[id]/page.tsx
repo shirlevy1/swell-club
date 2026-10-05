@@ -182,7 +182,7 @@ export default async function EventPage({
       {status !== "closed" && (
         <>
           {event.description && (
-            <p className="text-sm leading-relaxed text-(--color-ink-soft)">
+            <p className="whitespace-pre-line text-sm leading-relaxed text-(--color-ink-soft)">
               {event.description}
             </p>
           )}
