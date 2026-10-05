@@ -14,6 +14,7 @@ export type Profile = {
   swim_level: SwimLevel | null;
   waiver_accepted_at: string | null;
   privacy_accepted_at: string | null;
+  legal_version: number | null;
   avatar_path: string | null;
   created_at: string;
 };

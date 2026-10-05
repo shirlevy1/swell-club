@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
 import { updateProfileAction } from "@/lib/demo/actions";
+import { CURRENT_LEGAL_VERSION } from "@/lib/legal";
 import {
   ageInYears,
   byGender,
@@ -95,6 +96,9 @@ export function ProfileForm({ profile }: { profile: Profile }) {
       swim_level: swimLevel as SwimLevel,
       instagram: normalizeInstagram(String(form.get("instagram") ?? "")),
     };
+    if (!profile.waiver_accepted_at || !profile.privacy_accepted_at) {
+      patch.legal_version = CURRENT_LEGAL_VERSION;
+    }
     if (!profile.waiver_accepted_at) {
       patch.waiver_accepted_at = new Date().toISOString();
     }
