@@ -1,5 +1,6 @@
 "use server";
 
+import * as Sentry from "@sentry/nextjs";
 import {
   getViewer,
   getClubMembersWithLatestSelfie,
@@ -46,7 +47,9 @@ export async function resolveMapsLinkAction(
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
       },
     });
-  } catch {
+  } catch (err) {
+    console.error("resolveMapsLinkAction: fetch failed", { url }, err);
+    Sentry.captureException(err);
     return { ok: false, error: "לא הצלחנו לפתוח את הקישור. בדקו ונסו שוב." };
   }
 
@@ -217,6 +220,8 @@ export async function searchLocationAction(
       }),
     };
   } catch (err) {
+    console.error("searchLocationAction: failed", err);
+    Sentry.captureException(err);
     return {
       ok: false,
       error:

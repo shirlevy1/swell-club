@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import webpush from "web-push";
+import * as Sentry from "@sentry/nextjs";
 import {
   adminDb,
   buildReminderPayload,
@@ -201,7 +202,9 @@ async function sendPhotosReadyReminder(
         .eq("event_id", eventId)
         .eq("kind", "photos_ready");
     }
-  } catch {
+  } catch (err) {
+    console.error("sendPhotosReadyReminder: failed", { eventId }, err);
+    Sentry.captureException(err);
     await db
       .from("event_reminders")
       .delete()
@@ -273,7 +276,9 @@ async function sendReminder(
         .eq("event_id", event.id)
         .eq("kind", kind);
     }
-  } catch {
+  } catch (err) {
+    console.error("sendReminder: failed", { eventId: event.id, kind }, err);
+    Sentry.captureException(err);
     await db
       .from("event_reminders")
       .delete()
