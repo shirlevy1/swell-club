@@ -72,6 +72,9 @@ export function WhatToBring({
               </a>
             ))}
           </div>
+          <p className="text-xs text-(--color-ink-faint)">
+            הסימנים המסחריים Speedo ו-Garmin שייכים לבעליהם.
+          </p>
         </div>
       )}
     </div>
