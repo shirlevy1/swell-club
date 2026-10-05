@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
 import { updateProfileAction } from "@/lib/demo/actions";
 import {
+  ageInYears,
   byGender,
   hasFirstAndLastName,
   isHebrewName,
@@ -65,6 +66,8 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     if (!isValidIsraeliPhone(phone))
       return setError("מספר הפלאפון לא נראה תקין.");
     if (!birthDate) return setError("צריך תאריך לידה.");
+    const age = ageInYears(birthDate);
+    if (age !== null && age < 21) return setError("חברות ב-Swell Club פתוחה מגיל 21 ומעלה.");
     if (!city) return setError("צריך לבחור עיר מגורים.");
     if (!swimLevel) return setError("צריך לבחור מה הכי מתאר אתכם במים.");
     // התיבות עצמן כבר לא ניתנות לעריכה כשכבר אושרו (ראו למטה) — האישור
