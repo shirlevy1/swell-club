@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "vapid": "node scripts/generate-vapid.mjs",
-    "analyze": "next build --experimental-analyze"
+    "analyze": "next build --experimental-analyze",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^1.0.1",
@@ -25,6 +26,7 @@
     "web-push": "^3.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/leaflet": "^1.9.22",
     "@types/node": "^20",
