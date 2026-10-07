@@ -69,6 +69,9 @@ export function NewVsReturningChart({
           const newHeight =
             total > 0 ? Math.round((e.newCount / total) * stackHeight) : 0;
           const returningHeight = stackHeight - newHeight;
+          // איזה חלק מהמגיעים למפגש הזה היו חדשים - "1 מתוך 2" הוא
+          // סיפור שונה מ"1 מתוך 8", גם אם שני המקרים מראים "1" בעמודה.
+          const newPercent = total > 0 ? Math.round((e.newCount / total) * 100) : null;
 
           return (
             <Link
@@ -100,6 +103,11 @@ export function NewVsReturningChart({
                   </div>
                 )}
               </div>
+              {newPercent !== null && (
+                <span className="rounded bg-(--color-haze) px-1 text-[0.55rem] font-bold text-(--color-sea) ltr-nums">
+                  {newPercent}%
+                </span>
+              )}
               <span className="text-[0.64rem] text-(--color-ink-faint) ltr-nums">
                 {formatDayMonth(e.startsAt)}
               </span>
