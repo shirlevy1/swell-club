@@ -58,11 +58,11 @@ export function NewVsReturningChart({
         </div>
         <div className="flex gap-4 text-sm">
           <span className="flex items-center gap-1.5 text-(--color-ink-soft)">
-            <span className="size-2.5 rounded-full bg-(--color-sea)" />
+            <span className="size-2.5 rounded-full bg-(--color-deep)" />
             חדשים
           </span>
           <span className="flex items-center gap-1.5 text-(--color-ink-soft)">
-            <span className="size-2.5 rounded-full bg-(--color-deep)" />
+            <span className="size-2.5 rounded-full bg-(--color-sea)" />
             חוזרים <TrendBadge trend={returningTrend} />
           </span>
         </div>
@@ -94,7 +94,7 @@ export function NewVsReturningChart({
               >
                 {returningHeight > 0 && (
                   <div
-                    className="flex items-center justify-center bg-(--color-deep) text-[0.6rem] font-medium text-white/70 ltr-nums"
+                    className="flex items-center justify-center bg-(--color-sea) text-[0.6rem] font-medium text-white/70 ltr-nums"
                     style={{ height: returningHeight }}
                   >
                     {e.returningCount}
@@ -102,7 +102,7 @@ export function NewVsReturningChart({
                 )}
                 {newHeight > 0 && (
                   <div
-                    className="flex items-center justify-center bg-(--color-sea) text-[0.6rem] font-medium text-white/70 ltr-nums"
+                    className="flex items-center justify-center bg-(--color-deep) text-[0.6rem] font-medium text-white/70 ltr-nums"
                     style={{ height: newHeight }}
                   >
                     {e.newCount}
