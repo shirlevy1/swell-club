@@ -1840,31 +1840,37 @@ export async function getAdminData(clubId: string) {
   return { events, members, historicalMembers };
 }
 
-export type RecentEventGenderAttendance = {
+export type RecentEventStats = {
   eventId: string;
   startsAt: string;
   locationName: string;
   maleCount: number;
   femaleCount: number;
+  /** כמה סימנו "אני בא/ה" (RSVP going=true) - לא רק מי שבאמת הגיע/ה. */
+  goingCount: number;
+  /** סה"כ נוכחות אמיתית - כולל gender='other', בניגוד ל-male+femaleCount. */
+  attendedCount: number;
 };
 
 /**
- * כמה הגיעו לכל אחד מה-N המפגשים האחרונים שכבר קרו, מפוצל לפי מגדר —
- * לגרף הראשון ב-admin/insights. בכוונה **לא** דרך getAdminData: זו
- * שאילתה צרה ומוגבלת (רק N מפגשים, רק מה שהגרף צריך), לא "להביא את
+ * סטטיסטיקה לכל אחד מה-N המפגשים האחרונים שכבר קרו - משותף לכמה
+ * גרפים ב-admin/insights (לפי מגדר, RSVP מול הגעה בפועל וכו'), כדי
+ * שלא כל גרף ישלוף את אותם N מפגשים בנפרד. בכוונה **לא** דרך
+ * getAdminData: זו שאילתה צרה ומוגבלת (רק N מפגשים), לא "להביא את
  * כל ההיסטוריה ולחתוך בג'אווהסקריפט" - בדיוק העיקרון שהוצע בהצעת
- * ההצעה עצמה. מחזירה מהחדש לישן (שיר ביקשה שה"היום" יהיה בצד
+ * הדשבורד עצמה. מחזירה מהחדש לישן (שיר ביקשה שה"היום" יהיה בצד
  * ימין של הגרף - במסמך RTL, האיבר הראשון במערך מוצג הכי ימני).
  *
- * לא כולל חברי קהילה עם gender='other' - הגרף הזה מציג במפורש רק
- * שני טורים (גברים/נשים), לא "סה"כ כולל" עם קטגוריה שלישית נסתרת.
+ * maleCount/femaleCount לא כוללים gender='other' - גרף המגדר מציג
+ * במפורש רק שני טורים, לא "סה"כ כולל" עם קטגוריה שלישית נסתרת.
  */
-export async function getRecentGenderAttendance(
+export async function getRecentEventStats(
   clubId: string,
   limit = 8,
-): Promise<RecentEventGenderAttendance[]> {
+): Promise<RecentEventStats[]> {
   if (demoMode) {
     const attendances = demo.demoAttendances();
+    const rsvps = demo.demoRsvps();
     const profileById = new Map(demo.demoProfiles().map((p) => [p.id, p]));
     const now = Date.now();
 
@@ -1886,6 +1892,8 @@ export async function getRecentGenderAttendance(
         femaleCount: eventAttendances.filter(
           (a) => profileById.get(a.profileId)?.gender === "female",
         ).length,
+        goingCount: rsvps.filter((r) => r.eventId === e.id && r.going).length,
+        attendedCount: eventAttendances.length,
       };
     });
   }
@@ -1893,7 +1901,9 @@ export async function getRecentGenderAttendance(
   const supabase = await createClient();
   const { data } = await supabase
     .from("events")
-    .select("id, starts_at, location_name, attendances(profiles(gender))")
+    .select(
+      "id, starts_at, location_name, attendances(profiles(gender)), rsvps(going)",
+    )
     .eq("club_id", clubId)
     .lt("starts_at", new Date().toISOString())
     .order("starts_at", { ascending: false })
@@ -1904,6 +1914,7 @@ export async function getRecentGenderAttendance(
     starts_at: string;
     location_name: string;
     attendances: { profiles: { gender: Gender | null } | null }[];
+    rsvps: { going: boolean }[];
   }[];
 
   return rows.map((e) => ({
@@ -1914,6 +1925,8 @@ export async function getRecentGenderAttendance(
       .length,
     femaleCount: e.attendances.filter((a) => a.profiles?.gender === "female")
       .length,
+    goingCount: e.rsvps.filter((r) => r.going).length,
+    attendedCount: e.attendances.length,
   }));
 }
 

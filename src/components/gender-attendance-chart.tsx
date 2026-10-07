@@ -1,61 +1,10 @@
 import Link from "next/link";
-import type { RecentEventGenderAttendance } from "@/lib/data";
+import type { RecentEventStats } from "@/lib/data";
 import { formatDayMonth } from "@/lib/format";
 import { Card } from "./ui";
-import { TriangleUpIcon } from "./social-icons";
+import { average, computeTrend, TrendBadge } from "./trend-badge";
 
 const CHART_HEIGHT_PX = 140;
-
-function average(values: number[]): number {
-  if (values.length === 0) return 0;
-  return values.reduce((sum, v) => sum + v, 0) / values.length;
-}
-
-type Trend = { kind: "percent" | "diff"; value: number } | null;
-
-/** השוואת ממוצע המחצית הראשונה מול השנייה - "האם זה עולה או יורד",
- * לא רק "מה הערך האחרון". null כשאין מספיק מפגשים כדי שזה יהיה בעל
- * משמעות. כשהבסיס להשוואה קטן (פחות מ-3, כמו בקהילה בשלב בדיקות) -
- * אחוז יהיה מטעה (1→3 זה "200%" שנשמע דרמטי בלי סיבה) - אז מציגים
- * את ההפרש הגולמי במקום ("↑2"), לא מסתירים את התג לגמרי. */
-function computeTrend(values: number[]): Trend {
-  if (values.length < 4) return null;
-  const mid = Math.floor(values.length / 2);
-  const first = average(values.slice(0, mid));
-  const second = average(values.slice(mid));
-  if (first < 3) {
-    const diff = Math.round(second - first);
-    return diff === 0 ? null : { kind: "diff", value: diff };
-  }
-  return { kind: "percent", value: Math.round(((second - first) / first) * 100) };
-}
-
-/**
- * inline-flex עם סדר DOM קבוע (מספר קודם, משולש אחריו) - בעמוד RTL
- * זה ממקם את המספר מימין ואת המשולש משמאלו, כמו מספר+יחידה בעברית
- * ("70 ק״ג"). משולש SVG, לא תו "↑"/"↓": תו יוניקוד כזה מקבל גובה/קו-
- * בסיס שונה בגופנים שונים (בעיקר iOS) ולא ישב בעקביות לצד המספר גם
- * עם items-center - נבדק ויזואלית ונכשל. ל-SVG יש תיבת מידות קבועה
- * בכל פלטפורמה, אז היישור אמין.
- */
-function TrendBadge({ trend }: { trend: Trend }) {
-  if (trend === null) return null;
-  const up = trend.value >= 0;
-  return (
-    <span
-      className={
-        "inline-flex items-center gap-0.5 font-bold " +
-        (up ? "text-(--color-verified)" : "text-(--color-fail)")
-      }
-    >
-      <span className="ltr-nums">
-        {Math.abs(trend.value)}
-        {trend.kind === "percent" && "%"}
-      </span>
-      <TriangleUpIcon className={up ? "size-2.5" : "size-2.5 rotate-180"} />
-    </span>
-  );
-}
 
 /**
  * גרף 1 מתוך תהליך בניית /admin/insights גרף-אחר-גרף עם שיר: כמה
@@ -66,7 +15,7 @@ function TrendBadge({ trend }: { trend: Trend }) {
 export function GenderAttendanceChart({
   events,
 }: {
-  events: RecentEventGenderAttendance[];
+  events: RecentEventStats[];
 }) {
   if (events.length === 0) return null;
 
@@ -74,7 +23,7 @@ export function GenderAttendanceChart({
   const avgTotal = Math.round(average(totals));
   const maxTotal = Math.max(1, ...totals);
 
-  // events מגיע מהחדש לישן (ה"היום" מימין, ראו getRecentGenderAttendance) -
+  // events מגיע מהחדש לישן (ה"היום" מימין, ראו getRecentEventStats) -
   // אבל מגמה (עולה/יורדת) צריכה להיקרא מהישן לחדש, אחרת היא תתהפך.
   const chronological = [...events].reverse();
   const totalTrend = computeTrend(
