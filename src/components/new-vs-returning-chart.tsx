@@ -12,10 +12,10 @@ const CHART_HEIGHT_PX = 140;
  * (GenderAttendanceChart) בכוונה: עמודות ערומות, כי חדש/חוזר הוא
  * פיצול-מתוך-שלם בדיוק כמו גברים/נשים.
  *
- * בלי ממוצע+מגמה בכותרת (היה כאן קודם, ושיר אמרה שזה לא היה ברור -
- * "בממוצע: 0" עם חץ "+1" ליד זה נראה כמו סתירה כשבפועל ה"0" הוא
- * רק עיגול של מספר קטן מ-0.5). במקום זה - סכום פשוט, "X חדשים
- * מתוך N המפגשים האחרונים" - ברור בלי לפרש ממוצעים.
+ * בלי תג מגמה בכותרת (היה כאן קודם, ושיר אמרה שזה לא היה ברור -
+ * "בממוצע: 0" עם חץ "+1" ליד זה נראה כמו סתירה, כי שני המספרים
+ * ענו על שאלות שונות). המספר עצמו כן ממוצע (לא סכום) - "בממוצע: X
+ * חדשים" - אותו דפוס בדיוק כמו גרף 1/גרף 2, רק בלי תג המגמה.
  */
 export function NewVsReturningChart({
   events,
@@ -24,7 +24,9 @@ export function NewVsReturningChart({
 }) {
   if (events.length === 0) return null;
 
-  const totalNew = events.reduce((sum, e) => sum + e.newCount, 0);
+  const avgNew = Math.round(
+    events.reduce((sum, e) => sum + e.newCount, 0) / events.length,
+  );
   const maxTotal = Math.max(
     1,
     ...events.map((e) => e.newCount + e.returningCount),
@@ -38,12 +40,11 @@ export function NewVsReturningChart({
             חדשים מול חוזרים
           </p>
           <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+            <span className="text-sm text-(--color-ink-soft)">בממוצע:</span>
             <span className="font-[family-name:var(--font-display)] text-[2.25rem] font-bold text-(--color-ink) ltr-nums">
-              {totalNew}
+              {avgNew}
             </span>
-            <span className="text-sm text-(--color-ink-soft)">
-              חדשים מתוך {events.length} המפגשים האחרונים
-            </span>
+            <span className="text-sm text-(--color-ink-soft)">חדשים</span>
           </div>
         </div>
         <div className="flex gap-4 text-sm">
