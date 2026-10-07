@@ -65,7 +65,7 @@ export function HomeScreenNudge() {
           Swell Club שמור לכם במסך הבית?
         </span>
         <span className="block text-(--color-ink-soft)">
-          פתחו משם לחוויה הכי טובה
+          פתחו משם לחוויה הכי טובה.
         </span>
       </p>
       <button
