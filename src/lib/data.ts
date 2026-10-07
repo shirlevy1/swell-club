@@ -1853,7 +1853,8 @@ export type RecentEventGenderAttendance = {
  * לגרף הראשון ב-admin/insights. בכוונה **לא** דרך getAdminData: זו
  * שאילתה צרה ומוגבלת (רק N מפגשים, רק מה שהגרף צריך), לא "להביא את
  * כל ההיסטוריה ולחתוך בג'אווהסקריפט" - בדיוק העיקרון שהוצע בהצעת
- * הדשבורד עצמה. מחזירה מהישן לחדש (ציר הזמן של הגרף).
+ * ההצעה עצמה. מחזירה מהחדש לישן (שיר ביקשה שה"היום" יהיה בצד
+ * ימין של הגרף - במסמך RTL, האיבר הראשון במערך מוצג הכי ימני).
  *
  * לא כולל חברי קהילה עם gender='other' - הגרף הזה מציג במפורש רק
  * שני טורים (גברים/נשים), לא "סה"כ כולל" עם קטגוריה שלישית נסתרת.
@@ -1871,8 +1872,7 @@ export async function getRecentGenderAttendance(
       .demoEvents()
       .filter((e) => new Date(e.starts_at).getTime() < now)
       .sort((a, b) => b.starts_at.localeCompare(a.starts_at))
-      .slice(0, limit)
-      .reverse();
+      .slice(0, limit);
 
     return recent.map((e) => {
       const eventAttendances = attendances.filter((a) => a.eventId === e.id);
@@ -1906,7 +1906,7 @@ export async function getRecentGenderAttendance(
     attendances: { profiles: { gender: Gender | null } | null }[];
   }[];
 
-  return rows.reverse().map((e) => ({
+  return rows.map((e) => ({
     eventId: e.id,
     startsAt: e.starts_at,
     locationName: e.location_name,

@@ -50,21 +50,24 @@ export function GenderAttendanceChart({
   if (events.length === 0) return null;
 
   const totals = events.map((e) => e.maleCount + e.femaleCount);
-  const maleValues = events.map((e) => e.maleCount);
-  const femaleValues = events.map((e) => e.femaleCount);
   const avgTotal = Math.round(average(totals));
   const maxTotal = Math.max(1, ...totals);
 
-  const totalTrend = trendPercent(totals);
-  const maleTrend = trendPercent(maleValues);
-  const femaleTrend = trendPercent(femaleValues);
+  // events מגיע מהחדש לישן (ה"היום" מימין, ראו getRecentGenderAttendance) -
+  // אבל מגמה (עולה/יורדת) צריכה להיקרא מהישן לחדש, אחרת היא תתהפך.
+  const chronological = [...events].reverse();
+  const totalTrend = trendPercent(
+    chronological.map((e) => e.maleCount + e.femaleCount),
+  );
+  const maleTrend = trendPercent(chronological.map((e) => e.maleCount));
+  const femaleTrend = trendPercent(chronological.map((e) => e.femaleCount));
 
   return (
     <Card>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-sm font-bold text-(--color-ink-soft)">
-            כמה הגיעו ב-{events.length} המפגשים האחרונים, לפי מגדר
+            כמה הגיעו?
           </p>
           <p className="mt-1 flex items-baseline gap-2 font-[family-name:var(--font-display)] text-[2.25rem] font-bold text-(--color-ink) ltr-nums">
             {avgTotal}
@@ -81,7 +84,7 @@ export function GenderAttendanceChart({
             גברים <TrendBadge percent={maleTrend} />
           </span>
           <span className="flex items-center gap-1.5 text-(--color-ink-soft)">
-            <span className="size-2.5 rounded-full bg-(--color-coral)" />
+            <span className="size-2.5 rounded-full bg-(--color-deep)" />
             נשים <TrendBadge percent={femaleTrend} />
           </span>
         </div>
@@ -113,7 +116,7 @@ export function GenderAttendanceChart({
               >
                 {femaleHeight > 0 && (
                   <div
-                    className="flex items-center justify-center bg-(--color-coral) text-[0.6rem] font-medium text-white/70 ltr-nums"
+                    className="flex items-center justify-center bg-(--color-deep) text-[0.6rem] font-medium text-white/70 ltr-nums"
                     style={{ height: femaleHeight }}
                   >
                     {e.femaleCount}

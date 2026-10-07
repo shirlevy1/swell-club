@@ -4,7 +4,7 @@ import { BackLink } from "@/components/ui";
 import { GenderAttendanceChart } from "@/components/gender-attendance-chart";
 
 /**
- * דשבורד הניהול - נבנה גרף-אחר-גרף עם שיר, לא באצווה אחת. כל גרף
+ * תובנות הניהול - נבנה גרף-אחר-גרף עם שיר, לא באצווה אחת. כל גרף
  * הוא פעולת שרת/שאילתה עצמאית ומוגבלת (לא דרך getAdminData, שמביאה
  * את כל ההיסטוריה) - ראו הערה ב-getRecentGenderAttendance.
  */
@@ -19,7 +19,7 @@ export default async function AdminInsightsPage() {
       <BackLink href="/admin">לניהול</BackLink>
 
       <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold">
-        דשבורד
+        תובנות
       </h1>
 
       <GenderAttendanceChart events={genderAttendance} />

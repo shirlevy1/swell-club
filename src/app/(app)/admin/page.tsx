@@ -128,7 +128,7 @@ export default async function AdminPage() {
           <div className="flex shrink-0 gap-2">
             <Link
               href="/admin/insights"
-              aria-label="דשבורד"
+              aria-label="תובנות"
               className="flex size-10 shrink-0 items-center justify-center rounded-full border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
             >
               <ChartIcon className="size-5" />
