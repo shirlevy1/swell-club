@@ -29,18 +29,27 @@ function computeTrend(values: number[]): Trend {
   return { kind: "percent", value: Math.round(((second - first) / first) * 100) };
 }
 
+/**
+ * inline-flex עם סדר DOM קבוע (חץ קודם) - בעמוד RTL זה ממקם את החץ
+ * תמיד מימין, בלי להסתמך על פענוח bidi של דפדפן למחרוזת מעורבת
+ * (תו חץ + ספרה), שהתברר ויזואלית כלא אמין: חץ ומספר ישבו על גבהים
+ * שונים ובסדר לא עקבי. items-center מיישר את שניהם לאותו קו אמצע.
+ */
 function TrendBadge({ trend }: { trend: Trend }) {
   if (trend === null) return null;
   const up = trend.value >= 0;
   return (
     <span
       className={
-        "font-bold " + (up ? "text-(--color-verified)" : "text-(--color-fail)")
+        "inline-flex items-center gap-0.5 font-bold leading-none " +
+        (up ? "text-(--color-verified)" : "text-(--color-fail)")
       }
     >
-      {up ? "↑" : "↓"}
-      {Math.abs(trend.value)}
-      {trend.kind === "percent" && "%"}
+      <span>{up ? "↑" : "↓"}</span>
+      <span className="ltr-nums">
+        {Math.abs(trend.value)}
+        {trend.kind === "percent" && "%"}
+      </span>
     </span>
   );
 }
