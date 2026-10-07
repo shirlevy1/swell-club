@@ -1930,6 +1930,142 @@ export async function getRecentEventStats(
   }));
 }
 
+export type NewVsReturningStats = {
+  eventId: string;
+  startsAt: string;
+  locationName: string;
+  /** זו הפעם הראשונה אי-פעם שהאדם הזה נכח/ה בכל מפגש שהוא. */
+  newCount: number;
+  returningCount: number;
+};
+
+/**
+ * גרף 3: כמה מהמגיעים לכל אחד מה-N המפגשים האחרונים חדשים (לא נכחו
+ * מעולם לפני כן) מול חוזרים. שני שלבים, שניהם מוגבלים בהיקף בכוונה
+ * (לא "להביא את כל ההיסטוריה"): (1) רק N המפגשים האחרונים ומי שנכח
+ * בהם, (2) רק ההיסטוריה המלאה של **אותם אנשים ספציפית** (כדי לדעת
+ * מתי הייתה הפעם הראשונה שלהם), לא של כל חברי הקהילה.
+ */
+export async function getNewVsReturningByEvent(
+  clubId: string,
+  limit = 8,
+): Promise<NewVsReturningStats[]> {
+  if (demoMode) {
+    const attendances = demo.demoAttendances();
+    const now = Date.now();
+    const eventStartsById = new Map(
+      demo.demoEvents().map((e) => [e.id, e.starts_at]),
+    );
+
+    const recent = demo
+      .demoEvents()
+      .filter((e) => new Date(e.starts_at).getTime() < now)
+      .sort((a, b) => b.starts_at.localeCompare(a.starts_at))
+      .slice(0, limit);
+
+    const firstAttendanceByProfile = new Map<string, string>();
+    for (const a of attendances) {
+      const startsAt = eventStartsById.get(a.eventId);
+      if (!startsAt) continue;
+      const existing = firstAttendanceByProfile.get(a.profileId);
+      if (!existing || startsAt < existing) {
+        firstAttendanceByProfile.set(a.profileId, startsAt);
+      }
+    }
+
+    return recent.map((e) => {
+      const eventAttendances = attendances.filter((a) => a.eventId === e.id);
+      let newCount = 0;
+      let returningCount = 0;
+      for (const a of eventAttendances) {
+        if (firstAttendanceByProfile.get(a.profileId) === e.starts_at) {
+          newCount++;
+        } else {
+          returningCount++;
+        }
+      }
+      return {
+        eventId: e.id,
+        startsAt: e.starts_at,
+        locationName: e.location_name,
+        newCount,
+        returningCount,
+      };
+    });
+  }
+
+  const supabase = await createClient();
+  const { data: eventRows } = await supabase
+    .from("events")
+    .select("id, starts_at, location_name, attendances(profile_id)")
+    .eq("club_id", clubId)
+    .lt("starts_at", new Date().toISOString())
+    .order("starts_at", { ascending: false })
+    .limit(limit);
+
+  const events = (eventRows ?? []) as unknown as {
+    id: string;
+    starts_at: string;
+    location_name: string;
+    attendances: { profile_id: string }[];
+  }[];
+  if (events.length === 0) return [];
+
+  const profileIds = [
+    ...new Set(events.flatMap((e) => e.attendances.map((a) => a.profile_id))),
+  ];
+  if (profileIds.length === 0) {
+    return events.map((e) => ({
+      eventId: e.id,
+      startsAt: e.starts_at,
+      locationName: e.location_name,
+      newCount: 0,
+      returningCount: 0,
+    }));
+  }
+
+  // רק ההיסטוריה של מי שבאמת נכח/ה באחד מה-N המפגשים - לא של כל
+  // חברי הקהילה - כדי למצוא מתי הייתה הפעם הראשונה של כל אחד/ת מהם.
+  const { data: historyRows } = await supabase
+    .from("attendances")
+    .select("profile_id, events(starts_at)")
+    .in("profile_id", profileIds);
+
+  const history = (historyRows ?? []) as unknown as {
+    profile_id: string;
+    events: { starts_at: string } | null;
+  }[];
+
+  const firstAttendanceByProfile = new Map<string, string>();
+  for (const row of history) {
+    const startsAt = row.events?.starts_at;
+    if (!startsAt) continue;
+    const existing = firstAttendanceByProfile.get(row.profile_id);
+    if (!existing || startsAt < existing) {
+      firstAttendanceByProfile.set(row.profile_id, startsAt);
+    }
+  }
+
+  return events.map((e) => {
+    let newCount = 0;
+    let returningCount = 0;
+    for (const a of e.attendances) {
+      if (firstAttendanceByProfile.get(a.profile_id) === e.starts_at) {
+        newCount++;
+      } else {
+        returningCount++;
+      }
+    }
+    return {
+      eventId: e.id,
+      startsAt: e.starts_at,
+      locationName: e.location_name,
+      newCount,
+      returningCount,
+    };
+  });
+}
+
 /**
  * שלושת דוחות ה-CSV של עמוד הניהול (חברים/מפגשים/מטריצת הגעה) —
  * נשלפים ונבנים רק כשבאמת לוחצים על כפתור הייצוא הרלוונטי, לא בכל
