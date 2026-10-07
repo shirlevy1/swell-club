@@ -60,8 +60,13 @@ export function HomeScreenNudge() {
       <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-(--color-sea) to-(--color-deep) text-white">
         <WaveIcon className="size-5" />
       </div>
-      <p className="min-w-0 flex-1 text-sm leading-snug font-bold text-(--color-ink)">
-        Swell Club שמור לכם במסך הבית?
+      <p className="min-w-0 flex-1 text-sm leading-snug">
+        <span className="block font-bold text-(--color-ink)">
+          Swell Club שמור לכם במסך הבית?
+        </span>
+        <span className="block text-(--color-ink-soft)">
+          פתחו משם לחוויה הכי טובה
+        </span>
       </p>
       <button
         type="button"
