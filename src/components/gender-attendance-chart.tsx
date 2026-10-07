@@ -72,6 +72,7 @@ export function GenderAttendanceChart({
             כמה הגיעו?
           </p>
           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+            <span className="text-sm text-(--color-ink-soft)">בממוצע:</span>
             <span className="font-[family-name:var(--font-display)] text-[2.25rem] font-bold text-(--color-ink) ltr-nums">
               {avgTotal}
             </span>
