@@ -129,7 +129,7 @@ export default async function AdminPage() {
             <Link
               href="/admin/insights"
               aria-label="תובנות"
-              className="flex size-10 shrink-0 items-center justify-center rounded-full border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
+              className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
             >
               <ChartIcon className="size-5" />
             </Link>
