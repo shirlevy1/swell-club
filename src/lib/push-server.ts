@@ -71,14 +71,17 @@ export function israelParts(date: Date) {
   };
 }
 
+/** שעת תחילת "חלון הערב" (שעון ישראל) — ראו eveningThresholdBefore. */
+const EVENING_HOUR_LOCAL = 18;
+
 /**
- * הרגע (UTC) של 20:00 בישראל, ביום שלפני התאריך המקומי (בישראל) של
+ * הרגע (UTC) של 18:00 בישראל, ביום שלפני התאריך המקומי (בישראל) של
  * event.starts_at — תחילת "חלון הערב" של אותו מפגש. משותפת בין
  * api/push/send (בודקת אם הגיע הזמן לשלוח) ו-api/push/notify-new-event
  * (בודק אם החלון כבר עבר בעת היצירה, כדי לא לשכפל את ההזמנה).
  *
  * לא הנחה קבועה של +2/+3 שעות: קוראים את השעון בישראל ברגע המפגש
- * עצמו כדי לחשב את ההפרש מ-UTC בפועל, כולל שעון קיץ — "מתרגמים" 20:00
+ * עצמו כדי לחשב את ההפרש מ-UTC בפועל, כולל שעון קיץ — "מתרגמים" 18:00
  * מקומי חזרה ל-UTC לפי אותו הפרש.
  */
 export function eveningThresholdBefore(eventStartsAt: string): Date {
@@ -87,12 +90,12 @@ export function eveningThresholdBefore(eventStartsAt: string): Date {
   const { dateStr: dayBeforeStr } = israelParts(dayBefore);
   const [y, m, d] = dayBeforeStr.split("-").map(Number);
 
-  // ה-offset מ-UTC מחושב ביחס לנקודת הזמן של הסף עצמו (20:00 באותו
+  // ה-offset מ-UTC מחושב ביחס לנקודת הזמן של הסף עצמו (18:00 באותו
   // יום), לא ביחס לזמן תחילת המפגש — אחרת מעבר שעון קיץ/חורף שחל
   // בדיוק בין שתי הנקודות (פעמיים בשנה) היה מסיט את הסף בשעה.
-  // אותה שיטה כמו למטה: מניחים לרגע ש-20:00 מקומי הוא UTC, בודקים
+  // אותה שיטה כמו למטה: מניחים לרגע ש-18:00 מקומי הוא UTC, בודקים
   // מה השעה בישראל ברגע ה-UTC המקביל, וההפרש הוא ה-offset האמיתי.
-  const approxUTC = Date.UTC(y, m - 1, d, 20, 0);
+  const approxUTC = Date.UTC(y, m - 1, d, EVENING_HOUR_LOCAL, 0);
   const israelAtApprox = israelParts(new Date(approxUTC));
   const asUTC = Date.UTC(
     Number(israelAtApprox.dateStr.slice(0, 4)),
@@ -103,7 +106,10 @@ export function eveningThresholdBefore(eventStartsAt: string): Date {
   );
   const offsetMin = Math.round((asUTC - approxUTC) / 60_000);
 
-  return new Date(Date.UTC(y, m - 1, d, 0, 0) + (20 * 60 - offsetMin) * 60_000);
+  return new Date(
+    Date.UTC(y, m - 1, d, 0, 0) +
+      (EVENING_HOUR_LOCAL * 60 - offsetMin) * 60_000,
+  );
 }
 
 /**
