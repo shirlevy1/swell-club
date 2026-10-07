@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { NewVsReturningStats } from "@/lib/data";
 import { formatDayMonth } from "@/lib/format";
 import { Card } from "./ui";
-import { average, computeTrend, TrendBadge } from "./trend-badge";
 
 const CHART_HEIGHT_PX = 140;
 
@@ -12,6 +11,11 @@ const CHART_HEIGHT_PX = 140;
  * אנשים חדשים, או כל פעם אותה חבורה". אותה שפה חזותית כמו גרף 1
  * (GenderAttendanceChart) בכוונה: עמודות ערומות, כי חדש/חוזר הוא
  * פיצול-מתוך-שלם בדיוק כמו גברים/נשים.
+ *
+ * בלי ממוצע+מגמה בכותרת (היה כאן קודם, ושיר אמרה שזה לא היה ברור -
+ * "בממוצע: 0" עם חץ "+1" ליד זה נראה כמו סתירה כשבפועל ה"0" הוא
+ * רק עיגול של מספר קטן מ-0.5). במקום זה - סכום פשוט, "X חדשים
+ * מתוך N המפגשים האחרונים" - ברור בלי לפרש ממוצעים.
  */
 export function NewVsReturningChart({
   events,
@@ -20,19 +24,10 @@ export function NewVsReturningChart({
 }) {
   if (events.length === 0) return null;
 
-  const newValues = events.map((e) => e.newCount);
-  const avgNew = Math.round(average(newValues));
+  const totalNew = events.reduce((sum, e) => sum + e.newCount, 0);
   const maxTotal = Math.max(
     1,
     ...events.map((e) => e.newCount + e.returningCount),
-  );
-
-  // events מגיע מהחדש לישן (ה"היום" מימין) - אבל מגמה צריכה להיקרא
-  // מהישן לחדש, אחרת היא תתהפך.
-  const chronological = [...events].reverse();
-  const newTrend = computeTrend(chronological.map((e) => e.newCount));
-  const returningTrend = computeTrend(
-    chronological.map((e) => e.returningCount),
   );
 
   return (
@@ -42,28 +37,23 @@ export function NewVsReturningChart({
           <p className="text-sm font-bold text-(--color-ink-soft)">
             חדשים מול חוזרים
           </p>
-          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
-            <span className="text-sm text-(--color-ink-soft)">
-              בממוצע חדשים:
-            </span>
+          <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
             <span className="font-[family-name:var(--font-display)] text-[2.25rem] font-bold text-(--color-ink) ltr-nums">
-              {avgNew}
+              {totalNew}
             </span>
-            {newTrend !== null && (
-              <span className="text-sm">
-                <TrendBadge trend={newTrend} />
-              </span>
-            )}
+            <span className="text-sm text-(--color-ink-soft)">
+              חדשים מתוך {events.length} המפגשים האחרונים
+            </span>
           </div>
         </div>
         <div className="flex gap-4 text-sm">
           <span className="flex items-center gap-1.5 text-(--color-ink-soft)">
-            <span className="size-2.5 rounded-full bg-(--color-deep)" />
+            <span className="size-2.5 rounded-full bg-(--color-sea)" />
             חדשים
           </span>
           <span className="flex items-center gap-1.5 text-(--color-ink-soft)">
-            <span className="size-2.5 rounded-full bg-(--color-sea)" />
-            חוזרים <TrendBadge trend={returningTrend} />
+            <span className="size-2.5 rounded-full bg-(--color-deep)" />
+            חוזרים
           </span>
         </div>
       </div>
@@ -94,7 +84,7 @@ export function NewVsReturningChart({
               >
                 {returningHeight > 0 && (
                   <div
-                    className="flex items-center justify-center bg-(--color-sea) text-[0.6rem] font-medium text-white/70 ltr-nums"
+                    className="flex items-center justify-center bg-(--color-deep) text-[0.6rem] font-medium text-white/70 ltr-nums"
                     style={{ height: returningHeight }}
                   >
                     {e.returningCount}
@@ -102,7 +92,7 @@ export function NewVsReturningChart({
                 )}
                 {newHeight > 0 && (
                   <div
-                    className="flex items-center justify-center bg-(--color-deep) text-[0.6rem] font-medium text-white/70 ltr-nums"
+                    className="flex items-center justify-center bg-(--color-sea) text-[0.6rem] font-medium text-white/70 ltr-nums"
                     style={{ height: newHeight }}
                   >
                     {e.newCount}
