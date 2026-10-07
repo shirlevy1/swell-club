@@ -10,22 +10,28 @@ function average(values: number[]): number {
   return values.reduce((sum, v) => sum + v, 0) / values.length;
 }
 
+type Trend = { kind: "percent" | "diff"; value: number } | null;
+
 /** השוואת ממוצע המחצית הראשונה מול השנייה - "האם זה עולה או יורד",
  * לא רק "מה הערך האחרון". null כשאין מספיק מפגשים כדי שזה יהיה בעל
- * משמעות, או כשהבסיס להשוואה קטן מדי (למשל 1→7 הוא "600%+" מספרית
- * נכון אבל מטעה ויזואלית בקהילה קטנה - עדיף לא להציג בכלל). */
-function trendPercent(values: number[]): number | null {
+ * משמעות. כשהבסיס להשוואה קטן (פחות מ-3, כמו בקהילה בשלב בדיקות) -
+ * אחוז יהיה מטעה (1→3 זה "200%" שנשמע דרמטי בלי סיבה) - אז מציגים
+ * את ההפרש הגולמי במקום ("↑2"), לא מסתירים את התג לגמרי. */
+function computeTrend(values: number[]): Trend {
   if (values.length < 4) return null;
   const mid = Math.floor(values.length / 2);
   const first = average(values.slice(0, mid));
   const second = average(values.slice(mid));
-  if (first < 3) return null;
-  return Math.round(((second - first) / first) * 100);
+  if (first < 3) {
+    const diff = Math.round(second - first);
+    return diff === 0 ? null : { kind: "diff", value: diff };
+  }
+  return { kind: "percent", value: Math.round(((second - first) / first) * 100) };
 }
 
-function TrendBadge({ percent }: { percent: number | null }) {
-  if (percent === null) return null;
-  const up = percent >= 0;
+function TrendBadge({ trend }: { trend: Trend }) {
+  if (trend === null) return null;
+  const up = trend.value >= 0;
   return (
     <span
       className={
@@ -33,7 +39,8 @@ function TrendBadge({ percent }: { percent: number | null }) {
       }
     >
       {up ? "↑" : "↓"}
-      {Math.abs(percent)}%
+      {Math.abs(trend.value)}
+      {trend.kind === "percent" && "%"}
     </span>
   );
 }
@@ -58,11 +65,11 @@ export function GenderAttendanceChart({
   // events מגיע מהחדש לישן (ה"היום" מימין, ראו getRecentGenderAttendance) -
   // אבל מגמה (עולה/יורדת) צריכה להיקרא מהישן לחדש, אחרת היא תתהפך.
   const chronological = [...events].reverse();
-  const totalTrend = trendPercent(
+  const totalTrend = computeTrend(
     chronological.map((e) => e.maleCount + e.femaleCount),
   );
-  const maleTrend = trendPercent(chronological.map((e) => e.maleCount));
-  const femaleTrend = trendPercent(chronological.map((e) => e.femaleCount));
+  const maleTrend = computeTrend(chronological.map((e) => e.maleCount));
+  const femaleTrend = computeTrend(chronological.map((e) => e.femaleCount));
 
   return (
     <Card>
@@ -78,7 +85,7 @@ export function GenderAttendanceChart({
             </span>
             {totalTrend !== null && (
               <span className="text-sm">
-                <TrendBadge percent={totalTrend} />
+                <TrendBadge trend={totalTrend} />
               </span>
             )}
           </div>
@@ -86,11 +93,11 @@ export function GenderAttendanceChart({
         <div className="flex gap-4 text-sm">
           <span className="flex items-center gap-1.5 text-(--color-ink-soft)">
             <span className="size-2.5 rounded-full bg-(--color-sea)" />
-            גברים <TrendBadge percent={maleTrend} />
+            גברים <TrendBadge trend={maleTrend} />
           </span>
           <span className="flex items-center gap-1.5 text-(--color-ink-soft)">
             <span className="size-2.5 rounded-full bg-(--color-deep)" />
-            נשים <TrendBadge percent={femaleTrend} />
+            נשים <TrendBadge trend={femaleTrend} />
           </span>
         </div>
       </div>
