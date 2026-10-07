@@ -11,13 +11,15 @@ function average(values: number[]): number {
 }
 
 /** השוואת ממוצע המחצית הראשונה מול השנייה - "האם זה עולה או יורד",
- * לא רק "מה הערך האחרון". null כשאין מספיק מפגשים כדי שזה יהיה בעל משמעות. */
+ * לא רק "מה הערך האחרון". null כשאין מספיק מפגשים כדי שזה יהיה בעל
+ * משמעות, או כשהבסיס להשוואה קטן מדי (למשל 1→7 הוא "600%+" מספרית
+ * נכון אבל מטעה ויזואלית בקהילה קטנה - עדיף לא להציג בכלל). */
 function trendPercent(values: number[]): number | null {
   if (values.length < 4) return null;
   const mid = Math.floor(values.length / 2);
   const first = average(values.slice(0, mid));
   const second = average(values.slice(mid));
-  if (first === 0) return null;
+  if (first < 3) return null;
   return Math.round(((second - first) / first) * 100);
 }
 
@@ -69,14 +71,16 @@ export function GenderAttendanceChart({
           <p className="text-sm font-bold text-(--color-ink-soft)">
             כמה הגיעו?
           </p>
-          <p className="mt-1 flex items-baseline gap-2 font-[family-name:var(--font-display)] text-[2.25rem] font-bold text-(--color-ink) ltr-nums">
-            {avgTotal}
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+            <span className="font-[family-name:var(--font-display)] text-[2.25rem] font-bold text-(--color-ink) ltr-nums">
+              {avgTotal}
+            </span>
             {totalTrend !== null && (
-              <span className="text-base">
-                <TrendBadge percent={totalTrend} /> ממוצע
+              <span className="text-sm">
+                <TrendBadge percent={totalTrend} />
               </span>
             )}
-          </p>
+          </div>
         </div>
         <div className="flex gap-4 text-sm">
           <span className="flex items-center gap-1.5 text-(--color-ink-soft)">

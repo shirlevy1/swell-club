@@ -18,9 +18,9 @@ export default async function AdminInsightsPage() {
     <div className="space-y-6">
       <BackLink href="/admin">לניהול</BackLink>
 
-      <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold">
-        תובנות
-      </h1>
+      {/* בלי כותרת גלויה - שיר ביקשה בלי שום מילה בעמוד הזה. h1
+          נשאר לקוראי מסך/מבנה העמוד בלבד, אותו דפוס כמו ב-app/page.tsx. */}
+      <h1 className="sr-only">תובנות</h1>
 
       <GenderAttendanceChart events={genderAttendance} />
     </div>
