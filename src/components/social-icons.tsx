@@ -163,6 +163,22 @@ export function PlusIcon({ className }: { className?: string }) {
   );
 }
 
+export function ChartIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <path
+        d="M3 21V3"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+      />
+      <rect x="6.5" y="13" width="3" height="8" rx="0.8" fill="currentColor" />
+      <rect x="12" y="9" width="3" height="12" rx="0.8" fill="currentColor" />
+      <rect x="17.5" y="5" width="3" height="16" rx="0.8" fill="currentColor" />
+    </svg>
+  );
+}
+
 export function DownloadIcon({ className }: { className?: string }) {
   return (
     <svg

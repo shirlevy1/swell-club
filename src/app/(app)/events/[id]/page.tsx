@@ -86,6 +86,8 @@ export default async function EventPage({
                       href: "/admin/events/history",
                       label: "לכל המפגשים שהיו",
                     }
+                  : from === "admin-insights"
+                    ? { href: "/admin/insights", label: "לדשבורד" }
                 : { href: "/events", label: "לכל המפגשים" };
   // למחיקת מפגש: רק הבחנה גסה בין "הגעתי מהניהול" ל"הגעתי ממפגשים" —
   // לא צריך את כל הדקויות של back (אזור ספציפי בניהול, מפגש ספציפי

@@ -1840,6 +1840,83 @@ export async function getAdminData(clubId: string) {
   return { events, members, historicalMembers };
 }
 
+export type RecentEventGenderAttendance = {
+  eventId: string;
+  startsAt: string;
+  locationName: string;
+  maleCount: number;
+  femaleCount: number;
+};
+
+/**
+ * כמה הגיעו לכל אחד מה-N המפגשים האחרונים שכבר קרו, מפוצל לפי מגדר —
+ * לגרף הראשון ב-admin/insights. בכוונה **לא** דרך getAdminData: זו
+ * שאילתה צרה ומוגבלת (רק N מפגשים, רק מה שהגרף צריך), לא "להביא את
+ * כל ההיסטוריה ולחתוך בג'אווהסקריפט" - בדיוק העיקרון שהוצע בהצעת
+ * הדשבורד עצמה. מחזירה מהישן לחדש (ציר הזמן של הגרף).
+ *
+ * לא כולל חברי קהילה עם gender='other' - הגרף הזה מציג במפורש רק
+ * שני טורים (גברים/נשים), לא "סה"כ כולל" עם קטגוריה שלישית נסתרת.
+ */
+export async function getRecentGenderAttendance(
+  clubId: string,
+  limit = 8,
+): Promise<RecentEventGenderAttendance[]> {
+  if (demoMode) {
+    const attendances = demo.demoAttendances();
+    const profileById = new Map(demo.demoProfiles().map((p) => [p.id, p]));
+    const now = Date.now();
+
+    const recent = demo
+      .demoEvents()
+      .filter((e) => new Date(e.starts_at).getTime() < now)
+      .sort((a, b) => b.starts_at.localeCompare(a.starts_at))
+      .slice(0, limit)
+      .reverse();
+
+    return recent.map((e) => {
+      const eventAttendances = attendances.filter((a) => a.eventId === e.id);
+      return {
+        eventId: e.id,
+        startsAt: e.starts_at,
+        locationName: e.location_name,
+        maleCount: eventAttendances.filter(
+          (a) => profileById.get(a.profileId)?.gender === "male",
+        ).length,
+        femaleCount: eventAttendances.filter(
+          (a) => profileById.get(a.profileId)?.gender === "female",
+        ).length,
+      };
+    });
+  }
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("events")
+    .select("id, starts_at, location_name, attendances(profiles(gender))")
+    .eq("club_id", clubId)
+    .lt("starts_at", new Date().toISOString())
+    .order("starts_at", { ascending: false })
+    .limit(limit);
+
+  const rows = (data ?? []) as unknown as {
+    id: string;
+    starts_at: string;
+    location_name: string;
+    attendances: { profiles: { gender: Gender | null } | null }[];
+  }[];
+
+  return rows.reverse().map((e) => ({
+    eventId: e.id,
+    startsAt: e.starts_at,
+    locationName: e.location_name,
+    maleCount: e.attendances.filter((a) => a.profiles?.gender === "male")
+      .length,
+    femaleCount: e.attendances.filter((a) => a.profiles?.gender === "female")
+      .length,
+  }));
+}
+
 /**
  * שלושת דוחות ה-CSV של עמוד הניהול (חברים/מפגשים/מטריצת הגעה) —
  * נשלפים ונבנים רק כשבאמת לוחצים על כפתור הייצוא הרלוונטי, לא בכל

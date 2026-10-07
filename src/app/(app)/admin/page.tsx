@@ -21,6 +21,7 @@ import { PendingMembersCard } from "@/components/pending-member-row";
 import { MemberSearchList } from "@/components/member-search-list";
 import { PendingPhotosSection } from "@/components/pending-photo-group";
 import { AdminLiveRefresh } from "@/components/admin-live-refresh";
+import { ChartIcon } from "@/components/social-icons";
 
 /** מקבצת לפי מפגש, ובתוך כל מפגש לפי מי שהעלה — כדי שערימת התמונות
  * של אדם אחד ממפגש אחד תאושר בלחיצה אחת, במקום תמונה-תמונה. */
@@ -124,9 +125,18 @@ export default async function AdminPage() {
           </>
         }
         action={
-          <LinkButton href="/admin/events/new" className="min-h-10 px-4 text-sm">
-            מפגש חדש
-          </LinkButton>
+          <div className="flex shrink-0 gap-2">
+            <Link
+              href="/admin/insights"
+              aria-label="דשבורד"
+              className="flex size-10 shrink-0 items-center justify-center rounded-full border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
+            >
+              <ChartIcon className="size-5" />
+            </Link>
+            <LinkButton href="/admin/events/new" className="min-h-10 px-4 text-sm">
+              מפגש חדש
+            </LinkButton>
+          </div>
         }
       />
 
