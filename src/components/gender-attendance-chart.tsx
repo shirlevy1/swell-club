@@ -73,6 +73,10 @@ export function GenderAttendanceChart({
           const femaleHeight =
             total > 0 ? Math.round((e.femaleCount / total) * stackHeight) : 0;
           const maleHeight = stackHeight - femaleHeight;
+          // אותו עיקרון כמו באחוזים בגרף "חדשים מול חוזרים" - איזה
+          // חלק מהמגיעים למפגש הזה היו נשים, לא רק הספירה הגולמית.
+          const femalePercent =
+            total > 0 ? Math.round((e.femaleCount / total) * 100) : null;
 
           return (
             <Link
@@ -104,6 +108,11 @@ export function GenderAttendanceChart({
                   </div>
                 )}
               </div>
+              {femalePercent !== null && (
+                <span className="rounded bg-(--color-haze) px-1 text-[0.55rem] font-bold text-(--color-sea) ltr-nums">
+                  {femalePercent}%
+                </span>
+              )}
               <span className="text-[0.64rem] text-(--color-ink-faint) ltr-nums">
                 {formatDayMonth(e.startsAt)}
               </span>
