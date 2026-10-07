@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
     .lte("starts_at", new Date(now.getTime() + 30 * 3600_000).toISOString());
   for (const event of eveningCandidates ?? []) {
     if (now >= eveningThresholdBefore(event.starts_at)) {
-      await sendReminder(db, event, "evening", sent);
+      await sendReminder(db, event, "evening", sent, now);
     }
   }
 
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
     .gt("starts_at", now.toISOString())
     .lte("starts_at", new Date(now.getTime() + REMINDER_WINDOW_MS).toISOString());
   for (const event of soonCandidates ?? []) {
-    await sendReminder(db, event, "morning", sent);
+    await sendReminder(db, event, "morning", sent, now);
   }
 
   // "תמונות מהיום מוכנות" — ראו הערה למעלה: חלון פתוח בין 3 ל-13 שעות
@@ -218,6 +218,7 @@ async function sendReminder(
   event: EventRow,
   kind: Kind,
   sent: Record<string, number>,
+  now: Date,
 ) {
   // ניסיון הוספה קודם: אם השורה כבר קיימת, מישהו כבר שלח. זה מונע
   // כפילות גם אם ה-cron רץ פעמיים במקביל, וגם אם מפגש נכנס לחלון
@@ -261,7 +262,7 @@ async function sendReminder(
     const { successCount } = await sendWebPushBatch(
       db,
       subs,
-      buildReminderPayload(kind, event),
+      buildReminderPayload(kind, event, now),
     );
     if (successCount > 0) {
       sent[kind] = (sent[kind] ?? 0) + successCount;

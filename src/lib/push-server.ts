@@ -234,16 +234,26 @@ export async function sendPushToProfiles(
  * בונה את ה-payload של תזכורת ערב/בוקר — כותרת מודגשת עם יום|שעה|מקום,
  * וגוף עם משפט קצר וקבוע לפי הסוג. משמשת את api/push/send (ה-cron
  * התקופתי). event.id אופציונלי: כשיש, מקשר לעמוד המפגש עצמו.
+ *
+ * "מחר"/"היום" נקבע לפי תאריך בפועל (יום המפגש מול `now`), לא לפי
+ * kind: תזכורת הערב בנויה כ"חלון פתוח" שיכול להיתפס רק בבוקר עצמו אם
+ * טיק מוקדם יותר דולג (ראו api/push/send/route.ts) — במקרה כזה היא
+ * עדיין נשלחת עם kind='evening', אבל המפגש כבר "היום", לא "מחר".
+ * `now` כפרמטר מפורש (לא `new Date()` פנימי) כדי שאפשר לבדוק את זה.
  */
 export function buildReminderPayload(
   kind: "evening" | "morning",
   event: { id?: string; starts_at: string; location_name: string },
+  now: Date = new Date(),
 ): PushPayload {
-  const when = kind === "evening" ? "מחר" : "היום";
+  const isToday = israelParts(now).dateStr === israelParts(new Date(event.starts_at)).dateStr;
+  const when = isToday ? "היום" : "מחר";
   const title = `${when} | ${formatTime(event.starts_at)} | ${event.location_name}`;
   const body =
     kind === "evening"
-      ? "מחר במים. נתראה שם."
+      ? isToday
+        ? "היום במים. נתראה שם."
+        : "מחר במים. נתראה שם."
       : "מגיעים לסוואל?\nמזכירים לעשות צ׳ק־אין כדי להיות חלק מהמפגש.";
   return {
     title,
