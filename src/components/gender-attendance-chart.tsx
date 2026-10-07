@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { RecentEventGenderAttendance } from "@/lib/data";
 import { formatDayMonth } from "@/lib/format";
 import { Card } from "./ui";
+import { TriangleUpIcon } from "./social-icons";
 
 const CHART_HEIGHT_PX = 140;
 
@@ -30,10 +31,11 @@ function computeTrend(values: number[]): Trend {
 }
 
 /**
- * inline-flex עם סדר DOM קבוע (חץ קודם) - בעמוד RTL זה ממקם את החץ
- * תמיד מימין, בלי להסתמך על פענוח bidi של דפדפן למחרוזת מעורבת
- * (תו חץ + ספרה), שהתברר ויזואלית כלא אמין: חץ ומספר ישבו על גבהים
- * שונים ובסדר לא עקבי. items-center מיישר את שניהם לאותו קו אמצע.
+ * inline-flex עם סדר DOM קבוע (משולש קודם) - בעמוד RTL זה ממקם אותו
+ * תמיד מימין. משולש SVG, לא תו "↑"/"↓": תו יוניקוד כזה מקבל גובה/קו-
+ * בסיס שונה בגופנים שונים (בעיקר iOS) ולא ישב בעקביות לצד המספר גם
+ * עם items-center - נבדק ויזואלית ונכשל. ל-SVG יש תיבת מידות קבועה
+ * בכל פלטפורמה, אז היישור אמין.
  */
 function TrendBadge({ trend }: { trend: Trend }) {
   if (trend === null) return null;
@@ -41,11 +43,11 @@ function TrendBadge({ trend }: { trend: Trend }) {
   return (
     <span
       className={
-        "inline-flex items-center gap-0.5 font-bold leading-none " +
+        "inline-flex items-center gap-0.5 font-bold " +
         (up ? "text-(--color-verified)" : "text-(--color-fail)")
       }
     >
-      <span>{up ? "↑" : "↓"}</span>
+      <TriangleUpIcon className={up ? "size-2.5" : "size-2.5 rotate-180"} />
       <span className="ltr-nums">
         {Math.abs(trend.value)}
         {trend.kind === "percent" && "%"}

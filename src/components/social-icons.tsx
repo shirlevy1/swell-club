@@ -179,6 +179,21 @@ export function ChartIcon({ className }: { className?: string }) {
   );
 }
 
+/**
+ * משולש כלפי מעלה, לא תו יוניקוד "↑" - גופנים שונים (בעיקר iOS)
+ * נותנים לתו הזה גובה/קו-בסיס שונה מספרות רגילות, מה שגרם לחץ
+ * ולמספר לידו לשבת על גבהים לא עקביים ב-TrendBadge. ל-SVG יש תיבת
+ * מידות קבועה וזהה בכל פלטפורמה, אז items-center ביישור flex עובד
+ * באמינות. רוטציה (rotate-180) הופכת אותו לכלפי מטה.
+ */
+export function TriangleUpIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden>
+      <path d="M12 5 19 18H5Z" fill="currentColor" />
+    </svg>
+  );
+}
+
 export function DownloadIcon({ className }: { className?: string }) {
   return (
     <svg
