@@ -7,6 +7,7 @@ import { DemoBadge } from "@/components/demo-badge";
 import { VisibilityRefresh } from "@/components/visibility-refresh";
 import { PullToRefresh } from "@/components/pull-to-refresh";
 import { NotificationPromptBanner } from "@/components/notification-prompt-banner";
+import { HomeScreenNudge } from "@/components/home-screen-nudge";
 import { SignOutButton } from "@/components/sign-out-button";
 import { AmbiguousMembershipScreen } from "@/components/ambiguous-membership-screen";
 import { Card, LinkButton } from "@/components/ui";
@@ -120,6 +121,7 @@ export default async function AppLayout({
             <AmbiguousMembershipScreen />
           ) : (
             <>
+              <HomeScreenNudge />
               <NotificationPromptBanner recentlyRestored={recentlyRestored} />
               {children}
             </>
