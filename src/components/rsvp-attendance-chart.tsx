@@ -52,7 +52,7 @@ export function RsvpAttendanceChart({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-sm font-bold text-(--color-ink-soft)">
-            RSVP מול הגעה בפועל
+            מתכננים מול הגיעו
           </p>
           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
             <span className="text-sm text-(--color-ink-soft)">בממוצע:</span>
