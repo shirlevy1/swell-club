@@ -101,9 +101,16 @@ export async function POST(request: NextRequest) {
     .select("id, club_id, starts_at, location_name")
     .gt("starts_at", now.toISOString())
     .lte("starts_at", new Date(now.getTime() + 30 * 3600_000).toISOString());
+  // מפגשים שההזמנה שלהם יצאה הרגע, בטיק הזה בדיוק — כדי לא לשלוח גם
+  // את תזכורת הבוקר שנייה אחר כך לאותו מפגש (ראו למטה). קורה בעיקר
+  // כשההזמנה התעכבה (טיק 20:00 דולג) ו"נתפסת" רק אחרי שחלון הבוקר
+  // כבר נפתח גם הוא - שתי התראות תוך שנייה הן חוויה מיותרת, לא רק
+  // ניסוח "מחר/היום" שגוי (שכבר תוקן למעלה ב-buildReminderPayload).
+  const eveningJustSent = new Set<string>();
   for (const event of eveningCandidates ?? []) {
     if (now >= eveningThresholdBefore(event.starts_at)) {
-      await sendReminder(db, event, "evening", sent, now);
+      const justSent = await sendReminder(db, event, "evening", sent, now);
+      if (justSent) eveningJustSent.add(event.id);
     }
   }
 
@@ -121,6 +128,9 @@ export async function POST(request: NextRequest) {
     .gt("starts_at", now.toISOString())
     .lte("starts_at", new Date(now.getTime() + REMINDER_WINDOW_MS).toISOString());
   for (const event of soonCandidates ?? []) {
+    // ההזמנה לאותו מפגש בדיוק יצאה בטיק הזה - תזכורת הבוקר תחכה
+    // לטיק הבא (בעוד כשעתיים) במקום להישלח כמעט באותו רגע.
+    if (eveningJustSent.has(event.id)) continue;
     await sendReminder(db, event, "morning", sent, now);
   }
 
@@ -213,20 +223,25 @@ async function sendPhotosReadyReminder(
   }
 }
 
+/**
+ * שולחת תזכורת, ומחזירה אם היא *בפועל* יצאה למישהו בטיק הזה —
+ * כדי ש-POST למעלה ידע לדלג על תזכורת הבוקר לאותו מפגש באותו טיק
+ * אם ההזמנה (evening) בדיוק עכשיו נשלחה בו (ראו שם, "eveningJustSent").
+ */
 async function sendReminder(
   db: ReturnType<typeof adminDb>,
   event: EventRow,
   kind: Kind,
   sent: Record<string, number>,
   now: Date,
-) {
+): Promise<boolean> {
   // ניסיון הוספה קודם: אם השורה כבר קיימת, מישהו כבר שלח. זה מונע
   // כפילות גם אם ה-cron רץ פעמיים במקביל, וגם אם מפגש נכנס לחלון
   // הבטיחות ביותר מטיק אחד.
   const { error: claimError } = await db
     .from("event_reminders")
     .insert({ event_id: event.id, kind });
-  if (claimError) return;
+  if (claimError) return false;
 
   // התפיסה למעלה כבר קרתה — אם משהו כאן נכשל (או שכל השליחות
   // נכשלו), משחררים אותה בסוף כדי שהטיק הבא ינסה שוב, במקום לאבד
@@ -251,13 +266,13 @@ async function sendReminder(
       kind === "morning"
         ? (going ?? []).map((r) => r.profile_id)
         : (members ?? []).map((m) => m.profile_id);
-    if (ids.length === 0) return;
+    if (ids.length === 0) return false;
 
     const { data: subs } = await db
       .from("push_subscriptions")
       .select("endpoint, p256dh, auth")
       .in("profile_id", ids);
-    if (!subs || subs.length === 0) return;
+    if (!subs || subs.length === 0) return false;
 
     const { successCount } = await sendWebPushBatch(
       db,
@@ -276,7 +291,9 @@ async function sendReminder(
         .delete()
         .eq("event_id", event.id)
         .eq("kind", kind);
+      return false;
     }
+    return true;
   } catch (err) {
     console.error("sendReminder: failed", { eventId: event.id, kind }, err);
     Sentry.captureException(err);
@@ -285,5 +302,6 @@ async function sendReminder(
       .delete()
       .eq("event_id", event.id)
       .eq("kind", kind);
+    return false;
   }
 }

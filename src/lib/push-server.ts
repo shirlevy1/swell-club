@@ -258,7 +258,11 @@ export function buildReminderPayload(
   return {
     title,
     body,
-    tag: event.id ? `event-${event.id}` : "swell-test",
+    // כולל kind: בלעדיו, שתי התזכורות לאותו מפגש (evening/morning)
+    // חולקות תג זהה - אם שתיהן מגיעות קרוב בזמן (למשל כשההזמנה
+    // התעכבה, ראו למעלה), אחת "בולעת" את השנייה ויזואלית במכשיר,
+    // למרות ששתיהן נשלחו בהצלחה בפועל.
+    tag: event.id ? `event-${event.id}-${kind}` : "swell-test",
     url: event.id ? `/events/${event.id}` : "/events",
   };
 }
