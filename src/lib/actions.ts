@@ -5,6 +5,10 @@ import {
   getViewer,
   getClubMembersWithLatestSelfie,
   getEventAttendanceReport,
+  getAdminMembersReport,
+  getAdminEventsReport,
+  getAdminAttendanceMatrixReport,
+  getAdminRemovedReport,
   type MemberPickerRow,
   type EventAttendanceReportRow,
 } from "./data";
@@ -113,6 +117,52 @@ export async function getEventAttendanceReportAction(
   }
 
   const rows = await getEventAttendanceReport(eventId, viewer.club.id);
+  return { ok: true, rows };
+}
+
+export type AdminReportResult =
+  | { ok: true; rows: string[][] }
+  | { ok: false; error: string };
+
+/**
+ * שלושת דוחות ה-CSV של עמוד הניהול (חברים/מפגשים/מטריצת הגעה) -
+ * נשלפים ונבנים רק בלחיצה על כפתור הייצוא הרלוונטי, לא כחלק מטעינת
+ * עמוד הניהול עצמו. אותו עיקרון בדיוק כמו getEventAttendanceReportAction
+ * למעלה.
+ */
+export async function getAdminMembersReportAction(): Promise<AdminReportResult> {
+  const viewer = await getViewer();
+  if (!viewer?.club || viewer.role !== "organizer") {
+    return { ok: false, error: "רק מנהלת קהילה יכולה לייצא דוח." };
+  }
+  const rows = await getAdminMembersReport(viewer.club.id);
+  return { ok: true, rows };
+}
+
+export async function getAdminEventsReportAction(): Promise<AdminReportResult> {
+  const viewer = await getViewer();
+  if (!viewer?.club || viewer.role !== "organizer") {
+    return { ok: false, error: "רק מנהלת קהילה יכולה לייצא דוח." };
+  }
+  const rows = await getAdminEventsReport(viewer.club.id);
+  return { ok: true, rows };
+}
+
+export async function getAdminAttendanceMatrixReportAction(): Promise<AdminReportResult> {
+  const viewer = await getViewer();
+  if (!viewer?.club || viewer.role !== "organizer") {
+    return { ok: false, error: "רק מנהלת קהילה יכולה לייצא דוח." };
+  }
+  const rows = await getAdminAttendanceMatrixReport(viewer.club.id);
+  return { ok: true, rows };
+}
+
+export async function getAdminRemovedReportAction(): Promise<AdminReportResult> {
+  const viewer = await getViewer();
+  if (!viewer?.club || viewer.role !== "organizer") {
+    return { ok: false, error: "רק מנהלת קהילה יכולה לייצא דוח." };
+  }
+  const rows = await getAdminRemovedReport(viewer.club.id);
   return { ok: true, rows };
 }
 

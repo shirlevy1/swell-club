@@ -1,33 +1,12 @@
 import { redirect } from "next/navigation";
-import { getViewer, getRemovedMembers, getAdminData } from "@/lib/data";
+import { getViewer, getRemovedMembers } from "@/lib/data";
 import type { RemovedReason } from "@/lib/data";
-import {
-  ageInYears,
-  byGender,
-  formatDate,
-  formatDateNumericPadded,
-  formatDateTimeNumeric,
-  formatPhone,
-  genderLabel,
-  normalizeInstagram,
-} from "@/lib/format";
+import { byGender, formatDateNumericPadded } from "@/lib/format";
 import type { Gender } from "@/lib/types";
-import { checkInWindow } from "@/lib/checkin";
-import { swimLevelLabel } from "@/lib/swim-level";
 import { BackLink, Card, EmptyState } from "@/components/ui";
 import { ExportButton } from "@/components/export-button";
 import { RestoreMemberButton } from "@/components/restore-member-button";
-
-function reasonLabel(reason: RemovedReason, gender: Gender | null): string {
-  switch (reason) {
-    case "left":
-      return byGender(gender, "עזב בעצמו", "עזבה בעצמה");
-    case "removed":
-      return byGender(gender, "הוסר ע״י מנהלת", "הוסרה ע״י מנהלת");
-    case "rejected":
-      return "בקשת הצטרפות נדחתה";
-  }
-}
+import { getAdminRemovedReportAction } from "@/lib/actions";
 
 /** ניסוח קצר לשורה בכרטיס — "הוסר ב-12.09.2026", לא "לא בקהילה מאז...". */
 function removalVerb(reason: RemovedReason, gender: Gender | null): string {
@@ -52,55 +31,7 @@ export default async function RemovedMembersPage() {
   const viewer = await getViewer();
   if (!viewer?.club || viewer.role !== "organizer") redirect("/events");
 
-  const [removed, { events }] = await Promise.all([
-    getRemovedMembers(viewer.club.id),
-    getAdminData(viewer.club.id),
-  ]);
-
-  // אותו מכנה בדיוק כמו בייצוא "חברים" הרגיל — מפגשים שחלון הצ'ק־אין
-  // שלהם כבר נפתח, לא רק מי שהסתיים.
-  const heldCount = events.filter(
-    (e) => checkInWindow(e).status !== "before",
-  ).length;
-
-  const removedCsv = [
-    [
-      "שם",
-      "מגדר",
-      "גיל",
-      "תאריך לידה",
-      "עיר מגורים",
-      "טלפון",
-      "אימייל",
-      "אינסטגרם",
-      "רמת שחייה",
-      "תאריך הצטרפות",
-      "מפגשים",
-      "אחוז הגעה",
-      "אישרו את תנאי ההצטרפות",
-      "תאריכי מפגשים שהגיעו אליהם",
-      "תאריך עזיבה",
-      "סיבה",
-    ],
-    ...removed.map((m) => [
-      m.fullName,
-      genderLabel(m.gender),
-      ageInYears(m.birthDate)?.toString() ?? "",
-      m.birthDate ?? "",
-      m.city ?? "",
-      formatPhone(m.phone) ?? "",
-      m.email ?? "",
-      normalizeInstagram(m.instagram) ?? "",
-      swimLevelLabel(m.swimLevel) ?? "",
-      formatDate(m.createdAt),
-      `${m.attendedDates.length} מתוך ${heldCount}`,
-      `${heldCount ? Math.round((m.attendedDates.length / heldCount) * 100) : 0}%`,
-      m.waiverAcceptedAt ? "כן" : "",
-      m.attendedDates.map((d) => formatDateTimeNumeric(d)).join(" | "),
-      m.removedAt ? formatDate(m.removedAt) : "",
-      m.removedReason ? reasonLabel(m.removedReason, m.gender) : "",
-    ]),
-  ];
+  const removed = await getRemovedMembers(viewer.club.id);
 
   return (
     <div className="space-y-6">
@@ -120,7 +51,7 @@ export default async function RemovedMembersPage() {
         </div>
         {removed.length > 0 && (
           <ExportButton
-            rows={removedCsv}
+            action={getAdminRemovedReportAction}
             filename="swell-removed-members.csv"
             label="CSV"
           />

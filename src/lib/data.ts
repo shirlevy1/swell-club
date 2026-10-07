@@ -3,7 +3,20 @@ import { headers } from "next/headers";
 import { createClient } from "./supabase/server";
 import { adminDb } from "./push-server";
 import { demoMode, TRUSTED_USER_ID_HEADER } from "./config";
-import { ageInYears } from "./format";
+import {
+  ageInYears,
+  byGender,
+  formatDate,
+  formatDateTimeNumeric,
+  formatDayMonth,
+  formatPhone,
+  formatTime,
+  formatWeekdayName,
+  genderLabel,
+  normalizeInstagram,
+} from "./format";
+import { checkInWindow } from "./checkin";
+import { swimLevelLabel } from "./swim-level";
 import type {
   Attendance,
   Club,
@@ -347,6 +360,81 @@ export async function getRemovedMembers(
     removedReason: row.removed_reason,
     attendedDates: row.attended_dates ?? [],
   }));
+}
+
+/** גם ב-admin/removed/page.tsx (תצוגה) וגם בדוח ה-CSV - מקור יחיד. */
+export function reasonLabel(
+  reason: RemovedReason,
+  gender: Gender | null,
+): string {
+  switch (reason) {
+    case "left":
+      return byGender(gender, "עזב בעצמו", "עזבה בעצמה");
+    case "removed":
+      return byGender(gender, "הוסר ע״י מנהלת", "הוסרה ע״י מנהלת");
+    case "rejected":
+      return "בקשת הצטרפות נדחתה";
+  }
+}
+
+/**
+ * דוח CSV "מי שכבר לא בקהילה" - נשלף ונבנה רק בלחיצה על כפתור הייצוא,
+ * לא כחלק מטעינת עמוד admin/removed עצמו. אותם שדות בדיוק כמו ייצוא
+ * "חברים" הרגיל (getAdminMembersReport), ובנוסף תאריכי נוכחות מלאים,
+ * תאריך עזיבה, וסיבה.
+ */
+export async function getAdminRemovedReport(
+  clubId: string,
+): Promise<string[][]> {
+  const [removed, { events }] = await Promise.all([
+    getRemovedMembers(clubId),
+    getAdminData(clubId),
+  ]);
+
+  // אותו מכנה בדיוק כמו בייצוא "חברים" הרגיל - מפגשים שחלון הצ'ק־אין
+  // שלהם כבר נפתח, לא רק מי שהסתיים.
+  const heldCount = events.filter(
+    (e) => checkInWindow(e).status !== "before",
+  ).length;
+
+  return [
+    [
+      "שם",
+      "מגדר",
+      "גיל",
+      "תאריך לידה",
+      "עיר מגורים",
+      "טלפון",
+      "אימייל",
+      "אינסטגרם",
+      "רמת שחייה",
+      "תאריך הצטרפות",
+      "מפגשים",
+      "אחוז הגעה",
+      "אישרו את תנאי ההצטרפות",
+      "תאריכי מפגשים שהגיעו אליהם",
+      "תאריך עזיבה",
+      "סיבה",
+    ],
+    ...removed.map((m) => [
+      m.fullName,
+      genderLabel(m.gender),
+      ageInYears(m.birthDate)?.toString() ?? "",
+      m.birthDate ?? "",
+      m.city ?? "",
+      formatPhone(m.phone) ?? "",
+      m.email ?? "",
+      normalizeInstagram(m.instagram) ?? "",
+      swimLevelLabel(m.swimLevel) ?? "",
+      formatDate(m.createdAt),
+      `${m.attendedDates.length} מתוך ${heldCount}`,
+      `${heldCount ? Math.round((m.attendedDates.length / heldCount) * 100) : 0}%`,
+      m.waiverAcceptedAt ? "כן" : "",
+      m.attendedDates.map((d) => formatDateTimeNumeric(d)).join(" | "),
+      m.removedAt ? formatDate(m.removedAt) : "",
+      m.removedReason ? reasonLabel(m.removedReason, m.gender) : "",
+    ]),
+  ];
 }
 
 export type PendingEventPhoto = {
@@ -1750,6 +1838,153 @@ export async function getAdminData(clubId: string) {
     .sort(byJoinDateDesc);
 
   return { events, members, historicalMembers };
+}
+
+/**
+ * שלושת דוחות ה-CSV של עמוד הניהול (חברים/מפגשים/מטריצת הגעה) —
+ * נשלפים ונבנים רק כשבאמת לוחצים על כפתור הייצוא הרלוונטי, לא בכל
+ * טעינה של עמוד הניהול (ראו דיון ביצועים ב"ביקורת הביצועים והתשתית").
+ * כל פונקציה כאן עצמאית (קוראת ל-getAdminData בעצמה), באותו דפוס
+ * בדיוק כמו getEventAttendanceReport למטה.
+ */
+export async function getAdminMembersReport(
+  clubId: string,
+): Promise<string[][]> {
+  const { events, members } = await getAdminData(clubId);
+
+  // המכנה של אחוז ההגעה הוא מפגשים שכבר אפשר היה לסמן בהם נוכחות
+  // (חלון הצ'ק-אין נפתח), לא רק מפגשים שהסתיימו - אחרת מי שסימן
+  // הגעה למפגש שנפתח עכשיו מקבל "3 מתוך 2".
+  const heldCount = events.filter(
+    (e) => checkInWindow(e).status !== "before",
+  ).length;
+
+  return [
+    [
+      "שם",
+      "מגדר",
+      "גיל",
+      "תאריך לידה",
+      "עיר מגורים",
+      "טלפון",
+      "אימייל",
+      "אינסטגרם",
+      "רמת שחייה",
+      "תאריך הצטרפות",
+      "מפגשים",
+      "אחוז הגעה",
+      "אישרו את תנאי ההצטרפות",
+    ],
+    // members כבר ממוין לפי תאריך הצטרפות ב-getAdminData
+    ...members.map((m) => [
+      m.profile.full_name,
+      genderLabel(m.profile.gender),
+      ageInYears(m.profile.birth_date)?.toString() ?? "",
+      m.profile.birth_date ?? "",
+      m.profile.city ?? "",
+      formatPhone(m.profile.phone) ?? "",
+      m.email ?? "",
+      // מנורמל: בטופס אנשים הכניסו גם קישורים מלאים וגם שמות משתמש
+      normalizeInstagram(m.profile.instagram) ?? "",
+      swimLevelLabel(m.profile.swim_level) ?? "",
+      formatDate(m.profile.created_at),
+      // "X מתוך Y" ולא "X/Y": אקסל וגוגל שיטס קוראים "16/30" כתאריך
+      // (יוני 2030!) ולא כטקסט, למרות שזה בכלל לא תאריך.
+      `${m.attendedCount} מתוך ${heldCount}`,
+      `${heldCount ? Math.round((m.attendedCount / heldCount) * 100) : 0}%`,
+      // תיבת אישור אחת בהרשמה (legal_accepted) שומרת waiver+privacy
+      // באותו רגע בדיוק - שני העמודים תמיד זהים, ולכן עמודה אחת מספיקה.
+      m.profile.waiver_accepted_at ? "כן" : "",
+    ]),
+  ];
+}
+
+export async function getAdminEventsReport(
+  clubId: string,
+): Promise<string[][]> {
+  const { events, historicalMembers } = await getAdminData(clubId);
+
+  const eventsChronological = [...events].sort((a, b) =>
+    a.starts_at.localeCompare(b.starts_at),
+  );
+  // מי שכבר היה חלק מהקהילה ביום נתון - כולל מי שכבר עזב/הוסר מאז,
+  // כי זה גודל הקהילה שהיה נכון היסטורית באותו תאריך, לא היום.
+  const memberCountAtDate = (iso: string) =>
+    historicalMembers.filter((m) => m.profile.created_at <= iso).length;
+
+  return [
+    [
+      "כותרת",
+      "יום בשבוע",
+      "תאריך",
+      "שעה",
+      "מיקום",
+      "סימנו שיגיעו",
+      "הגיעו בפועל",
+      "אחוז הגעה מתוך חברי הקהילה",
+      "אחוז הגעה מתוך מי שסימן הגעה",
+      "אחוז נשים",
+      "אחוז גברים",
+    ],
+    ...eventsChronological.map((e) => {
+      // מי שהגיע נספר כאן גם אם לא סימן שהוא מתכוון להגיע - cameCount
+      // הוא סך הנוכחויות בפועל, לא מותנה ב-RSVP קודם.
+      const clubSize = memberCountAtDate(e.starts_at);
+      const rateOfClub = clubSize
+        ? Math.round((e.cameCount / clubSize) * 100)
+        : 0;
+      const rateOfGoing = e.goingCount
+        ? Math.round((e.cameCount / e.goingCount) * 100)
+        : 0;
+      const female = e.cameCount
+        ? Math.round((e.femaleCame / e.cameCount) * 100)
+        : 0;
+      const male = e.cameCount
+        ? Math.round((e.maleCame / e.cameCount) * 100)
+        : 0;
+      return [
+        e.title,
+        formatWeekdayName(e.starts_at),
+        formatDayMonth(e.starts_at),
+        formatTime(e.starts_at),
+        e.location_name,
+        String(e.goingCount),
+        String(e.cameCount),
+        `${rateOfClub}%`,
+        `${rateOfGoing}%`,
+        `${female}%`,
+        `${male}%`,
+      ];
+    }),
+  ];
+}
+
+export async function getAdminAttendanceMatrixReport(
+  clubId: string,
+): Promise<string[][]> {
+  const { events, historicalMembers } = await getAdminData(clubId);
+  const eventsChronological = [...events].sort((a, b) =>
+    a.starts_at.localeCompare(b.starts_at),
+  );
+
+  // שורה לכל מי שהיה/הייתה חבר/ה אי-פעם (גם מי שכבר עזב/הוסר, לא רק
+  // חברים פעילים היום), עמודה לכל מפגש, "כן" איפה שנכח/ה בפועל (כולל
+  // הוספה ידנית) - כדי לראות בבת אחת מי הגיע/ה לאילו מפגשים לאורך
+  // זמן, בלי שההיסטוריה תיעלם כשמישהו/י עוזב/ת.
+  return [
+    [
+      "שם",
+      "טלפון",
+      ...eventsChronological.map((e) => formatDayMonth(e.starts_at)),
+    ],
+    ...historicalMembers.map((m) => [
+      m.profile.full_name,
+      formatPhone(m.profile.phone) ?? "",
+      ...eventsChronological.map((e) =>
+        e.attendedProfileIds.includes(m.profile.id) ? "כן" : "",
+      ),
+    ]),
+  ];
 }
 
 export type EventAttendanceReportRow = {
