@@ -163,22 +163,17 @@ export function PlusIcon({ className }: { className?: string }) {
   );
 }
 
+/**
+ * שלושה "עמודות" עם פינות מעוגלות רק למעלה (לא ריבוע/stroke) - בדיוק
+ * כמו עמודות הגרפים האמיתיים ב-admin/insights (rounded-t מלא בצבע),
+ * לא קו מתאר דק. path במקום rect, כי rect מעגל את כל ארבע הפינות.
+ */
 export function ChartIcon({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.9"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden
-    >
-      <path d="M4 20h16" />
-      <path d="M7 20v-5" />
-      <path d="M12.5 20v-9" />
-      <path d="M18 20v-14" />
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <path d="M4.5 20 4.5 15Q4.5 14 5.5 14L7 14Q8 14 8 15L8 20Z" />
+      <path d="M10.25 20 10.25 10Q10.25 9 11.25 9L12.75 9Q13.75 9 13.75 10L13.75 20Z" />
+      <path d="M16 20 16 5Q16 4 17 4L18.5 4Q19.5 4 19.5 5L19.5 20Z" />
     </svg>
   );
 }
