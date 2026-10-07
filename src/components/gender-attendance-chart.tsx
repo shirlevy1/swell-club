@@ -31,8 +31,9 @@ function computeTrend(values: number[]): Trend {
 }
 
 /**
- * inline-flex עם סדר DOM קבוע (משולש קודם) - בעמוד RTL זה ממקם אותו
- * תמיד מימין. משולש SVG, לא תו "↑"/"↓": תו יוניקוד כזה מקבל גובה/קו-
+ * inline-flex עם סדר DOM קבוע (מספר קודם, משולש אחריו) - בעמוד RTL
+ * זה ממקם את המספר מימין ואת המשולש משמאלו, כמו מספר+יחידה בעברית
+ * ("70 ק״ג"). משולש SVG, לא תו "↑"/"↓": תו יוניקוד כזה מקבל גובה/קו-
  * בסיס שונה בגופנים שונים (בעיקר iOS) ולא ישב בעקביות לצד המספר גם
  * עם items-center - נבדק ויזואלית ונכשל. ל-SVG יש תיבת מידות קבועה
  * בכל פלטפורמה, אז היישור אמין.
@@ -47,11 +48,11 @@ function TrendBadge({ trend }: { trend: Trend }) {
         (up ? "text-(--color-verified)" : "text-(--color-fail)")
       }
     >
-      <TriangleUpIcon className={up ? "size-2.5" : "size-2.5 rotate-180"} />
       <span className="ltr-nums">
         {Math.abs(trend.value)}
         {trend.kind === "percent" && "%"}
       </span>
+      <TriangleUpIcon className={up ? "size-2.5" : "size-2.5 rotate-180"} />
     </span>
   );
 }
