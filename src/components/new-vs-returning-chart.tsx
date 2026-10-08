@@ -16,6 +16,11 @@ const CHART_HEIGHT_PX = 140;
  * "בממוצע: 0" עם חץ "+1" ליד זה נראה כמו סתירה, כי שני המספרים
  * ענו על שאלות שונות). המספר עצמו כן ממוצע (לא סכום) - "בממוצע: X
  * חדשים" - אותו דפוס בדיוק כמו גרף 1/גרף 2, רק בלי תג המגמה.
+ *
+ * צבעים מכוונים להיות תואמים לגרף 1: "חדשים" ו"נשים" הם אותו גוון
+ * (deep), שניהם למעלה בעמודה ומשמאל במקרא; "חוזרים" ו"גברים" הם
+ * אותו גוון (sea), שניהם למטה בעמודה ומימין במקרא - לפי בקשת שיר
+ * שהצבעים/המיקומים "ידברו אותה שפה" בין שני הגרפים.
  */
 export function NewVsReturningChart({
   events,
@@ -48,11 +53,11 @@ export function NewVsReturningChart({
         <div className="flex gap-3 text-xs">
           <span className="flex items-center gap-1 text-(--color-ink-soft)">
             <span className="size-2 rounded-full bg-(--color-sea)" />
-            חדשים
+            חוזרים
           </span>
           <span className="flex items-center gap-1 text-(--color-ink-soft)">
             <span className="size-2 rounded-full bg-(--color-deep)" />
-            חוזרים
+            חדשים
           </span>
         </div>
       </div>
@@ -84,20 +89,20 @@ export function NewVsReturningChart({
                 className="flex w-full flex-col overflow-hidden rounded-t"
                 style={{ height: stackHeight }}
               >
-                {returningHeight > 0 && (
-                  <div
-                    className="flex items-center justify-center bg-(--color-deep) text-[0.6rem] font-medium text-white/70 ltr-nums"
-                    style={{ height: returningHeight }}
-                  >
-                    {e.returningCount}
-                  </div>
-                )}
                 {newHeight > 0 && (
                   <div
-                    className="flex items-center justify-center bg-(--color-sea) text-[0.6rem] font-medium text-white/70 ltr-nums"
+                    className="flex items-center justify-center bg-(--color-deep) text-[0.6rem] font-medium text-white/70 ltr-nums"
                     style={{ height: newHeight }}
                   >
                     {e.newCount}
+                  </div>
+                )}
+                {returningHeight > 0 && (
+                  <div
+                    className="flex items-center justify-center bg-(--color-sea) text-[0.6rem] font-medium text-white/70 ltr-nums"
+                    style={{ height: returningHeight }}
+                  >
+                    {e.returningCount}
                   </div>
                 )}
               </div>
