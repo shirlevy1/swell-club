@@ -55,7 +55,7 @@ export default async function AdminInsightsPage() {
 
       <div className="grid grid-cols-2 gap-3">
         <SparklineCard
-          title="פעילים ב-30 יום אחרונים"
+          title="פעילים בחודש האחרון"
           value={activeTrend.current}
           trend={activeTrend.diff === 0 ? null : { kind: "diff", value: activeTrend.diff }}
           sparkline={activeTrend.sparkline}
