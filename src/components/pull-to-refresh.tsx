@@ -47,6 +47,12 @@ export function PullToRefresh({
 
     function onTouchStart(e: TouchEvent) {
       if ((container?.scrollTop ?? 0) > 0 || pending) return;
+      // מגע שמתחיל בתוך בלוק גלילה פנימי משלו (כמו רשימת חברי קהילה,
+      // ראו member-search-list.tsx) לא אמור להיתפס כמשיכה-לרענון -
+      // בלעדי זה, preventDefault כאן "תקע" את הגלילה הפנימית של
+      // הבלוק (ראו ההערה על MIN_DELTA_TO_INTERCEPT למעלה - אותה
+      // תופעה בדיוק, רק שהפעם הקורבן הוא בלוק פנימי, לא העמוד כולו).
+      if ((e.target as HTMLElement)?.closest?.("[data-nested-scroll]")) return;
       startY.current = e.touches[0].clientY;
     }
 

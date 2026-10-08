@@ -47,7 +47,10 @@ export function MemberSearchList({ members }: { members: AdminMember[] }) {
       {filtered.length === 0 ? (
         <EmptyState title="לא נמצא/ה" body="אף חבר/ת קהילה לא תואם/ת את החיפוש." />
       ) : (
-        <Card className="max-h-[23rem] divide-y divide-(--color-line)/50 overflow-y-auto p-0">
+        <Card
+          data-nested-scroll
+          className="max-h-[23rem] divide-y divide-(--color-line)/50 overflow-y-auto p-0"
+        >
           {filtered.map((m) => {
             const age = ageInYears(m.profile.birth_date);
             const wa = whatsappUrl(m.profile.phone);
