@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import {
   getViewer,
   getMemberProfile,
+  getMemberRole,
   getPersonCard,
   getSelfieHistory,
   getEventPhotoCollages,
@@ -15,6 +16,7 @@ import {
   swimLevelBadgeStyle,
 } from "@/lib/swim-level";
 import { WhatsAppIcon, InstagramIcon, WaveIcon } from "@/components/social-icons";
+import { RemoveMemberButton } from "@/components/remove-member-button";
 
 export default async function AdminMemberPage({
   params,
@@ -46,10 +48,11 @@ export default async function AdminMemberPage({
   const viewer = await getViewer();
   if (!viewer?.club || viewer.role !== "organizer") redirect("/events");
 
-  const [profile, shots, person] = await Promise.all([
+  const [profile, shots, person, role] = await Promise.all([
     getMemberProfile(id),
     getSelfieHistory(id),
     getPersonCard(id, viewer.userId),
+    getMemberRole(viewer.club.id, id),
   ]);
   if (!profile) notFound();
   const albumsByEvent = await getEventPhotoCollages(shots.map((s) => s.eventId));
@@ -143,6 +146,16 @@ export default async function AdminMemberPage({
           eventLinkQuery={`from=admin-member&fromId=${id}${relay}`}
         />
       </section>
+
+      {/* מנהלת לא יכולה להסיר מנהלת/עצמה ככה — קהילה בלי אף מנהלת
+          נעולה לגמרי. נאכף שוב בשרת ב-remove_member(). */}
+      {role !== "organizer" && (
+        <RemoveMemberButton
+          profileId={id}
+          fullName={profile.full_name}
+          gender={profile.gender}
+        />
+      )}
     </div>
   );
 }

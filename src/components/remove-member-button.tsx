@@ -7,7 +7,7 @@ import { demoMode } from "@/lib/config";
 import { removeMemberAction } from "@/lib/demo/actions";
 import { byGender } from "@/lib/format";
 import type { Gender } from "@/lib/types";
-import { XIcon } from "./social-icons";
+import { Notice } from "./ui";
 import { useConfirmDialog } from "./confirm-dialog";
 
 /**
@@ -15,6 +15,11 @@ import { useConfirmDialog } from "./confirm-dialog";
  * (מחיקה רכה, migration 0036). הפרופיל, הסלפים וההיסטוריה נשארים
  * (person_card() כבר תומכת בזה, ראו 0027), וגם אפשר לשחזר חברות מ-
  * "מי שכבר לא בקהילה" בעמוד הניהול — בלי הרשמה מחדש עם אימייל אחר.
+ *
+ * מוצג רק בעמוד הפרופיל של החבר/ה עצמו/ה בצד הניהול (admin/members/[id]),
+ * לא ברשימת חברי הקהילה — לפי בקשת שיר: כפתור הסרה שפחות נגיש
+ * מכוון, כמו "עזיבת הקהילה" בעמוד הפרופיל הרגיל (leave-community-
+ * button.tsx), שהעיצוב הזה מחקה בכוונה.
  */
 export function RemoveMemberButton({
   profileId,
@@ -66,21 +71,16 @@ export function RemoveMemberButton({
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="space-y-2 text-center">
       <button
         type="button"
-        disabled={pending}
         onClick={handleRemove}
-        aria-label={`הסרת ${fullName} מהקהילה`}
-        className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-fail) transition hover:border-(--color-fail)/50 hover:bg-(--color-fail)/10 disabled:opacity-50"
+        disabled={pending}
+        className="min-h-11 text-sm text-(--color-fail) disabled:opacity-50"
       >
-        <XIcon className="size-3" />
+        {pending ? "מסירים…" : "הסרה מהקהילה"}
       </button>
-      {error && (
-        <p className="max-w-32 text-end text-[0.65rem] text-(--color-fail)">
-          {error}
-        </p>
-      )}
+      {error && <Notice tone="error">{error}</Notice>}
       {dialog}
     </div>
   );

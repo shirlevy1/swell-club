@@ -918,6 +918,26 @@ export async function getMemberProfile(
   return (data ?? null) as Profile | null;
 }
 
+/** תפקיד חבר/ה בקהילה — כדי לדעת בעמוד הפרופיל שלו/ה בצד הניהול אם
+ * מותר להציג כפתור הסרה (לא על מנהלת, ראו remove-member-button.tsx). */
+export async function getMemberRole(
+  clubId: string,
+  profileId: string,
+): Promise<MemberRole | null> {
+  if (demoMode) {
+    return profileId === demo.demoMeId ? demo.demoMyRole() : "member";
+  }
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("club_members")
+    .select("role")
+    .eq("club_id", clubId)
+    .eq("profile_id", profileId)
+    .maybeSingle();
+  return (data?.role as MemberRole | undefined) ?? null;
+}
+
 // ------------------------------------------------------------- עמוד מפגש
 
 /** בדיוק מה שכרטיס משתתף צריך. מה שלא כאן — לא יוצא מהשרת. */

@@ -12,7 +12,6 @@ import {
 } from "@/lib/swim-level";
 import { InstagramIcon, WhatsAppIcon, WaveIcon } from "./social-icons";
 import { Card, Input, EmptyState } from "./ui";
-import { RemoveMemberButton } from "./remove-member-button";
 
 /**
  * שדה חיפוש לפי שם מעל רשימת חברי הקהילה. חיפוש בצד לקוח בלבד
@@ -131,14 +130,6 @@ export function MemberSearchList({
                     >
                       <InstagramIcon className="size-3" />
                     </a>
-                  )}
-
-                  {m.role !== "organizer" && (
-                    <RemoveMemberButton
-                      profileId={m.profile.id}
-                      fullName={m.profile.full_name}
-                      gender={m.profile.gender}
-                    />
                   )}
                 </div>
               </div>
