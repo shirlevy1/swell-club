@@ -32,7 +32,7 @@ export default async function AdminInsightsGenderPage() {
         {women.length === 0 ? (
           <EmptyState title="אין כאן אף אחת" body="עדיין אין חברות קהילה." />
         ) : (
-          <MemberSearchList members={women} />
+          <MemberSearchList members={women} backFrom="admin-insights-gender" />
         )}
       </section>
 
@@ -43,7 +43,7 @@ export default async function AdminInsightsGenderPage() {
         {men.length === 0 ? (
           <EmptyState title="אין כאן אף אחד" body="עדיין אין חברי קהילה." />
         ) : (
-          <MemberSearchList members={men} />
+          <MemberSearchList members={men} backFrom="admin-insights-gender" />
         )}
       </section>
     </div>

@@ -46,7 +46,15 @@ export default async function AdminMemberPage({
           ? { href: "/admin#pending-photos", label: "לניהול" }
           : from === "admin-removed"
             ? { href: "/admin/removed", label: "לאקסים" }
-            : { href: "/admin#members", label: "לניהול" };
+            : from === "admin-outreach"
+              ? { href: "/admin/outreach", label: "לאורחים" }
+              : from === "admin-members"
+                ? { href: "/admin/members", label: "לכל חברי הקהילה" }
+                : from === "admin-insights-gender"
+                  ? { href: "/admin/insights/gender", label: "לנשים מול גברים" }
+                  : from === "admin-insights-tenure"
+                    ? { href: "/admin/insights/tenure", label: "לותק חברים" }
+                    : { href: "/admin#members", label: "לניהול" };
   const viewer = await getViewer();
   if (!viewer?.club || viewer.role !== "organizer") redirect("/events");
 

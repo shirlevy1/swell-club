@@ -49,7 +49,11 @@ export default async function AdminOutreachPage() {
           body="כל מי שהגיע בעבר הגיע גם לאחד משני המפגשים האחרונים."
         />
       ) : (
-        <MemberSearchList members={members} renderBefore={checkboxes} />
+        <MemberSearchList
+          members={members}
+          renderBefore={checkboxes}
+          backFrom="admin-outreach"
+        />
       )}
     </div>
   );

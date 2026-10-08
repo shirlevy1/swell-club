@@ -34,15 +34,25 @@ import { Card, Input, EmptyState } from "./ui";
  * הוא "use client", ורכיב שרת לא יכול להעביר function כ-prop לרכיב
  * לקוח (אי אפשר לסדרן אותה) - רק JSX כבר-מוכן, שיכול להכיל בתוכו
  * רכיבי-לקוח אחרים (כמו OutreachCheckbox) בלי בעיה.
+ *
+ * backFrom: ה-?from= שמועבר לכל קישור לפרופיל חבר/ה (נקרא ב-
+ * admin/members/[id]/page.tsx כדי לדעת לאן כפתור "חזור" שם אמור
+ * להוביל). חובה, לא אופציונלי בכוונה - כדי שאי אפשר יהיה להוסיף
+ * כאן בעתיד עוד מקום-קריאה חדש בלי לחשוב מפורשות "לאן חזרה מכאן
+ * אמורה להוביל" (זו בדיוק התקלה שתוקנה כאן - שיר גילתה שחזרה
+ * מ"נשים מול גברים" נחתה ב"לניהול" במקום בחזרה לעוגה עצמה, כי
+ * הקישור כאן לא העביר שום from).
  */
 export function MemberSearchList({
   members,
   whenEmpty,
   renderBefore,
+  backFrom,
 }: {
   members: AdminMember[];
   whenEmpty?: ReactNode;
   renderBefore?: Map<string, ReactNode>;
+  backFrom: string;
 }) {
   const [query, setQuery] = useState("");
 
@@ -82,7 +92,7 @@ export function MemberSearchList({
               >
                 {renderBefore?.get(m.profile.id)}
                 <Link
-                  href={`/admin/members/${m.profile.id}`}
+                  href={`/admin/members/${m.profile.id}?from=${backFrom}`}
                   className="flex min-w-0 flex-1 items-center gap-2"
                 >
                   <div className="size-9 shrink-0 overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)">

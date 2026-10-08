@@ -239,6 +239,7 @@ export default async function AdminPage() {
         ) : (
           <MemberSearchList
             members={members}
+            backFrom="admin-members-section"
             whenEmpty={
               <Link
                 href="/admin/members"

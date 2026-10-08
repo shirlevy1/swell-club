@@ -42,7 +42,7 @@ export default async function AdminInsightsTenurePage() {
             {bucketMembers.length === 0 ? (
               <EmptyState title="אין כאן אף אחד" body="אף חבר/ת קהילה לא בקטגוריה הזו." />
             ) : (
-              <MemberSearchList members={bucketMembers} />
+              <MemberSearchList members={bucketMembers} backFrom="admin-insights-tenure" />
             )}
           </section>
         );

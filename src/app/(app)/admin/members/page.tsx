@@ -23,7 +23,7 @@ export default async function AdminMembersPage() {
         כל חברי הקהילה
       </h1>
 
-      <MemberSearchList members={members} />
+      <MemberSearchList members={members} backFrom="admin-members" />
     </div>
   );
 }
