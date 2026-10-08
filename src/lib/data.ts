@@ -2276,89 +2276,105 @@ export async function getActiveMembersTrend(
 
 export type ReturnRateTrend = {
   current: number;
-  diffPoints: number;
   sparkline: number[];
 };
 
 /**
- * אחוז מחברי הקהילה שהגיעו פעם ראשונה אי-פעם, ושמאז עברו לפחות 30
- * יום (כדי שבאמת הייתה להם הזדמנות הוגנת לחזור), שחזרו לפחות למפגש
- * נוסף אחד. ⚠️ כמו getTenureBreakdown למעלה: שואבת את כל היסטוריית
- * הנוכחות (לא רק 8 מפגשים אחרונים) כי "מתי הייתה הפעם הראשונה
- * אי-פעם" היא מדידת-אורך-חיים מטבעה - אותו טרייד-אוף שכבר תועד שם,
- * אותו מועמד עתידי למעבר ל-RPC אם הנפח יגדל משמעותית.
+ * אחוז ממי שהגיע/ה לראשונה אי-פעם שחזר/ה לפחות באחד משני המפגשים
+ * הבאים אחרי המפגש הראשון שלו/ה. לא חלון של ימים בלוח (כמו שהיה כאן
+ * קודם) - לפי שיר: מפגשים תלויים בתנאי ים, לא בלו"ז שבועי קבוע, אז
+ * "שבועיים" יכול להיות גם אפס מפגשים וגם שלושה, תלוי בים - נספר
+ * "שני המפגשים הבאים" (כמות אירועים), לא "14 יום". "זכאי/ת להיבדק"
+ * רק מי שכבר התקיימו 2 מפגשים אחרי הראשון שלו/ה (לפני זה, עוד מוקדם
+ * לדעת אם יחזרו). ⚠️ כמו getTenureBreakdown למעלה: שואבת את כל
+ * היסטוריית המפגשים/הנוכחות (לא רק 8 אחרונים) כי "הפעם הראשונה
+ * אי-פעם" היא מדידת-אורך-חיים מטבעה - אותו טרייד-אוף שכבר תועד שם.
  */
 export async function getReturnRateTrend(
   clubId: string,
 ): Promise<ReturnRateTrend> {
-  let rows: { profileId: string; startsAtMs: number }[];
+  const now = Date.now();
+
+  let events: { id: string; startsAtMs: number }[];
+  let attendances: { profileId: string; eventId: string }[];
+
   if (demoMode) {
-    const eventStartsById = new Map(
-      demo.demoEvents().map((e) => [e.id, e.starts_at]),
-    );
-    rows = demo
+    events = demo
+      .demoEvents()
+      .map((e) => ({ id: e.id, startsAtMs: new Date(e.starts_at).getTime() }));
+    attendances = demo
       .demoAttendances()
-      .map((a) => {
-        const startsAt = eventStartsById.get(a.eventId);
-        return { profileId: a.profileId, startsAtMs: startsAt ? new Date(startsAt).getTime() : NaN };
-      })
-      .filter((r) => !Number.isNaN(r.startsAtMs));
+      .map((a) => ({ profileId: a.profileId, eventId: a.eventId }));
   } else {
     const supabase = await createClient();
-    const { data } = await supabase
-      .from("attendances")
-      .select("profile_id, events!inner(starts_at, club_id)")
-      .eq("events.club_id", clubId);
-
-    rows = (
-      (data ?? []) as unknown as {
+    const [{ data: eventRows }, { data: attendanceRows }] = await Promise.all([
+      supabase.from("events").select("id, starts_at").eq("club_id", clubId),
+      supabase
+        .from("attendances")
+        .select("profile_id, event_id, events!inner(club_id)")
+        .eq("events.club_id", clubId),
+    ]);
+    events = ((eventRows ?? []) as { id: string; starts_at: string }[]).map(
+      (e) => ({ id: e.id, startsAtMs: new Date(e.starts_at).getTime() }),
+    );
+    attendances = (
+      (attendanceRows ?? []) as unknown as {
         profile_id: string;
-        events: { starts_at: string } | null;
+        event_id: string;
       }[]
-    )
-      .filter((r) => r.events?.starts_at)
-      .map((r) => ({
-        profileId: r.profile_id,
-        startsAtMs: new Date(r.events!.starts_at).getTime(),
-      }));
+    ).map((a) => ({ profileId: a.profile_id, eventId: a.event_id }));
   }
 
-  const datesByProfile = new Map<string, number[]>();
-  for (const r of rows) {
-    const list = datesByProfile.get(r.profileId) ?? [];
-    list.push(r.startsAtMs);
-    datesByProfile.set(r.profileId, list);
-  }
-  for (const list of datesByProfile.values()) list.sort((a, b) => a - b);
+  // רק מפגשים שכבר קרו, ממוינים כרונולוגית - "שני המפגשים הבאים"
+  // אחרי מפגש כלשהו לא יכולים להיות מפגשים עתידיים שעוד לא התקיימו.
+  const pastEvents = events
+    .filter((e) => e.startsAtMs <= now)
+    .sort((a, b) => a.startsAtMs - b.startsAtMs);
+  const eventIndexById = new Map(pastEvents.map((e, i) => [e.id, i]));
 
-  const rateAt = (checkpoint: Date) => {
-    const checkpointMs = checkpoint.getTime();
-    const eligibleCutoffMs = checkpointMs - 30 * 24 * 60 * 60 * 1000;
+  const attendedIndexesByProfile = new Map<string, number[]>();
+  for (const a of attendances) {
+    const idx = eventIndexById.get(a.eventId);
+    if (idx === undefined) continue;
+    const list = attendedIndexesByProfile.get(a.profileId) ?? [];
+    list.push(idx);
+    attendedIndexesByProfile.set(a.profileId, list);
+  }
+  for (const list of attendedIndexesByProfile.values()) list.sort((a, b) => a - b);
+
+  // cutoff מדמה "כמה מפגשים קיימים" בנקודת-בדיקה נתונה - ציר המפגשים
+  // עצמו, לא תאריך בלוח (לנקודות הגרף, ראו למטה). זכאי/ת להיבדק רק
+  // מי שגם המפגש הראשון שלו/ה וגם שני המפגשים שאחריו כבר בתוך ה-cutoff.
+  const rateAtCutoff = (cutoff: number) => {
     let eligible = 0;
     let returned = 0;
-    for (const dates of datesByProfile.values()) {
-      const upToCheckpoint = dates.filter((d) => d <= checkpointMs);
-      if (upToCheckpoint.length === 0) continue;
-      if (upToCheckpoint[0] > eligibleCutoffMs) continue;
+    for (const indexes of attendedIndexesByProfile.values()) {
+      const visible = indexes.filter((i) => i <= cutoff);
+      if (visible.length === 0) continue;
+      const first = visible[0];
+      if (first + 2 > cutoff) continue;
       eligible++;
-      if (upToCheckpoint.length >= 2) returned++;
+      if (visible.includes(first + 1) || visible.includes(first + 2)) returned++;
     }
     return eligible === 0 ? 0 : Math.round((returned / eligible) * 100);
   };
 
-  const now = new Date();
-  const current = rateAt(now);
-  const previousCheckpoint = new Date(now);
-  previousCheckpoint.setDate(previousCheckpoint.getDate() - 30);
-  const previous = rateAt(previousCheckpoint);
+  const lastIndex = pastEvents.length - 1;
+  const current = lastIndex >= 0 ? rateAtCutoff(lastIndex) : 0;
 
-  const sparkline = Array.from({ length: 8 }, (_, i) => {
-    const end = new Date(now);
-    end.setDate(end.getDate() - 7 * (7 - i));
-    return rateAt(end);
-  });
+  // עד 8 נקודות על ציר המפגשים (לא על ציר הזמן בלוח) - דורש לפחות 3
+  // מפגשים שהיו כדי שתהיה אפילו נקודת-זכאות אפשרית אחת.
+  const sparkline: number[] = [];
+  if (lastIndex >= 2) {
+    const start = 2;
+    const pointCount = Math.min(8, lastIndex + 1 - start);
+    const step = (lastIndex - start) / Math.max(pointCount - 1, 1);
+    for (let i = 0; i < pointCount; i++) {
+      sparkline.push(rateAtCutoff(Math.round(start + step * i)));
+    }
+  }
 
-  return { current, diffPoints: current - previous, sparkline };
+  return { current, sparkline };
 }
 
 /**

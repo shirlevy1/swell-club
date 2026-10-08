@@ -54,9 +54,9 @@ export function SparklineCard({
   title: string;
   value: number;
   valueSuffix?: string;
-  /** מחושב ב-data.ts, לא מוצג כרגע (ראו הערה למעלה) - נשאר בטיפוס
-      כדי שקריאות ל-SparklineCard ימשיכו להעביר אותו בלי שינוי. */
-  trend: Trend;
+  /** לא מוצג כרגע (ראו הערה למעלה) - אופציונלי כדי שקריאות שלא
+      מחשבות מגמה (כמו "חוזרים") לא יצטרכו להעביר משהו מלאכותי. */
+  trend?: Trend;
   sparkline: number[];
 }) {
   const points = toPoints(sparkline);

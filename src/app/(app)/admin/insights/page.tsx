@@ -64,11 +64,6 @@ export default async function AdminInsightsPage() {
           title="חוזרים"
           value={returnRateTrend.current}
           valueSuffix="%"
-          trend={
-            returnRateTrend.diffPoints === 0
-              ? null
-              : { kind: "percent", value: returnRateTrend.diffPoints }
-          }
           sparkline={returnRateTrend.sparkline}
         />
       </div>
