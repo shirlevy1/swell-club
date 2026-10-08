@@ -53,9 +53,12 @@ export function MemberSearchList({ members }: { members: AdminMember[] }) {
           // PullToRefresh יזהה נכון "זה לא בשבילי" (ראו data-nested-scroll
           // שם); כך המגע בכלל לא מגיע לאזן של ה-listener החיצוני,
           // גם אם הזיהוי לפי closest() ייכשל מסיבה כלשהי במכשיר מסוים.
+          // ⚠️ בלי overscroll-contain בכוונה: זה חוסם גם גלילת-גלגלת
+          // (wheel) מ"להמשיך" לעמוד החיצוני כשהעכבר מעל הקופסה ברגע
+          // שהיא מגיעה לסוף שלה - נתפס כ"גלילת העמוד לא עובדת" במחשב.
           onTouchStart={(e) => e.stopPropagation()}
           onTouchMove={(e) => e.stopPropagation()}
-          className="max-h-[26rem] touch-pan-y divide-y divide-(--color-line)/50 overflow-y-auto overscroll-contain p-0"
+          className="max-h-[26rem] touch-pan-y divide-y divide-(--color-line)/50 overflow-y-auto p-0"
         >
           {filtered.map((m) => {
             const age = ageInYears(m.profile.birth_date);
