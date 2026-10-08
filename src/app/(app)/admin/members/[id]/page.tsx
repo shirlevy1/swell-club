@@ -44,7 +44,9 @@ export default async function AdminMemberPage({
         ? { href: "/home", label: "בחזרה לבית" }
         : from === "admin-photos"
           ? { href: "/admin#pending-photos", label: "לניהול" }
-          : { href: "/admin#members", label: "לניהול" };
+          : from === "admin-removed"
+            ? { href: "/admin/removed", label: "לאקסים" }
+            : { href: "/admin#members", label: "לניהול" };
   const viewer = await getViewer();
   if (!viewer?.club || viewer.role !== "organizer") redirect("/events");
 

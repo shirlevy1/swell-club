@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getViewer, getRemovedMembers } from "@/lib/data";
 import type { RemovedReason } from "@/lib/data";
@@ -65,27 +66,39 @@ export default async function RemovedMembersPage() {
         />
       ) : (
         <Card className="divide-y divide-(--color-line)/50 p-0">
-          {removed.map((m) => (
-            <div
-              key={m.profileId}
-              className="flex items-center justify-between gap-3 px-4 py-3"
-            >
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold">
-                  {m.fullName}
-                </p>
-                {m.removedAt && m.removedReason && (
-                  <p className="text-xs text-(--color-ink-faint)">
-                    {`${removalVerb(m.removedReason, m.gender)} ב-${formatDateNumericPadded(m.removedAt)}`}
+          {removed.map((m) => {
+            // לא כל שורה מגיעה בהכרח עם גם סיבה וגם תאריך (למשל רשומות
+            // ישנות/ידניות) - מציגים את מה שכן יש, לא מסתירים הכל.
+            const captionParts = [
+              m.removedReason ? removalVerb(m.removedReason, m.gender) : null,
+              m.removedAt ? `ב-${formatDateNumericPadded(m.removedAt)}` : null,
+            ].filter(Boolean);
+
+            return (
+              <div
+                key={m.profileId}
+                className="flex items-center justify-between gap-3 px-4 py-3"
+              >
+                <Link
+                  href={`/admin/members/${m.profileId}?from=admin-removed`}
+                  className="min-w-0"
+                >
+                  <p className="truncate text-sm font-semibold">
+                    {m.fullName}
                   </p>
-                )}
+                  {captionParts.length > 0 && (
+                    <p className="text-xs text-(--color-ink-faint)">
+                      {captionParts.join(" ")}
+                    </p>
+                  )}
+                </Link>
+                <RestoreMemberButton
+                  profileId={m.profileId}
+                  fullName={m.fullName}
+                />
               </div>
-              <RestoreMemberButton
-                profileId={m.profileId}
-                fullName={m.fullName}
-              />
-            </div>
-          ))}
+            );
+          })}
         </Card>
       )}
     </div>
