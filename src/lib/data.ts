@@ -362,7 +362,8 @@ export async function getRemovedMembers(
   }));
 }
 
-/** גם ב-admin/removed/page.tsx (תצוגה) וגם בדוח ה-CSV - מקור יחיד. */
+/** בדוח ה-CSV בלבד - ניסוח רשמי יותר ("הוסר ע״י מנהלת"). לניסוח
+ * הקצר שבתצוגה (admin/removed, admin/members/[id]) ראו removalVerb. */
 export function reasonLabel(
   reason: RemovedReason,
   gender: Gender | null,
@@ -374,6 +375,22 @@ export function reasonLabel(
       return byGender(gender, "הוסר ע״י מנהלת", "הוסרה ע״י מנהלת");
     case "rejected":
       return "בקשת הצטרפות נדחתה";
+  }
+}
+
+/** ניסוח קצר לשורה בתצוגה - "הוסר ב-12.09.2026", לא "לא בקהילה
+ * מאז...". מקור יחיד: גם admin/removed, גם admin/members/[id]. */
+export function removalVerb(
+  reason: RemovedReason,
+  gender: Gender | null,
+): string {
+  switch (reason) {
+    case "left":
+      return byGender(gender, "עזב", "עזבה");
+    case "removed":
+      return byGender(gender, "הוסר", "הוסרה");
+    case "rejected":
+      return byGender(gender, "נדחה", "נדחתה");
   }
 }
 
@@ -918,24 +935,55 @@ export async function getMemberProfile(
   return (data ?? null) as Profile | null;
 }
 
-/** תפקיד חבר/ה בקהילה — כדי לדעת בעמוד הפרופיל שלו/ה בצד הניהול אם
- * מותר להציג כפתור הסרה (לא על מנהלת, ראו remove-member-button.tsx). */
-export async function getMemberRole(
+export type Membership = {
+  role: MemberRole;
+  status: MemberStatus;
+  removedAt: string | null;
+  removedReason: RemovedReason | null;
+};
+
+/** חברות (תפקיד + סטטוס) בקהילה — כדי לדעת בעמוד הפרופיל שלו/ה בצד
+ * הניהול גם אם מותר להציג כפתור הסרה (לא על מנהלת, ראו remove-
+ * member-button.tsx) וגם אם להציג שהחבר/ה כבר לא בקהילה (status
+ * 'removed' - כולל גם עזיבה עצמית וגם דחיית בקשה, ראו removed_reason). */
+export async function getMembership(
   clubId: string,
   profileId: string,
-): Promise<MemberRole | null> {
+): Promise<Membership | null> {
   if (demoMode) {
-    return profileId === demo.demoMeId ? demo.demoMyRole() : "member";
+    const removed = demo
+      .demoListRemovedMembers()
+      .find((m) => m.profileId === profileId);
+    if (removed) {
+      return {
+        role: "member",
+        status: "removed",
+        removedAt: removed.removedAt,
+        removedReason: removed.removedReason,
+      };
+    }
+    return {
+      role: profileId === demo.demoMeId ? demo.demoMyRole() : "member",
+      status: "approved",
+      removedAt: null,
+      removedReason: null,
+    };
   }
 
   const supabase = await createClient();
   const { data } = await supabase
     .from("club_members")
-    .select("role")
+    .select("role, status, removed_at, removed_reason")
     .eq("club_id", clubId)
     .eq("profile_id", profileId)
     .maybeSingle();
-  return (data?.role as MemberRole | undefined) ?? null;
+  if (!data) return null;
+  return {
+    role: data.role as MemberRole,
+    status: data.status as MemberStatus,
+    removedAt: data.removed_at as string | null,
+    removedReason: data.removed_reason as RemovedReason | null,
+  };
 }
 
 // ------------------------------------------------------------- עמוד מפגש

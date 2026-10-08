@@ -2,13 +2,19 @@ import { notFound, redirect } from "next/navigation";
 import {
   getViewer,
   getMemberProfile,
-  getMemberRole,
+  getMembership,
   getPersonCard,
   getSelfieHistory,
   getEventPhotoCollages,
+  removalVerb,
 } from "@/lib/data";
-import { instagramUrl, whatsappUrl, byGender } from "@/lib/format";
-import { BackLink, Card } from "@/components/ui";
+import {
+  instagramUrl,
+  whatsappUrl,
+  byGender,
+  formatDateNumericPadded,
+} from "@/lib/format";
+import { BackLink, Card, cx } from "@/components/ui";
 import { SelfieHistory, SelfieAvatarButton } from "@/components/selfie-history";
 import {
   swimLevelLabel,
@@ -58,11 +64,11 @@ export default async function AdminMemberPage({
   const viewer = await getViewer();
   if (!viewer?.club || viewer.role !== "organizer") redirect("/events");
 
-  const [profile, shots, person, role] = await Promise.all([
+  const [profile, shots, person, membership] = await Promise.all([
     getMemberProfile(id),
     getSelfieHistory(id),
     getPersonCard(id, viewer.userId),
-    getMemberRole(viewer.club.id, id),
+    getMembership(viewer.club.id, id),
   ]);
   if (!profile) notFound();
   const albumsByEvent = await getEventPhotoCollages(shots.map((s) => s.eventId));
@@ -70,19 +76,36 @@ export default async function AdminMemberPage({
   const ig = instagramUrl(profile.instagram);
   const wa = whatsappUrl(profile.phone);
 
+  // אופציה ג מתוך 3 הצעות שהוצגו לשיר: כל הכרטיס "עמום" (לא באנר,
+  // לא תגית) - תמונה בשחור-לבן, טקסט דהוי, וסיבה+תאריך כשורה רגילה
+  // מתחת לשם. בלי המילה "מהקהילה" בניסוח, לפי בקשתה המפורשת.
+  const isRemoved = membership?.status === "removed";
+  const removedCaption =
+    isRemoved && membership.removedReason && membership.removedAt
+      ? `${removalVerb(membership.removedReason, profile.gender)} ב-${formatDateNumericPadded(membership.removedAt)}`
+      : null;
+
   return (
     <div className="space-y-6">
       <BackLink href={back.href}>{back.label}</BackLink>
 
-      <header className="flex items-center gap-4">
+      <header className={cx("flex items-center gap-4", isRemoved && "opacity-70")}>
         <SelfieAvatarButton
           shots={shots}
           fullName={profile.full_name}
-          className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)"
+          className={cx(
+            "flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)",
+            isRemoved && "grayscale",
+          )}
         />
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h1 className="truncate font-[family-name:var(--font-display)] text-2xl font-bold">
+            <h1
+              className={cx(
+                "truncate font-[family-name:var(--font-display)] text-2xl font-bold",
+                isRemoved && "text-(--color-ink-faint)",
+              )}
+            >
               {profile.full_name}
             </h1>
             {profile.swim_level && (
@@ -98,7 +121,13 @@ export default async function AdminMemberPage({
               </span>
             )}
           </div>
-          <p className="text-sm text-(--color-ink-soft)">
+          <p
+            className={cx(
+              "text-sm text-(--color-ink-soft)",
+              isRemoved && "text-(--color-ink-faint)",
+            )}
+          >
+            {removedCaption && <>{removedCaption} · </>}
             {!person || person.attendedCount === 0
               ? byGender(profile.gender, "עוד לא היה איתנו", "עוד לא הייתה איתנו")
               : person.attendedCount === 1
@@ -158,8 +187,10 @@ export default async function AdminMemberPage({
       </section>
 
       {/* מנהלת לא יכולה להסיר מנהלת/עצמה ככה — קהילה בלי אף מנהלת
-          נעולה לגמרי. נאכף שוב בשרת ב-remove_member(). */}
-      {role !== "organizer" && (
+          נעולה לגמרי. נאכף שוב בשרת ב-remove_member(). וגם לא על
+          מי שכבר הוסר/ה/עזב/ה - אין טעם בכפתור "הסרה" שמציע להסיר
+          מישהו שכבר לא בקהילה. */}
+      {membership?.role !== "organizer" && membership?.status === "approved" && (
         <RemoveMemberButton
           profileId={id}
           fullName={profile.full_name}

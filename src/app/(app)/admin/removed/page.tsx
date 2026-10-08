@@ -1,25 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getViewer, getRemovedMembers } from "@/lib/data";
-import type { RemovedReason } from "@/lib/data";
-import { byGender, formatDateNumericPadded } from "@/lib/format";
-import type { Gender } from "@/lib/types";
+import { getViewer, getRemovedMembers, removalVerb } from "@/lib/data";
+import { formatDateNumericPadded } from "@/lib/format";
 import { BackLink, Card, EmptyState } from "@/components/ui";
 import { ExportButton } from "@/components/export-button";
 import { RestoreMemberButton } from "@/components/restore-member-button";
 import { getAdminRemovedReportAction } from "@/lib/actions";
-
-/** ניסוח קצר לשורה בכרטיס — "הוסר ב-12.09.2026", לא "לא בקהילה מאז...". */
-function removalVerb(reason: RemovedReason, gender: Gender | null): string {
-  switch (reason) {
-    case "left":
-      return byGender(gender, "עזב", "עזבה");
-    case "removed":
-      return byGender(gender, "הוסר", "הוסרה");
-    case "rejected":
-      return byGender(gender, "נדחה", "נדחתה");
-  }
-}
 
 /**
  * מי שכבר לא בקהילה (הוסרו, עזבו, או נדחו) — תצוגה נפרדת ומכוונת
