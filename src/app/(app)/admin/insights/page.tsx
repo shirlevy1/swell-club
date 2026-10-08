@@ -1,9 +1,17 @@
 import { redirect } from "next/navigation";
-import { getViewer, getRecentEventStats, getNewVsReturningByEvent } from "@/lib/data";
+import {
+  getViewer,
+  getRecentEventStats,
+  getNewVsReturningByEvent,
+  getGenderBreakdown,
+  getTenureBreakdown,
+} from "@/lib/data";
 import { BackLink } from "@/components/ui";
 import { GenderAttendanceChart } from "@/components/gender-attendance-chart";
 import { NewVsReturningChart } from "@/components/new-vs-returning-chart";
 import { RsvpAttendanceChart } from "@/components/rsvp-attendance-chart";
+import { GenderDonutChart } from "@/components/gender-donut-chart";
+import { TenureDonutChart } from "@/components/tenure-donut-chart";
 
 /**
  * תובנות הניהול - נבנה גרף-אחר-גרף עם שיר, לא באצווה אחת. כל גרף
@@ -14,10 +22,13 @@ export default async function AdminInsightsPage() {
   const viewer = await getViewer();
   if (!viewer?.club || viewer.role !== "organizer") redirect("/events");
 
-  const [eventStats, newVsReturning] = await Promise.all([
-    getRecentEventStats(viewer.club.id),
-    getNewVsReturningByEvent(viewer.club.id),
-  ]);
+  const [eventStats, newVsReturning, genderBreakdown, tenureBreakdown] =
+    await Promise.all([
+      getRecentEventStats(viewer.club.id),
+      getNewVsReturningByEvent(viewer.club.id),
+      getGenderBreakdown(viewer.club.id),
+      getTenureBreakdown(viewer.club.id),
+    ]);
 
   return (
     <div className="space-y-6">
@@ -30,6 +41,11 @@ export default async function AdminInsightsPage() {
       <GenderAttendanceChart events={eventStats} />
       <NewVsReturningChart events={newVsReturning} />
       <RsvpAttendanceChart events={eventStats} />
+
+      <div className="grid grid-cols-2 gap-3">
+        <GenderDonutChart data={genderBreakdown} />
+        <TenureDonutChart data={tenureBreakdown} />
+      </div>
     </div>
   );
 }

@@ -2066,6 +2066,116 @@ export async function getNewVsReturningByEvent(
   });
 }
 
+export type GenderBreakdown = { maleCount: number; femaleCount: number };
+
+/**
+ * חלוקת כל חברי הקהילה הפעילים (לא רק 8 המפגשים האחרונים) לפי מגדר -
+ * לתרשים העוגה "נשים מול גברים". שאילתה שטוחה שלא תלויה בהיסטוריית
+ * מפגשים - גדלה עם מספר החברים (איטי), לא עם מספר המפגשים (מצטבר
+ * כל שבוע) - לכן לא זקוקה לאותה הגבלת-היקף כמו גרפי האירועים.
+ * לא כולל gender='other', כמו גרף 1 - שני טורים בלבד בכוונה.
+ */
+export async function getGenderBreakdown(
+  clubId: string,
+): Promise<GenderBreakdown> {
+  if (demoMode) {
+    const profiles = demo.demoActiveProfiles();
+    return {
+      maleCount: profiles.filter((p) => p.gender === "male").length,
+      femaleCount: profiles.filter((p) => p.gender === "female").length,
+    };
+  }
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("club_members")
+    .select("profiles(gender)")
+    .eq("club_id", clubId)
+    .eq("status", "approved");
+
+  const rows = (data ?? []) as unknown as {
+    profiles: { gender: Gender | null } | null;
+  }[];
+  return {
+    maleCount: rows.filter((r) => r.profiles?.gender === "male").length,
+    femaleCount: rows.filter((r) => r.profiles?.gender === "female").length,
+  };
+}
+
+export type TenureBreakdown = {
+  /** אושרו כחברים, אבל מעולם לא נכחו באף מפגש. */
+  ghostCount: number;
+  oneTimeCount: number;
+  occasionalCount: number;
+  regularCount: number;
+};
+
+function bucketTenure(counts: number[]): TenureBreakdown {
+  const result: TenureBreakdown = {
+    ghostCount: 0,
+    oneTimeCount: 0,
+    occasionalCount: 0,
+    regularCount: 0,
+  };
+  for (const c of counts) {
+    if (c === 0) result.ghostCount++;
+    else if (c === 1) result.oneTimeCount++;
+    else if (c <= 3) result.occasionalCount++;
+    else result.regularCount++;
+  }
+  return result;
+}
+
+/**
+ * ותק חברים: לכל חבר/ה מאושר/ת, כמה פעמים נכח/ה אי-פעם - לא רק
+ * ב-8 המפגשים האחרונים, זו שאלה על הוותק המלא. 4 דליים, כולל
+ * "רוח רפאים" (אושרו אך מעולם לא נכחו) - דלי שלא היה בהצעה
+ * המקורית (3 דליים בלבד).
+ *
+ * ⚠️ בשונה מגרפי "8 המפגשים האחרונים": זו מדידת-אורך-חיים מטבעה
+ * (אי אפשר להגביל אותה ל"8 אחרונים" בלי לשנות את המשמעות שלה), אז
+ * השאילתה גדלה עם סך-כל הנוכחויות אי-פעם, לא עם מספר המפגשים
+ * שבדקנו - שולפת רק עמודת profile_id (בלי join) כדי שזה יישאר כמה
+ * שיותר זול. בקנה מידה גדול בהרבה (אלפי נוכחויות בשנה) כדאי לשקול
+ * מעבר לספירה בצד המסד (RPC) במקום שליפת כל השורות - לא נדרש כרגע.
+ */
+export async function getTenureBreakdown(
+  clubId: string,
+): Promise<TenureBreakdown> {
+  if (demoMode) {
+    const profiles = demo.demoActiveProfiles();
+    const attendances = demo.demoAttendances();
+    const countByProfile = new Map<string, number>();
+    for (const a of attendances) {
+      countByProfile.set(a.profileId, (countByProfile.get(a.profileId) ?? 0) + 1);
+    }
+    return bucketTenure(profiles.map((p) => countByProfile.get(p.id) ?? 0));
+  }
+
+  const supabase = await createClient();
+  const { data: memberRows } = await supabase
+    .from("club_members")
+    .select("profile_id")
+    .eq("club_id", clubId)
+    .eq("status", "approved");
+  const memberIds = (memberRows ?? []).map((r) => r.profile_id as string);
+  if (memberIds.length === 0) {
+    return { ghostCount: 0, oneTimeCount: 0, occasionalCount: 0, regularCount: 0 };
+  }
+
+  const { data: attendanceRows } = await supabase
+    .from("attendances")
+    .select("profile_id")
+    .in("profile_id", memberIds);
+
+  const countByProfile = new Map<string, number>();
+  for (const row of (attendanceRows ?? []) as { profile_id: string }[]) {
+    countByProfile.set(row.profile_id, (countByProfile.get(row.profile_id) ?? 0) + 1);
+  }
+
+  return bucketTenure(memberIds.map((id) => countByProfile.get(id) ?? 0));
+}
+
 /**
  * שלושת דוחות ה-CSV של עמוד הניהול (חברים/מפגשים/מטריצת הגעה) —
  * נשלפים ונבנים רק כשבאמת לוחצים על כפתור הייצוא הרלוונטי, לא בכל
