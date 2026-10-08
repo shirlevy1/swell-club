@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { AdminMember } from "@/lib/data";
 import { ageInYears, instagramUrl, whatsappUrl } from "@/lib/format";
@@ -14,20 +14,63 @@ import { InstagramIcon, WhatsAppIcon, WaveIcon } from "./social-icons";
 import { Card, Input, EmptyState } from "./ui";
 import { RemoveMemberButton } from "./remove-member-button";
 
+// כמה מוצגים בכל פעם כברירת מחדל (בלי חיפוש) - שיר ביקשה להתנסות
+// במספר קטן (5) לפני שמחליטים על המספר הסופי בקנה מידה גדול יותר.
+const PAGE_SIZE = 5;
+
 /**
  * שדה חיפוש לפי שם מעל רשימת חברי הקהילה בניהול. חיפוש בצד לקוח
  * בלבד (הרשימה המלאה כבר מגיעה מהשרת) — פשוט ומיידי, בלי ניווט/
  * טעינה מחדש לכל הקשה. אין סף מינימלי להצגה - נשאר עקבי גם בקהילה
  * קטנה, ופשוט לא "עושה כלום" כשהשדה ריק.
+ *
+ * ⚠️ שלב ראשון בלבד: זו עדיין גלילה הדרגתית על רשימה שכולה כבר
+ * הגיעה מהשרת מראש (כולל כל קישורי התמונה) - לא התיקון המלא
+ * שהוצע ("לשלוח רק שמות, לחתום תמונה רק למי שמוצג/ת בפועל"). שיר
+ * ביקשה לבדוק קודם את התחושה של הגלילה עצמה על 10 החברים הקיימים,
+ * לפני ההשקעה בשינוי צד-השרת.
  */
 export function MemberSearchList({ members }: { members: AdminMember[] }) {
   const [query, setQuery] = useState("");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   const filtered = useMemo(() => {
     const q = query.trim();
     if (!q) return members;
     return members.filter((m) => m.profile.full_name.includes(q));
   }, [members, query]);
+
+  // חיפוש פעיל: מציגים את כל ההתאמות מיד (בד"כ מעט מדי בשביל לדרוש
+  // גלילה הדרגתית) - הגלילה רלוונטית רק לרשימה המלאה כברירת מחדל.
+  const isSearching = query.trim().length > 0;
+  const visible = isSearching ? filtered : filtered.slice(0, visibleCount);
+  const hasMore = !isSearching && visibleCount < filtered.length;
+
+  // איפוס הספירה כש-query משתנה - בזמן רינדור (לא ב-useEffect עם
+  // setState, כדי לא להיתקל שוב בכלל ה-lint react-hooks/set-state-in-effect
+  // שכבר נתקלנו בו ב-home-screen-nudge.tsx).
+  const [queryAtReset, setQueryAtReset] = useState(query);
+  if (query !== queryAtReset) {
+    setQueryAtReset(query);
+    setVisibleCount(PAGE_SIZE);
+  }
+
+  useEffect(() => {
+    if (!hasMore) return;
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((c) => c + PAGE_SIZE);
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasMore]);
 
   return (
     <div className="space-y-3">
@@ -43,7 +86,7 @@ export function MemberSearchList({ members }: { members: AdminMember[] }) {
         <EmptyState title="לא נמצא/ה" body="אף חבר/ת קהילה לא תואם/ת את החיפוש." />
       ) : (
         <Card className="divide-y divide-(--color-line)/50 p-0">
-          {filtered.map((m) => {
+          {visible.map((m) => {
             const age = ageInYears(m.profile.birth_date);
             const wa = whatsappUrl(m.profile.phone);
             const ig = instagramUrl(m.profile.instagram);
@@ -131,6 +174,12 @@ export function MemberSearchList({ members }: { members: AdminMember[] }) {
             );
           })}
         </Card>
+      )}
+
+      {hasMore && (
+        <div ref={sentinelRef} className="flex justify-center py-2">
+          <span className="text-xs text-(--color-ink-faint)">טוען עוד…</span>
+        </div>
       )}
     </div>
   );
