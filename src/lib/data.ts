@@ -2393,6 +2393,12 @@ export async function getReturnRateTrend(
   return { current, sparkline };
 }
 
+export type OutreachMember = AdminMember & {
+  /** המפגש האחרון שבו נכח/ה בפועל - העוגן של "כבר דיברתי איתו/ה". */
+  lastAttendedEventId: string;
+  contacted: boolean;
+};
+
 /**
  * חברי קהילה שהגיעו לפחות פעם אחת אי-פעם, אבל לא הגיעו לאף אחד משני
  * המפגשים האחרונים שהיו - "צריך ליצור איתם קשר", לפי שיר (עמוד
@@ -2400,29 +2406,72 @@ export async function getReturnRateTrend(
  * ברגע שמישהו חוזר הוא פשוט לא מופיע יותר ברשימה, וחוזר להופיע אם
  * שוב לא הגיע לשני מפגשים - בלי שום לוגיקת-מצב נפרדת. רק חברים
  * מאושרים כרגע - מי שכבר עזב/הוסר לא רלוונטי כאן, שיר מטפלת בהם
- * דרך "מי שכבר לא בקהילה". לא שאילתה נוספת - `getAdminData` כבר
- * מביאה `attendedProfileIds` לכל מפגש, כולל שני המפגשים האחרונים
- * שצריך כאן.
+ * דרך "אקסים". לא שאילתה נוספת לרשימה עצמה - `getAdminData` כבר
+ * מביאה `attendedProfileIds` לכל מפגש.
+ *
+ * `contacted`: סימון "דיברתי איתו/ה" (outreach_contacts, 0070) -
+ * תקף רק אם ה-eventId שנשמר בזמן הסימון תואם בדיוק את המפגש האחרון
+ * שבו האדם נכח *כרגע*. אם האדם הגיע למפגש חדש מאז הסימון (אפילו אם
+ * חזר אחר כך להיעדר ושוב מופיע ברשימה) - העוגן הישן כבר לא תואם,
+ * אז `contacted` חוזר להיות false אוטומטית, בלי לנקות שום דבר ידנית.
  */
 export async function getNeedsOutreachMembers(
   clubId: string,
-): Promise<AdminMember[]> {
+): Promise<OutreachMember[]> {
   const { events, members } = await getAdminData(clubId);
 
   const now = Date.now();
-  const recentPastEvents = events
+  const pastEventsDesc = events
     .filter((e) => new Date(e.starts_at).getTime() <= now)
-    .sort((a, b) => b.starts_at.localeCompare(a.starts_at))
-    .slice(0, 2);
-  if (recentPastEvents.length < 2) return [];
+    .sort((a, b) => b.starts_at.localeCompare(a.starts_at));
+  if (pastEventsDesc.length < 2) return [];
 
   const recentAttendeeIds = new Set(
-    recentPastEvents.flatMap((e) => e.attendedProfileIds),
+    pastEventsDesc.slice(0, 2).flatMap((e) => e.attendedProfileIds),
   );
 
-  return members.filter(
+  const candidates = members.filter(
     (m) => m.attendedCount > 0 && !recentAttendeeIds.has(m.profile.id),
   );
+  if (candidates.length === 0) return [];
+
+  const lastAttendedEventId = new Map<string, string>();
+  for (const event of pastEventsDesc) {
+    for (const profileId of event.attendedProfileIds) {
+      if (!lastAttendedEventId.has(profileId)) {
+        lastAttendedEventId.set(profileId, event.id);
+      }
+    }
+  }
+
+  const contactedEventIdByProfile = new Map<string, string>();
+  if (demoMode) {
+    for (const m of candidates) {
+      const stored = demo.demoGetOutreachContact(m.profile.id);
+      if (stored) contactedEventIdByProfile.set(m.profile.id, stored);
+    }
+  } else {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("outreach_contacts")
+      .select("profile_id, last_attended_event_id")
+      .eq("club_id", clubId);
+    for (const row of (data ?? []) as {
+      profile_id: string;
+      last_attended_event_id: string;
+    }[]) {
+      contactedEventIdByProfile.set(row.profile_id, row.last_attended_event_id);
+    }
+  }
+
+  return candidates.map((m) => {
+    const anchor = lastAttendedEventId.get(m.profile.id) ?? "";
+    return {
+      ...m,
+      lastAttendedEventId: anchor,
+      contacted: contactedEventIdByProfile.get(m.profile.id) === anchor,
+    };
+  });
 }
 
 /**

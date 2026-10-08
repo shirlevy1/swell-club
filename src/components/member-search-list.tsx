@@ -26,13 +26,23 @@ import { Card, Input, EmptyState } from "./ui";
  * הראשי, שלא רוצה להציג שם את כל 300 החברים (קישור ל"כל חברי
  * הקהילה" בפועל, ראו admin/page.tsx). בלי זה (undefined) - מציגים
  * את כל הרשימה כש-query ריק, כמו בעמוד הייעודי admin/members.
+ *
+ * renderBefore: תוכן אופציונלי בקצה הימני של כל שורה (מימין לתמונת
+ * הפרופיל), לפי profile.id - נקודת-הרחבה גנרית, לא ספציפית לשום
+ * שימוש. כרגע רק admin/outreach משתמש בזה (תיבת "דיברתי איתו/ה").
+ * מתקבל כ-Map של אלמנטים *כבר-מצוירים* (לא כפונקציה!) - MemberSearchList
+ * הוא "use client", ורכיב שרת לא יכול להעביר function כ-prop לרכיב
+ * לקוח (אי אפשר לסדרן אותה) - רק JSX כבר-מוכן, שיכול להכיל בתוכו
+ * רכיבי-לקוח אחרים (כמו OutreachCheckbox) בלי בעיה.
  */
 export function MemberSearchList({
   members,
   whenEmpty,
+  renderBefore,
 }: {
   members: AdminMember[];
   whenEmpty?: ReactNode;
+  renderBefore?: Map<string, ReactNode>;
 }) {
   const [query, setQuery] = useState("");
 
@@ -70,6 +80,7 @@ export function MemberSearchList({
                 key={m.profile.id}
                 className="flex items-center gap-2 px-3 py-2.5 transition hover:bg-(--color-haze)/60"
               >
+                {renderBefore?.get(m.profile.id)}
                 <Link
                   href={`/admin/members/${m.profile.id}`}
                   className="flex min-w-0 flex-1 items-center gap-2"

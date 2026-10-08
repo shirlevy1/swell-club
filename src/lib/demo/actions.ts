@@ -9,6 +9,7 @@ import {
   demoApproveEventPhoto,
   demoApproveMember,
   demoCheckIn,
+  demoClearOutreachContact,
   demoCreateEvent,
   demoDeleteEventPhoto,
   demoLeaveCommunity,
@@ -16,6 +17,7 @@ import {
   demoRemoveMember,
   demoRestoreMember,
   demoSetMyRole,
+  demoSetOutreachContact,
   demoToggleRsvp,
   demoUpdateEventSchedule,
   demoUpdateProfile,
@@ -162,6 +164,21 @@ export async function restoreMemberAction(profileId: string) {
   demoRestoreMember(profileId);
   revalidatePath("/admin");
   revalidatePath("/admin/removed");
+}
+
+export async function setOutreachContactAction(
+  profileId: string,
+  lastAttendedEventId: string,
+) {
+  guard();
+  demoSetOutreachContact(profileId, lastAttendedEventId);
+  revalidatePath("/admin/outreach");
+}
+
+export async function clearOutreachContactAction(profileId: string) {
+  guard();
+  demoClearOutreachContact(profileId);
+  revalidatePath("/admin/outreach");
 }
 
 export async function leaveCommunityAction() {

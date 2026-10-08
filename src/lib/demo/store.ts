@@ -306,6 +306,10 @@ type DemoDb = {
   // עזיבה עצמית להסרה ע"י מנהלת (דחייה לא מגיעה לכאן בהדגמה — ראו
   // demoRejectMember).
   removedMemberIds: Map<string, { removedAt: string; reason: "left" | "removed" }>;
+  // סימון "כבר יצרתי קשר" בעמוד "אורחים" - ערך המפה הוא ה-eventId של
+  // המפגש האחרון שהאדם נכח בו בזמן הסימון (ראו 0070_outreach_contacts.sql
+  // להסבר המלא על למה זה "פרק" ולא סימון לצמיתות).
+  outreachContacts: Map<string, string>;
 };
 
 function seed(): DemoDb {
@@ -373,6 +377,7 @@ function seed(): DemoDb {
     })),
     myRole: "organizer",
     removedMemberIds: new Map(),
+    outreachContacts: new Map(),
     pendingMembers: pendingMembers(),
   };
 }
@@ -626,6 +631,24 @@ export function demoLeaveCommunity() {
     reason: "left",
   });
   clearFutureRsvps(ME_ID);
+}
+
+/** מקביל לשורה ב-outreach_contacts (0070) - מחזירה את ה-eventId
+ * שנשמר בזמן הסימון, או null אם לא סומן. ההשוואה מול "מתי האדם נכח
+ * לאחרונה בפועל" קורית בצד הקורא (getNeedsOutreachMembers), לא כאן. */
+export function demoGetOutreachContact(profileId: string): string | null {
+  return db().outreachContacts.get(profileId) ?? null;
+}
+
+export function demoSetOutreachContact(
+  profileId: string,
+  lastAttendedEventId: string,
+) {
+  db().outreachContacts.set(profileId, lastAttendedEventId);
+}
+
+export function demoClearOutreachContact(profileId: string) {
+  db().outreachContacts.delete(profileId);
 }
 
 /** מקביל ל-list_removed_members() ב-RPC האמיתי — כולל כל הפרטים
