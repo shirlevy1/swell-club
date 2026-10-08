@@ -1,11 +1,13 @@
 import { Card } from "./ui";
-import { TrendBadge, type Trend } from "./trend-badge";
+import type { Trend } from "./trend-badge";
 
 /**
  * כרטיס KPI עם גרף-זרם (sparkline) קטן מתחת למספר - לפי הדמיה ששיר
- * שלחה (שני כרטיסים: "פעילים בחודש האחרון", "חזרו למפגש שני"). אותה
- * שפה ויזואלית כמו שאר גרפי /admin/insights: כותרת קטנה, מספר גדול +
- * TrendBadge המשותף לצידו.
+ * שלחה (שני כרטיסים: "פעילים בחודש האחרון", "חזרו למפגש שני").
+ *
+ * כותרת ומספר באותה שורה (לא שתי שורות), ובלי TrendBadge - שיר ביקשה
+ * להוריד את המגמה הירוקה בינתיים. ה-prop trend נשאר (מחושב כבר
+ * ב-data.ts) כדי שיהיה קל להחזיר אותה אם תתבקש שוב, רק לא מוצג.
  *
  * הקו מעוגל (Catmull-Rom→בזייה, לא קווים ישרים חדים) עם מילוי עדין
  * מתחתיו (גרדיאנט של אותו גוון עד שקיפות) ונקודת-עיגון בסוף הקו, כדי
@@ -47,12 +49,13 @@ export function SparklineCard({
   title,
   value,
   valueSuffix,
-  trend,
   sparkline,
 }: {
   title: string;
   value: number;
   valueSuffix?: string;
+  /** מחושב ב-data.ts, לא מוצג כרגע (ראו הערה למעלה) - נשאר בטיפוס
+      כדי שקריאות ל-SparklineCard ימשיכו להעביר אותו בלי שינוי. */
   trend: Trend;
   sparkline: number[];
 }) {
@@ -67,13 +70,12 @@ export function SparklineCard({
 
   return (
     <Card>
-      <p className="text-sm font-bold text-(--color-ink-soft)">{title}</p>
-      <div className="mt-1 flex items-baseline gap-1.5">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
+        <p className="text-sm font-bold text-(--color-ink-soft)">{title}</p>
         <span className="font-[family-name:var(--font-display)] text-lg font-bold text-(--color-ink) ltr-nums">
           {value}
           {valueSuffix}
         </span>
-        <TrendBadge trend={trend} />
       </div>
       {points.length >= 2 && (
         <div className="relative mt-3 h-8 w-full">
