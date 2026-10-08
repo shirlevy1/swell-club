@@ -77,12 +77,18 @@ export default async function RemovedMembersPage() {
             return (
               <div
                 key={m.profileId}
-                className="flex items-center justify-between gap-3 px-4 py-3"
+                className="relative flex items-center justify-between gap-3 px-4 py-3 transition hover:bg-(--color-haze)/60"
               >
+                {/* קישור "מתוח" על פני כל הכרטיסייה (לא רק השם) - כפתור
+                    השחזור נשאר לחיץ בנפרד כי הוא position:relative
+                    ומגיע אחריו ב-DOM, אז הוא מצויר מעליו. לא ניתן
+                    לעטוף הכל ב-Link יחיד כי <button> בתוך <a> לא תקין. */}
                 <Link
                   href={`/admin/members/${m.profileId}?from=admin-removed`}
-                  className="min-w-0"
-                >
+                  className="absolute inset-0"
+                  aria-label={m.fullName}
+                />
+                <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">
                     {m.fullName}
                   </p>
@@ -91,11 +97,13 @@ export default async function RemovedMembersPage() {
                       {captionParts.join(" ")}
                     </p>
                   )}
-                </Link>
-                <RestoreMemberButton
-                  profileId={m.profileId}
-                  fullName={m.fullName}
-                />
+                </div>
+                <div className="relative">
+                  <RestoreMemberButton
+                    profileId={m.profileId}
+                    fullName={m.fullName}
+                  />
+                </div>
               </div>
             );
           })}
