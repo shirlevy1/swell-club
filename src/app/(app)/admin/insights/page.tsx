@@ -9,6 +9,7 @@ import {
   getReturnRateTrend,
   getNeedsOutreachMembers,
   getRemovedMembers,
+  getGhostMembers,
 } from "@/lib/data";
 import { BackLink, LinkButton } from "@/components/ui";
 import { GenderAttendanceChart } from "@/components/gender-attendance-chart";
@@ -35,6 +36,7 @@ export default async function AdminInsightsPage() {
     activeTrend,
     returnRateTrend,
     outreachMembers,
+    ghostMembers,
     removedMembers,
   ] = await Promise.all([
     getRecentEventStats(viewer.club.id),
@@ -44,6 +46,7 @@ export default async function AdminInsightsPage() {
     getActiveMembersTrend(viewer.club.id),
     getReturnRateTrend(viewer.club.id),
     getNeedsOutreachMembers(viewer.club.id),
+    getGhostMembers(viewer.club.id),
     getRemovedMembers(viewer.club.id),
   ]);
 
@@ -81,6 +84,10 @@ export default async function AdminInsightsPage() {
 
       <LinkButton href="/admin/outreach" className="w-full">
         אורחים · <span className="ltr-nums">{outreachMembers.length}</span>
+      </LinkButton>
+
+      <LinkButton href="/admin/ghosts" className="w-full">
+        רוחות רפאים · <span className="ltr-nums">{ghostMembers.length}</span>
       </LinkButton>
 
       <LinkButton href="/admin/removed" className="w-full">

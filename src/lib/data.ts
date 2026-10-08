@@ -2478,6 +2478,19 @@ export type OutreachMember = AdminMember & {
  * חזר אחר כך להיעדר ושוב מופיע ברשימה) - העוגן הישן כבר לא תואם,
  * אז `contacted` חוזר להיות false אוטומטית, בלי לנקות שום דבר ידנית.
  */
+/**
+ * חברי קהילה מאושרים שמעולם לא הגיעו לאף מפגש - "רוחות רפאים",
+ * לפי ההצעה המקורית ב"הצעה לארכיטקטורה" (עמוד admin/ghosts). שונה
+ * מ"אורחים": אורחים הגיעו בעבר ופסקו, כאן מדובר במי שנרשם/ה ומעולם
+ * לא הגיע/ה בכלל - אותה קטגוריה בדיוק כמו "רוח רפאים" בעוגת הוותק
+ * (tenureBucket), רק כרשימת שמות במקום אחוז. לא שאילתה נוספת -
+ * מסננת את ה-members שכבר מגיעים מ-getAdminData.
+ */
+export async function getGhostMembers(clubId: string): Promise<AdminMember[]> {
+  const { members } = await getAdminData(clubId);
+  return members.filter((m) => tenureBucket(m.attendedCount) === "ghost");
+}
+
 export async function getNeedsOutreachMembers(
   clubId: string,
 ): Promise<OutreachMember[]> {
