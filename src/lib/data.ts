@@ -2382,6 +2382,38 @@ export async function getReturnRateTrend(
 }
 
 /**
+ * חברי קהילה שהגיעו לפחות פעם אחת אי-פעם, אבל לא הגיעו לאף אחד משני
+ * המפגשים האחרונים שהיו - "צריך ליצור איתם קשר", לפי שיר (עמוד
+ * admin/outreach, "אורחים"). מחושבת מחדש בכל טעינה, לא דגל שמור -
+ * ברגע שמישהו חוזר הוא פשוט לא מופיע יותר ברשימה, וחוזר להופיע אם
+ * שוב לא הגיע לשני מפגשים - בלי שום לוגיקת-מצב נפרדת. רק חברים
+ * מאושרים כרגע - מי שכבר עזב/הוסר לא רלוונטי כאן, שיר מטפלת בהם
+ * דרך "מי שכבר לא בקהילה". לא שאילתה נוספת - `getAdminData` כבר
+ * מביאה `attendedProfileIds` לכל מפגש, כולל שני המפגשים האחרונים
+ * שצריך כאן.
+ */
+export async function getNeedsOutreachMembers(
+  clubId: string,
+): Promise<AdminMember[]> {
+  const { events, members } = await getAdminData(clubId);
+
+  const now = Date.now();
+  const recentPastEvents = events
+    .filter((e) => new Date(e.starts_at).getTime() <= now)
+    .sort((a, b) => b.starts_at.localeCompare(a.starts_at))
+    .slice(0, 2);
+  if (recentPastEvents.length < 2) return [];
+
+  const recentAttendeeIds = new Set(
+    recentPastEvents.flatMap((e) => e.attendedProfileIds),
+  );
+
+  return members.filter(
+    (m) => m.attendedCount > 0 && !recentAttendeeIds.has(m.profile.id),
+  );
+}
+
+/**
  * שלושת דוחות ה-CSV של עמוד הניהול (חברים/מפגשים/מטריצת הגעה) —
  * נשלפים ונבנים רק כשבאמת לוחצים על כפתור הייצוא הרלוונטי, לא בכל
  * טעינה של עמוד הניהול (ראו דיון ביצועים ב"ביקורת הביצועים והתשתית").

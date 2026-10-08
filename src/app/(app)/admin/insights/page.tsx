@@ -8,7 +8,7 @@ import {
   getActiveMembersTrend,
   getReturnRateTrend,
 } from "@/lib/data";
-import { BackLink } from "@/components/ui";
+import { BackLink, LinkButton } from "@/components/ui";
 import { GenderAttendanceChart } from "@/components/gender-attendance-chart";
 import { NewVsReturningChart } from "@/components/new-vs-returning-chart";
 import { RsvpAttendanceChart } from "@/components/rsvp-attendance-chart";
@@ -67,6 +67,10 @@ export default async function AdminInsightsPage() {
           sparkline={returnRateTrend.sparkline}
         />
       </div>
+
+      <LinkButton href="/admin/outreach" className="w-full">
+        אורחים
+      </LinkButton>
 
       <div className="grid grid-cols-2 gap-3">
         <GenderDonutChart data={genderBreakdown} />
