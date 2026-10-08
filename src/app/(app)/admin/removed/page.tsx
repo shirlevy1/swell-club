@@ -36,7 +36,7 @@ export default async function RemovedMembersPage() {
 
   return (
     <div className="space-y-6">
-      <BackLink href="/admin">לניהול</BackLink>
+      <BackLink href="/admin/insights">לתובנות</BackLink>
 
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1.5">
