@@ -4,8 +4,8 @@ import { BackLink, EmptyState } from "@/components/ui";
 import { AdminEventCard } from "@/components/admin-event-card";
 
 /**
- * כל המפגשים שהיו, בלי הגבלה — אותו כרטיס עשיר (אחוזי הגעה, ייצוא
- * דוח) כמו ברשימה הראשית בעמוד הניהול, שם מוצגים רק 10 האחרונים.
+ * כל המפגשים שהיו, בלי הגבלה — אותו כרטיס עשיר (אחוזי הגעה) כמו
+ * המפגש האחרון שמוצג בעמוד הניהול הראשי (שם רק האחרון, לא כולם).
  */
 export default async function AdminEventsHistoryPage() {
   const viewer = await getViewer();

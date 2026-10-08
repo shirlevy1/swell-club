@@ -86,12 +86,15 @@ export default async function AdminPage() {
     ]);
   const pendingPhotosByEvent = groupPendingPhotos(pendingPhotos);
 
-  // מפגשים שהיו לא מוצגים כאן בכלל — רק כותרת עם מספר וקישור לעמוד
-  // ההיסטוריה הנפרד (admin/events/history), כדי שגלילת הניהול לא
-  // תתארך ככל שיצטברו מפגשים. אותו עיקרון בדיוק כמו עמוד "מפגשים"
-  // הרגיל (events/page.tsx), רק בלי תצוגה חתוכה בעמוד עצמו.
+  // מפגשים שהיו: רק האחרון שבהם מוצג כאן (לא כל ההיסטוריה) + קישור
+  // לעמוד ההיסטוריה הנפרד (admin/events/history), כדי שגלילת הניהול
+  // לא תתארך ככל שיצטברו מפגשים. אותו עיקרון בדיוק כמו עמוד "מפגשים"
+  // הרגיל (events/page.tsx), רק עם כרטיס אחד בלבד במקום 3.
   const { upcoming: upcomingEvents, pastAll: pastEventsAll } =
     splitAdminEvents(events);
+  const mostRecentPastEvent = [...pastEventsAll].sort((a, b) =>
+    b.starts_at.localeCompare(a.starts_at),
+  )[0];
 
   return (
     <div className="space-y-8">
@@ -201,6 +204,9 @@ export default async function AdminPage() {
             מפגשים שהיו ·{" "}
             <span className="ltr-nums">{pastEventsAll.length}</span>
           </h2>
+          {mostRecentPastEvent && (
+            <AdminEventCard event={mostRecentPastEvent} eventLinkQuery="from=admin" />
+          )}
           <Link
             href="/admin/events/history"
             className="block text-center text-sm font-semibold text-(--color-sea)"
