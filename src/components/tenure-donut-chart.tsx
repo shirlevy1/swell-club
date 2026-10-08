@@ -44,11 +44,11 @@ export function TenureDonutChart({ data }: { data: TenureBreakdown }) {
         <ul className="flex flex-col gap-1 text-xs">
           <li className="flex items-center gap-1.5 text-(--color-ink-soft)">
             <span className="size-2 shrink-0 rounded-full bg-(--color-deep)" />
-            קבועים (4+) · <span className="ltr-nums">{regularPct}%</span>
+            קבועים · <span className="ltr-nums">{regularPct}%</span>
           </li>
           <li className="flex items-center gap-1.5 text-(--color-ink-soft)">
             <span className="size-2 shrink-0 rounded-full bg-(--color-sea)" />
-            מזדמנים (2-3) · <span className="ltr-nums">{occasionalPct}%</span>
+            מזדמנים · <span className="ltr-nums">{occasionalPct}%</span>
           </li>
           <li className="flex items-center gap-1.5 text-(--color-ink-soft)">
             <span className="size-2 shrink-0 rounded-full bg-(--color-sky)" />
