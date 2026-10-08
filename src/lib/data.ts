@@ -1322,9 +1322,18 @@ export async function getMetPeople(userId: string): Promise<KnownPerson[]> {
     const myEventIds = new Set(
       allAttendances.filter((a) => a.profileId === userId).map((a) => a.eventId),
     );
+    // כמו met_people() האמיתית מאז 0072 - נוכחות היסטורית לא נמחקת
+    // כשמישהו עוזב/מוסר/ת, אז בלי הסינון הזה מי שכבר לא בקהילה היה
+    // ממשיך להופיע ב"האנשים שלי מסוואל" לנצח.
+    const activeIds = new Set(demo.demoActiveProfiles().map((p) => p.id));
     const metIds = new Set(
       allAttendances
-        .filter((a) => a.profileId !== userId && myEventIds.has(a.eventId))
+        .filter(
+          (a) =>
+            a.profileId !== userId &&
+            myEventIds.has(a.eventId) &&
+            activeIds.has(a.profileId),
+        )
         .map((a) => a.profileId),
     );
     const byId = new Map(demo.demoProfiles().map((p) => [p.id, p]));
@@ -1380,9 +1389,15 @@ export async function getMetPeopleCount(userId: string): Promise<number> {
     const myEventIds = new Set(
       allAttendances.filter((a) => a.profileId === userId).map((a) => a.eventId),
     );
+    const activeIds = new Set(demo.demoActiveProfiles().map((p) => p.id));
     const metIds = new Set(
       allAttendances
-        .filter((a) => a.profileId !== userId && myEventIds.has(a.eventId))
+        .filter(
+          (a) =>
+            a.profileId !== userId &&
+            myEventIds.has(a.eventId) &&
+            activeIds.has(a.profileId),
+        )
         .map((a) => a.profileId),
     );
     return metIds.size;
