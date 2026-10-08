@@ -34,30 +34,28 @@ export function GenderAttendanceChart({
 
   return (
     <Card>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+        <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
           <p className="text-sm font-bold text-(--color-ink-soft)">
             כמה הגיעו?
           </p>
-          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
-            <span className="text-sm text-(--color-ink-soft)">בממוצע:</span>
-            <span className="font-[family-name:var(--font-display)] text-[2.25rem] font-bold text-(--color-ink) ltr-nums">
-              {avgTotal}
+          <span className="text-xs text-(--color-ink-faint)">בממוצע</span>
+          <span className="font-[family-name:var(--font-display)] text-lg font-bold text-(--color-ink) ltr-nums">
+            {avgTotal}
+          </span>
+          {totalTrend !== null && (
+            <span className="text-xs">
+              <TrendBadge trend={totalTrend} />
             </span>
-            {totalTrend !== null && (
-              <span className="text-sm">
-                <TrendBadge trend={totalTrend} />
-              </span>
-            )}
-          </div>
+          )}
         </div>
-        <div className="flex gap-4 text-sm">
-          <span className="flex items-center gap-1.5 text-(--color-ink-soft)">
-            <span className="size-2.5 rounded-full bg-(--color-sea)" />
+        <div className="flex gap-3 text-xs">
+          <span className="flex items-center gap-1 text-(--color-ink-soft)">
+            <span className="size-2 rounded-full bg-(--color-sea)" />
             גברים <TrendBadge trend={maleTrend} />
           </span>
-          <span className="flex items-center gap-1.5 text-(--color-ink-soft)">
-            <span className="size-2.5 rounded-full bg-(--color-deep)" />
+          <span className="flex items-center gap-1 text-(--color-ink-soft)">
+            <span className="size-2 rounded-full bg-(--color-deep)" />
             נשים <TrendBadge trend={femaleTrend} />
           </span>
         </div>

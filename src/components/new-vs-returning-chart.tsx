@@ -34,26 +34,24 @@ export function NewVsReturningChart({
 
   return (
     <Card>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+        <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
           <p className="text-sm font-bold text-(--color-ink-soft)">
             חדשים מול חוזרים
           </p>
-          <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
-            <span className="text-sm text-(--color-ink-soft)">בממוצע:</span>
-            <span className="font-[family-name:var(--font-display)] text-[2.25rem] font-bold text-(--color-ink) ltr-nums">
-              {avgNew}
-            </span>
-            <span className="text-sm text-(--color-ink-soft)">חדשים</span>
-          </div>
+          <span className="text-xs text-(--color-ink-faint)">בממוצע</span>
+          <span className="font-[family-name:var(--font-display)] text-lg font-bold text-(--color-ink) ltr-nums">
+            {avgNew}
+          </span>
+          <span className="text-xs text-(--color-ink-faint)">חדשים</span>
         </div>
-        <div className="flex gap-4 text-sm">
-          <span className="flex items-center gap-1.5 text-(--color-ink-soft)">
-            <span className="size-2.5 rounded-full bg-(--color-sea)" />
+        <div className="flex gap-3 text-xs">
+          <span className="flex items-center gap-1 text-(--color-ink-soft)">
+            <span className="size-2 rounded-full bg-(--color-sea)" />
             חדשים
           </span>
-          <span className="flex items-center gap-1.5 text-(--color-ink-soft)">
-            <span className="size-2.5 rounded-full bg-(--color-deep)" />
+          <span className="flex items-center gap-1 text-(--color-ink-soft)">
+            <span className="size-2 rounded-full bg-(--color-deep)" />
             חוזרים
           </span>
         </div>
