@@ -54,6 +54,11 @@ export default async function AdminInsightsPage() {
       <RsvpAttendanceChart events={eventStats} />
 
       <div className="grid grid-cols-2 gap-3">
+        <GenderDonutChart data={genderBreakdown} />
+        <TenureDonutChart data={tenureBreakdown} />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
         <SparklineCard
           title="פעילים"
           value={activeTrend.current}
@@ -71,11 +76,6 @@ export default async function AdminInsightsPage() {
       <LinkButton href="/admin/outreach" className="w-full">
         אורחים
       </LinkButton>
-
-      <div className="grid grid-cols-2 gap-3">
-        <GenderDonutChart data={genderBreakdown} />
-        <TenureDonutChart data={tenureBreakdown} />
-      </div>
     </div>
   );
 }
