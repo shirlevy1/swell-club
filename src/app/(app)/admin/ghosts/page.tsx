@@ -4,7 +4,7 @@ import { BackLink, EmptyState } from "@/components/ui";
 import { MemberSearchList } from "@/components/member-search-list";
 
 /**
- * "רוחות רפאים" - חברי קהילה מאושרים שמעולם לא הגיעו לאף מפגש (ראו
+ * "רוח רפאים" - חברי קהילה מאושרים שמעולם לא הגיעו לאף מפגש (ראו
  * getGhostMembers ב-lib/data.ts). אותו רכיב חיפוש+תצוגה בדיוק כמו
  * admin/outreach ו-admin/members, רק עם רשימה מסוננת.
  */
@@ -19,7 +19,7 @@ export default async function AdminGhostsPage() {
       <BackLink href="/admin/insights">לתובנות</BackLink>
 
       <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold">
-        רוחות רפאים
+        רוח רפאים
       </h1>
 
       {members.length === 0 ? (

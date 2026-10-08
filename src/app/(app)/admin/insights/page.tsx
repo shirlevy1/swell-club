@@ -87,7 +87,7 @@ export default async function AdminInsightsPage() {
       </LinkButton>
 
       <LinkButton href="/admin/ghosts" className="w-full">
-        רוחות רפאים · <span className="ltr-nums">{ghostMembers.length}</span>
+        רוח רפאים · <span className="ltr-nums">{ghostMembers.length}</span>
       </LinkButton>
 
       <LinkButton href="/admin/removed" className="w-full">
