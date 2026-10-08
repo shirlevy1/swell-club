@@ -52,7 +52,7 @@ export function RsvpAttendanceChart({
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
         <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
           <p className="text-sm font-bold text-(--color-ink-soft)">
-            מתכננים מול הגיעו
+            סימנו מול הגיעו
           </p>
           <span className="text-xs text-(--color-ink-faint)">בממוצע</span>
           <span className="font-[family-name:var(--font-display)] text-lg font-bold text-(--color-ink) ltr-nums">
@@ -66,12 +66,12 @@ export function RsvpAttendanceChart({
         </div>
         <div className="flex gap-3 text-xs">
           <span className="flex items-center gap-1 text-(--color-ink-soft)">
-            <span className="size-2 rounded-full bg-(--color-line)" />
-            סימנו הגעה
+            <span className="size-2 rounded-full bg-(--color-sea)" />
+            הגיעו
           </span>
           <span className="flex items-center gap-1 text-(--color-ink-soft)">
-            <span className="size-2 rounded-full bg-(--color-sea)" />
-            הגיעו בפועל
+            <span className="size-2 rounded-full bg-(--color-line)" />
+            סימנו
           </span>
         </div>
       </div>
@@ -94,21 +94,21 @@ export function RsvpAttendanceChart({
                 style={{ height: CHART_HEIGHT_PX }}
               >
                 <div className="flex h-full w-1/2 max-w-3 flex-col items-center justify-end gap-0.5">
-                  <span className="text-[0.58rem] font-bold text-(--color-ink-faint) ltr-nums">
-                    {e.goingCount}
-                  </span>
-                  <div
-                    className="w-full rounded-t bg-(--color-line)"
-                    style={{ height: goingHeight }}
-                  />
-                </div>
-                <div className="flex h-full w-1/2 max-w-3 flex-col items-center justify-end gap-0.5">
                   <span className="text-[0.58rem] font-bold text-(--color-ink) ltr-nums">
                     {e.attendedCount}
                   </span>
                   <div
                     className="w-full rounded-t bg-(--color-sea)"
                     style={{ height: attendedHeight }}
+                  />
+                </div>
+                <div className="flex h-full w-1/2 max-w-3 flex-col items-center justify-end gap-0.5">
+                  <span className="text-[0.58rem] font-bold text-(--color-ink-faint) ltr-nums">
+                    {e.goingCount}
+                  </span>
+                  <div
+                    className="w-full rounded-t bg-(--color-line)"
+                    style={{ height: goingHeight }}
                   />
                 </div>
               </div>
