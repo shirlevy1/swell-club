@@ -92,7 +92,7 @@ function PendingMemberRow({
   async function reject() {
     const ok = await confirm({
       title: `לדחות את הבקשה של ${fullName}?`,
-      body: `אפשר לקבל ${byGender(gender, "אותו", "אותה")} בחזרה בכל שלב דרך "מי שכבר לא בקהילה" בעמוד הניהול.`,
+      body: `אפשר לקבל ${byGender(gender, "אותו", "אותה")} בחזרה בכל שלב דרך "עזבו/הוסרו" בעמוד הניהול.`,
       confirmText: "כן, לדחות",
       tone: "danger",
     });

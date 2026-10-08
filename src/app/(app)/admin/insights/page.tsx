@@ -7,6 +7,8 @@ import {
   getTenureBreakdown,
   getActiveMembersTrend,
   getReturnRateTrend,
+  getNeedsOutreachMembers,
+  getRemovedMembers,
 } from "@/lib/data";
 import { BackLink, LinkButton } from "@/components/ui";
 import { GenderAttendanceChart } from "@/components/gender-attendance-chart";
@@ -32,6 +34,8 @@ export default async function AdminInsightsPage() {
     tenureBreakdown,
     activeTrend,
     returnRateTrend,
+    outreachMembers,
+    removedMembers,
   ] = await Promise.all([
     getRecentEventStats(viewer.club.id),
     getNewVsReturningByEvent(viewer.club.id),
@@ -39,6 +43,8 @@ export default async function AdminInsightsPage() {
     getTenureBreakdown(viewer.club.id),
     getActiveMembersTrend(viewer.club.id),
     getReturnRateTrend(viewer.club.id),
+    getNeedsOutreachMembers(viewer.club.id),
+    getRemovedMembers(viewer.club.id),
   ]);
 
   return (
@@ -74,7 +80,11 @@ export default async function AdminInsightsPage() {
       </div>
 
       <LinkButton href="/admin/outreach" className="w-full">
-        אורחים
+        אורחים · <span className="ltr-nums">{outreachMembers.length}</span>
+      </LinkButton>
+
+      <LinkButton href="/admin/removed" className="w-full">
+        עזבו/הוסרו · <span className="ltr-nums">{removedMembers.length}</span>
       </LinkButton>
     </div>
   );
