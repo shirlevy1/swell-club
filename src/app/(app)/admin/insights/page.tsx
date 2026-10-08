@@ -84,7 +84,7 @@ export default async function AdminInsightsPage() {
       </LinkButton>
 
       <LinkButton href="/admin/removed" className="w-full">
-        עזבו/הוסרו · <span className="ltr-nums">{removedMembers.length}</span>
+        אקסים · <span className="ltr-nums">{removedMembers.length}</span>
       </LinkButton>
     </div>
   );

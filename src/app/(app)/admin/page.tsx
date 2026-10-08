@@ -261,7 +261,7 @@ export default async function AdminPage() {
             href="/admin/removed"
             className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-(--color-haze) px-3 text-xs font-semibold text-(--color-sea) transition hover:bg-(--color-sky)/30"
           >
-            עזבו/הוסרו ·{" "}
+            אקסים ·{" "}
             <span className="ltr-nums">{removedMembers.length}</span>
           </Link>
         )}
