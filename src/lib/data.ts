@@ -2130,6 +2130,17 @@ export type TenureBreakdown = {
   regularCount: number;
 };
 
+export type TenureBucket = "ghost" | "oneTime" | "occasional" | "regular";
+
+/** אותם סיפים בדיוק בכל מקום שצריך לדעת "לאיזה דלי ותק שייך X" - גם
+ * כאן (לעוגה), גם בעמוד הפירוט admin/insights/tenure שמסנן לפיהם. */
+export function tenureBucket(attendedCount: number): TenureBucket {
+  if (attendedCount === 0) return "ghost";
+  if (attendedCount === 1) return "oneTime";
+  if (attendedCount <= 3) return "occasional";
+  return "regular";
+}
+
 function bucketTenure(counts: number[]): TenureBreakdown {
   const result: TenureBreakdown = {
     ghostCount: 0,
@@ -2138,9 +2149,10 @@ function bucketTenure(counts: number[]): TenureBreakdown {
     regularCount: 0,
   };
   for (const c of counts) {
-    if (c === 0) result.ghostCount++;
-    else if (c === 1) result.oneTimeCount++;
-    else if (c <= 3) result.occasionalCount++;
+    const bucket = tenureBucket(c);
+    if (bucket === "ghost") result.ghostCount++;
+    else if (bucket === "oneTime") result.oneTimeCount++;
+    else if (bucket === "occasional") result.occasionalCount++;
     else result.regularCount++;
   }
   return result;
