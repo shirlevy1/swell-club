@@ -40,7 +40,7 @@ export default async function RemovedMembersPage() {
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1.5">
           <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold">
-            מי שכבר לא בקהילה
+            אקסים
           </h1>
           <p className="text-sm text-(--color-ink-soft)">
             הוסרו, עזבו, או שהבקשה שלהם להצטרף נדחתה.
