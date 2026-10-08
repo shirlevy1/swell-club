@@ -55,13 +55,13 @@ export default async function AdminInsightsPage() {
 
       <div className="grid grid-cols-2 gap-3">
         <SparklineCard
-          title="פעילים בחודש האחרון"
+          title="פעילים"
           value={activeTrend.current}
           trend={activeTrend.diff === 0 ? null : { kind: "diff", value: activeTrend.diff }}
           sparkline={activeTrend.sparkline}
         />
         <SparklineCard
-          title="חזרו למפגש שני"
+          title="חוזרים"
           value={returnRateTrend.current}
           valueSuffix="%"
           trend={
