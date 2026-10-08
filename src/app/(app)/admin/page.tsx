@@ -243,7 +243,17 @@ export default async function AdminPage() {
             body="כשמישהו יצטרף לקהילה, הוא יופיע כאן."
           />
         ) : (
-          <MemberSearchList members={members} />
+          <MemberSearchList
+            members={members}
+            whenEmpty={
+              <Link
+                href="/admin/members"
+                className="block text-center text-sm font-semibold text-(--color-sea)"
+              >
+                כל חברי הקהילה
+              </Link>
+            }
+          />
         )}
 
         {removedMembers.length > 0 && (

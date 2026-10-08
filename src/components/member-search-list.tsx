@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import type { AdminMember } from "@/lib/data";
 import { ageInYears, instagramUrl, whatsappUrl } from "@/lib/format";
@@ -15,17 +15,26 @@ import { Card, Input, EmptyState } from "./ui";
 import { RemoveMemberButton } from "./remove-member-button";
 
 /**
- * שדה חיפוש לפי שם מעל רשימת חברי הקהילה בניהול. חיפוש בצד לקוח
- * בלבד (הרשימה המלאה כבר מגיעה מהשרת) — פשוט ומיידי, בלי ניווט/
- * טעינה מחדש לכל הקשה. אין סף מינימלי להצגה - נשאר עקבי גם בקהילה
- * קטנה, ופשוט לא "עושה כלום" כשהשדה ריק.
+ * שדה חיפוש לפי שם מעל רשימת חברי הקהילה. חיפוש בצד לקוח בלבד
+ * (הרשימה המלאה כבר מגיעה מהשרת) — פשוט ומיידי, בלי ניווט/טעינה
+ * מחדש לכל הקשה. תוצאות מוצגות בזרימה הרגילה של העמוד (בלי קופסת
+ * גלילה פנימית משלהן) - ⚠️ נוסה בעבר (גובה קבוע + overflow-y-auto)
+ * והתנגש עם PullToRefresh (גלילת-המשיכה-לרענון המותאמת-אישית של
+ * כל עמוד) בצורה שהתנהגה אחרת בכל דפדפן/מכשיר ולא התייצבה אחרי כמה
+ * סבבי תיקון - התברר שלא היה שווה את זה.
  *
- * ⚠️ שלב ראשון בלבד: גלילה בתוך הבלוק עצמו (max-h + overflow-y-auto),
- * בערך 5 שורות גובה קבוע - לא תיקון לעומס השרת (זו עדיין רשימה
- * שכולה כבר הגיעה מהשרת מראש, כולל כל קישורי התמונה). שיר ביקשה
- * לבדוק קודם את התחושה הזו, לפני ההשקעה בשינוי צד-השרת.
+ * whenEmpty: מוצג במקום הרשימה המלאה כש-query ריק - לעמוד הניהול
+ * הראשי, שלא רוצה להציג שם את כל 300 החברים (קישור ל"כל חברי
+ * הקהילה" בפועל, ראו admin/page.tsx). בלי זה (undefined) - מציגים
+ * את כל הרשימה כש-query ריק, כמו בעמוד הייעודי admin/members.
  */
-export function MemberSearchList({ members }: { members: AdminMember[] }) {
+export function MemberSearchList({
+  members,
+  whenEmpty,
+}: {
+  members: AdminMember[];
+  whenEmpty?: ReactNode;
+}) {
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -33,6 +42,8 @@ export function MemberSearchList({ members }: { members: AdminMember[] }) {
     if (!q) return members;
     return members.filter((m) => m.profile.full_name.includes(q));
   }, [members, query]);
+
+  const isEmptyQuery = query.trim().length === 0;
 
   return (
     <div className="space-y-3">
@@ -44,22 +55,12 @@ export function MemberSearchList({ members }: { members: AdminMember[] }) {
         aria-label="חיפוש חבר/ת קהילה לפי שם"
       />
 
-      {filtered.length === 0 ? (
+      {isEmptyQuery && whenEmpty ? (
+        whenEmpty
+      ) : filtered.length === 0 ? (
         <EmptyState title="לא נמצא/ה" body="אף חבר/ת קהילה לא תואם/ת את החיפוש." />
       ) : (
-        <Card
-          data-nested-scroll
-          // stopPropagation על עצם המגע - לא מסתמך רק על זה ש-
-          // PullToRefresh יזהה נכון "זה לא בשבילי" (ראו data-nested-scroll
-          // שם); כך המגע בכלל לא מגיע לאזן של ה-listener החיצוני,
-          // גם אם הזיהוי לפי closest() ייכשל מסיבה כלשהי במכשיר מסוים.
-          // ⚠️ בלי overscroll-contain בכוונה: זה חוסם גם גלילת-גלגלת
-          // (wheel) מ"להמשיך" לעמוד החיצוני כשהעכבר מעל הקופסה ברגע
-          // שהיא מגיעה לסוף שלה - נתפס כ"גלילת העמוד לא עובדת" במחשב.
-          onTouchStart={(e) => e.stopPropagation()}
-          onTouchMove={(e) => e.stopPropagation()}
-          className="max-h-[26rem] touch-pan-y divide-y divide-(--color-line)/50 overflow-y-auto p-0"
-        >
+        <Card className="divide-y divide-(--color-line)/50 p-0">
           {filtered.map((m) => {
             const age = ageInYears(m.profile.birth_date);
             const wa = whatsappUrl(m.profile.phone);
