@@ -2196,6 +2196,171 @@ export async function getTenureBreakdown(
   return bucketTenure(memberIds.map((id) => countByProfile.get(id) ?? 0));
 }
 
+export type ActiveMembersTrend = {
+  current: number;
+  diff: number;
+  sparkline: number[];
+};
+
+/**
+ * כמה חברי קהילה שונים הגיעו לפחות למפגש אחד ב-30 הימים האחרונים,
+ * עם מגמה מול 30 הימים שלפני כן וגרף-זרם שבועי (8 נקודות). שאילתה
+ * אחת מוגבלת ל-79 יום אחורה בלבד (49 לנקודות הגרף + 30 לחלון
+ * הגלילה הראשון שלו) - לא כל ההיסטוריה, בדיוק כמו גרפי "8 המפגשים
+ * האחרונים".
+ */
+export async function getActiveMembersTrend(
+  clubId: string,
+): Promise<ActiveMembersTrend> {
+  const now = new Date();
+  const since = new Date(now);
+  since.setDate(since.getDate() - 79);
+
+  let rows: { profileId: string; startsAtMs: number }[];
+  if (demoMode) {
+    const eventStartsById = new Map(
+      demo.demoEvents().map((e) => [e.id, e.starts_at]),
+    );
+    rows = demo
+      .demoAttendances()
+      .map((a) => {
+        const startsAt = eventStartsById.get(a.eventId);
+        return { profileId: a.profileId, startsAtMs: startsAt ? new Date(startsAt).getTime() : NaN };
+      })
+      .filter((r) => !Number.isNaN(r.startsAtMs) && r.startsAtMs >= since.getTime());
+  } else {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("attendances")
+      .select("profile_id, events!inner(starts_at, club_id)")
+      .eq("events.club_id", clubId)
+      .gte("events.starts_at", since.toISOString());
+
+    rows = (
+      (data ?? []) as unknown as {
+        profile_id: string;
+        events: { starts_at: string } | null;
+      }[]
+    )
+      .filter((r) => r.events?.starts_at)
+      .map((r) => ({
+        profileId: r.profile_id,
+        startsAtMs: new Date(r.events!.starts_at).getTime(),
+      }));
+  }
+
+  const activeCount = (windowEnd: Date) => {
+    const windowStartMs = windowEnd.getTime() - 30 * 24 * 60 * 60 * 1000;
+    const windowEndMs = windowEnd.getTime();
+    const ids = new Set(
+      rows
+        .filter((r) => r.startsAtMs > windowStartMs && r.startsAtMs <= windowEndMs)
+        .map((r) => r.profileId),
+    );
+    return ids.size;
+  };
+
+  const current = activeCount(now);
+  const previousEnd = new Date(now);
+  previousEnd.setDate(previousEnd.getDate() - 30);
+  const previous = activeCount(previousEnd);
+
+  const sparkline = Array.from({ length: 8 }, (_, i) => {
+    const end = new Date(now);
+    end.setDate(end.getDate() - 7 * (7 - i));
+    return activeCount(end);
+  });
+
+  return { current, diff: current - previous, sparkline };
+}
+
+export type ReturnRateTrend = {
+  current: number;
+  diffPoints: number;
+  sparkline: number[];
+};
+
+/**
+ * אחוז מחברי הקהילה שהגיעו פעם ראשונה אי-פעם, ושמאז עברו לפחות 30
+ * יום (כדי שבאמת הייתה להם הזדמנות הוגנת לחזור), שחזרו לפחות למפגש
+ * נוסף אחד. ⚠️ כמו getTenureBreakdown למעלה: שואבת את כל היסטוריית
+ * הנוכחות (לא רק 8 מפגשים אחרונים) כי "מתי הייתה הפעם הראשונה
+ * אי-פעם" היא מדידת-אורך-חיים מטבעה - אותו טרייד-אוף שכבר תועד שם,
+ * אותו מועמד עתידי למעבר ל-RPC אם הנפח יגדל משמעותית.
+ */
+export async function getReturnRateTrend(
+  clubId: string,
+): Promise<ReturnRateTrend> {
+  let rows: { profileId: string; startsAtMs: number }[];
+  if (demoMode) {
+    const eventStartsById = new Map(
+      demo.demoEvents().map((e) => [e.id, e.starts_at]),
+    );
+    rows = demo
+      .demoAttendances()
+      .map((a) => {
+        const startsAt = eventStartsById.get(a.eventId);
+        return { profileId: a.profileId, startsAtMs: startsAt ? new Date(startsAt).getTime() : NaN };
+      })
+      .filter((r) => !Number.isNaN(r.startsAtMs));
+  } else {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("attendances")
+      .select("profile_id, events!inner(starts_at, club_id)")
+      .eq("events.club_id", clubId);
+
+    rows = (
+      (data ?? []) as unknown as {
+        profile_id: string;
+        events: { starts_at: string } | null;
+      }[]
+    )
+      .filter((r) => r.events?.starts_at)
+      .map((r) => ({
+        profileId: r.profile_id,
+        startsAtMs: new Date(r.events!.starts_at).getTime(),
+      }));
+  }
+
+  const datesByProfile = new Map<string, number[]>();
+  for (const r of rows) {
+    const list = datesByProfile.get(r.profileId) ?? [];
+    list.push(r.startsAtMs);
+    datesByProfile.set(r.profileId, list);
+  }
+  for (const list of datesByProfile.values()) list.sort((a, b) => a - b);
+
+  const rateAt = (checkpoint: Date) => {
+    const checkpointMs = checkpoint.getTime();
+    const eligibleCutoffMs = checkpointMs - 30 * 24 * 60 * 60 * 1000;
+    let eligible = 0;
+    let returned = 0;
+    for (const dates of datesByProfile.values()) {
+      const upToCheckpoint = dates.filter((d) => d <= checkpointMs);
+      if (upToCheckpoint.length === 0) continue;
+      if (upToCheckpoint[0] > eligibleCutoffMs) continue;
+      eligible++;
+      if (upToCheckpoint.length >= 2) returned++;
+    }
+    return eligible === 0 ? 0 : Math.round((returned / eligible) * 100);
+  };
+
+  const now = new Date();
+  const current = rateAt(now);
+  const previousCheckpoint = new Date(now);
+  previousCheckpoint.setDate(previousCheckpoint.getDate() - 30);
+  const previous = rateAt(previousCheckpoint);
+
+  const sparkline = Array.from({ length: 8 }, (_, i) => {
+    const end = new Date(now);
+    end.setDate(end.getDate() - 7 * (7 - i));
+    return rateAt(end);
+  });
+
+  return { current, diffPoints: current - previous, sparkline };
+}
+
 /**
  * שלושת דוחות ה-CSV של עמוד הניהול (חברים/מפגשים/מטריצת הגעה) —
  * נשלפים ונבנים רק כשבאמת לוחצים על כפתור הייצוא הרלוונטי, לא בכל
