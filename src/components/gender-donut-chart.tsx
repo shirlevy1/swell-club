@@ -22,8 +22,8 @@ export function GenderDonutChart({ data }: { data: GenderBreakdown }) {
   const malePercent = 100 - femalePercent;
 
   return (
-    <Link href="/admin/insights/gender" className="block">
-      <Card className="transition hover:border-(--color-sea)/40">
+    <Link href="/admin/insights/gender" className="block h-full">
+      <Card className="h-full transition hover:border-(--color-sea)/40">
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm font-bold text-(--color-ink-soft)">
             נשים מול גברים

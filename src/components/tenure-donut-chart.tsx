@@ -30,8 +30,8 @@ export function TenureDonutChart({ data }: { data: TenureBreakdown }) {
   const stop3 = stop2 + occasionalPct;
 
   return (
-    <Link href="/admin/insights/tenure" className="block">
-      <Card className="transition hover:border-(--color-sea)/40">
+    <Link href="/admin/insights/tenure" className="block h-full">
+      <Card className="h-full transition hover:border-(--color-sea)/40">
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm font-bold text-(--color-ink-soft)">ותק חברים</p>
           <ChevronIcon className="size-3.5 shrink-0 text-(--color-ink-faint)" />
