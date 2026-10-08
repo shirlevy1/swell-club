@@ -15,7 +15,7 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-10 bg-(--color-sky)">
       <div className="mx-auto flex w-full max-w-md justify-center px-3 pb-1 pt-[max(0.25rem,env(safe-area-inset-top))]">
-        <Link href="/events" aria-label="Swell Club" className="flex items-center">
+        <Link href="/home" aria-label="Swell Club" className="flex items-center">
           <Image
             src="/logo-wordmark-white-v4.png"
             alt=""
