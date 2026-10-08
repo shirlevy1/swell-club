@@ -72,9 +72,9 @@ export function RemoveMemberButton({
         disabled={pending}
         onClick={handleRemove}
         aria-label={`הסרת ${fullName} מהקהילה`}
-        className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-fail) transition hover:border-(--color-fail)/50 hover:bg-(--color-fail)/10 disabled:opacity-50"
+        className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-fail) transition hover:border-(--color-fail)/50 hover:bg-(--color-fail)/10 disabled:opacity-50"
       >
-        <XIcon className="size-3.5" />
+        <XIcon className="size-3" />
       </button>
       {error && (
         <p className="max-w-32 text-end text-[0.65rem] text-(--color-fail)">

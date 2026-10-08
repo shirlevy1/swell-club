@@ -69,13 +69,13 @@ export function MemberSearchList({
             return (
               <div
                 key={m.profile.id}
-                className="flex flex-wrap items-center gap-3 px-4 py-3 transition hover:bg-(--color-haze)/60"
+                className="flex items-center gap-2 px-3 py-2.5 transition hover:bg-(--color-haze)/60"
               >
                 <Link
                   href={`/admin/members/${m.profile.id}`}
-                  className="flex items-center gap-3"
+                  className="flex min-w-0 flex-1 items-center gap-2"
                 >
-                  <div className="size-11 shrink-0 overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)">
+                  <div className="size-9 shrink-0 overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)">
                     {m.latestSelfieUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -87,19 +87,19 @@ export function MemberSearchList({
                       />
                     ) : null}
                   </div>
-                  <p className="flex items-baseline gap-1 whitespace-nowrap text-sm font-semibold">
-                    <span>{m.profile.full_name}</span>
-                    <span className="font-normal text-(--color-ink-faint)">
+                  <p className="flex min-w-0 items-baseline gap-1 text-sm font-semibold">
+                    <span className="truncate">{m.profile.full_name}</span>
+                    <span className="shrink-0 whitespace-nowrap font-normal text-(--color-ink-faint)">
                       {age !== null && <>· {age} </>}
                       · <span className="ltr-nums">{m.attendedCount}</span>
                     </span>
                   </p>
                 </Link>
 
-                <div className="ms-auto flex shrink-0 items-center gap-1.5">
+                <div className="flex shrink-0 items-center gap-1">
                   {m.profile.swim_level && (
                     <span
-                      className="flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-[0.72rem] font-semibold text-(--color-ink)"
+                      className="flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-[0.7rem] font-semibold text-(--color-ink)"
                       style={swimLevelBadgeStyle(m.profile.swim_level)}
                     >
                       <WaveIcon
@@ -110,31 +110,27 @@ export function MemberSearchList({
                     </span>
                   )}
 
-                  {(wa || ig) && (
-                    <div className="flex shrink-0 gap-1">
-                      {wa && (
-                        <a
-                          href={wa}
-                          target="_blank"
-                          rel="noreferrer"
-                          aria-label={`וואטסאפ עם ${m.profile.full_name}`}
-                          className="flex size-8 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-verified) transition hover:border-(--color-verified)/50 hover:bg-(--color-verified)/10"
-                        >
-                          <WhatsAppIcon className="size-3.5" />
-                        </a>
-                      )}
-                      {ig && (
-                        <a
-                          href={ig}
-                          target="_blank"
-                          rel="noreferrer"
-                          aria-label={`אינסטגרם של ${m.profile.full_name}`}
-                          className="flex size-8 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
-                        >
-                          <InstagramIcon className="size-3.5" />
-                        </a>
-                      )}
-                    </div>
+                  {wa && (
+                    <a
+                      href={wa}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={`וואטסאפ עם ${m.profile.full_name}`}
+                      className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-verified) transition hover:border-(--color-verified)/50 hover:bg-(--color-verified)/10"
+                    >
+                      <WhatsAppIcon className="size-3" />
+                    </a>
+                  )}
+                  {ig && (
+                    <a
+                      href={ig}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={`אינסטגרם של ${m.profile.full_name}`}
+                      className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-(--color-line) bg-(--color-haze) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
+                    >
+                      <InstagramIcon className="size-3" />
+                    </a>
                   )}
 
                   {m.role !== "organizer" && (
