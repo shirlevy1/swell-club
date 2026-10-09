@@ -6,8 +6,7 @@ import { MemberSearchList } from "@/components/member-search-list";
 /**
  * "גרעין" - חברי קהילה ותיקים (קבועים כבר מזמן, לא טריים) שעדיין
  * פעילים כרגע (ראו getCoreMembers ב-lib/data.ts). אותו רכיב
- * חיפוש+תצוגה בדיוק כמו admin/outreach ו-admin/ghosts, רק עם רשימה
- * מסוננת.
+ * חיפוש+תצוגה בדיוק כמו admin/outreach, רק עם רשימה מסוננת.
  */
 export default async function AdminCorePage() {
   const viewer = await getViewer();

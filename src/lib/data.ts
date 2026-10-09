@@ -2578,19 +2578,6 @@ export async function getCoreMembers(clubId: string): Promise<AdminMember[]> {
   });
 }
 
-/**
- * חברי קהילה מאושרים שמעולם לא הגיעו לאף מפגש - "רוח רפאים",
- * לפי ההצעה המקורית ב"הצעה לארכיטקטורה" (עמוד admin/ghosts). שונה
- * מ"אורחים": אורחים הגיעו בעבר ופסקו, כאן מדובר במי שנרשם/ה ומעולם
- * לא הגיע/ה בכלל - אותה קטגוריה בדיוק כמו "רוח רפאים" בעוגת הוותק
- * (tenureBucket), רק כרשימת שמות במקום אחוז. לא שאילתה נוספת -
- * מסננת את ה-members שכבר מגיעים מ-getAdminData.
- */
-export async function getGhostMembers(clubId: string): Promise<AdminMember[]> {
-  const { members } = await getAdminData(clubId);
-  return members.filter((m) => tenureBucket(m.attendedCount) === "ghost");
-}
-
 export async function getNeedsOutreachMembers(
   clubId: string,
 ): Promise<OutreachMember[]> {
