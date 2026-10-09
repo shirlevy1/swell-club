@@ -52,7 +52,9 @@ export default async function AdminMemberPage({
           ? { href: "/admin#pending-photos", label: "לניהול" }
           : from === "admin-removed"
             ? { href: "/admin/removed", label: "לאקסים" }
-            : from === "admin-outreach"
+            : from === "admin-core"
+              ? { href: "/admin/core", label: "לגרעין" }
+              : from === "admin-outreach"
               ? { href: "/admin/outreach", label: "לאורחים" }
               : from === "admin-ghosts"
                 ? { href: "/admin/ghosts", label: "לרוח רפאים" }

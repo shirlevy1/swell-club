@@ -2528,6 +2528,56 @@ export type OutreachMember = AdminMember & {
  * חזר אחר כך להיעדר ושוב מופיע ברשימה) - העוגן הישן כבר לא תואם,
  * אז `contacted` חוזר להיות false אוטומטית, בלי לנקות שום דבר ידנית.
  */
+// כמה מפגשים "נשכחים" כדי לבדוק שקביעות היא ותק אמיתי, לא טרי -
+// ראו getCoreMembers. סוכם עם שיר: עם X=2, מי שמגיע/ה כל שבוע בלי
+// להחסיר צריכ/ה כ-6 נוכחויות (כחודש וחצי רצוף) כדי להיכנס לגרעין.
+const CORE_SUSTAINED_EVENTS = 2;
+
+/**
+ * "הגרעין" - קבוע/ה ותיק/ה **וגם** פעיל/ה כרגע. שני תנאים:
+ * (1) כבר היו לו/ה 4+ נוכחויות עוד לפני CORE_SUSTAINED_EVENTS
+ * מפגשים נוספים לפחות - "ותק אמיתי", לא קביעות שהושגה ממש עכשיו.
+ * (2) הגיע/ה לפחות לאחד משני המפגשים האחרונים - אותה הגדרה בדיוק
+ * כמו "פעילים" (getActiveMembersTrend).
+ *
+ * זה **מעמד שצריך לשמר**, לא הישג חד-פעמי (לפי בקשת שיר המפורשת) -
+ * מי שמפסיק/ה להגיע יוצא/ת מהגרעין (עובר/ת ל"אורחים" ברגע שמפספס/ת
+ * 2 מפגשים ברציפות), ויכול/ה לחזור אם חוזר/ת להגיע. בזכות שני
+ * התנאים: הגרעין הוא תמיד תת-קבוצה גם של "קבועים" וגם של "פעילים" -
+ * אף פעם לא חופף ל"אורחים".
+ */
+export async function getCoreMembers(clubId: string): Promise<AdminMember[]> {
+  const { events, members } = await getAdminData(clubId);
+
+  const now = Date.now();
+  const pastEventsAsc = events
+    .filter((e) => new Date(e.starts_at).getTime() <= now)
+    .sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+
+  const lastIndex = pastEventsAsc.length - 1;
+  if (lastIndex < 0) return [];
+
+  const attendedIndexesByProfile = new Map<string, number[]>();
+  pastEventsAsc.forEach((event, i) => {
+    for (const profileId of event.attendedProfileIds) {
+      const list = attendedIndexesByProfile.get(profileId) ?? [];
+      list.push(i);
+      attendedIndexesByProfile.set(profileId, list);
+    }
+  });
+
+  const sustainedCutoff = lastIndex - CORE_SUSTAINED_EVENTS;
+  const recentThreshold = lastIndex - 1; // אחד משני המפגשים האחרונים
+
+  return members.filter((m) => {
+    const indexes = attendedIndexesByProfile.get(m.profile.id);
+    if (!indexes) return false;
+    const sustainedCount = indexes.filter((i) => i <= sustainedCutoff).length;
+    const isActiveNow = indexes.some((i) => i >= recentThreshold);
+    return sustainedCount >= 4 && isActiveNow;
+  });
+}
+
 /**
  * חברי קהילה מאושרים שמעולם לא הגיעו לאף מפגש - "רוח רפאים",
  * לפי ההצעה המקורית ב"הצעה לארכיטקטורה" (עמוד admin/ghosts). שונה

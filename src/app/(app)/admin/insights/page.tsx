@@ -10,6 +10,7 @@ import {
   getNeedsOutreachMembers,
   getRemovedMembers,
   getGhostMembers,
+  getCoreMembers,
 } from "@/lib/data";
 import { BackLink, LinkButton } from "@/components/ui";
 import { GenderAttendanceChart } from "@/components/gender-attendance-chart";
@@ -37,6 +38,7 @@ export default async function AdminInsightsPage() {
     returnRateTrend,
     outreachMembers,
     ghostMembers,
+    coreMembers,
     removedMembers,
   ] = await Promise.all([
     getRecentEventStats(viewer.club.id),
@@ -47,6 +49,7 @@ export default async function AdminInsightsPage() {
     getReturnRateTrend(viewer.club.id),
     getNeedsOutreachMembers(viewer.club.id),
     getGhostMembers(viewer.club.id),
+    getCoreMembers(viewer.club.id),
     getRemovedMembers(viewer.club.id),
   ]);
 
@@ -81,6 +84,10 @@ export default async function AdminInsightsPage() {
           sparkline={returnRateTrend.sparkline}
         />
       </div>
+
+      <LinkButton href="/admin/core" className="w-full">
+        הגרעין · <span className="ltr-nums">{coreMembers.length}</span>
+      </LinkButton>
 
       <LinkButton href="/admin/outreach" className="w-full">
         אורחים · <span className="ltr-nums">{outreachMembers.length}</span>
