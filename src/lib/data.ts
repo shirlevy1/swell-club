@@ -2302,74 +2302,99 @@ export type ActiveMembersTrend = {
   sparkline: number[];
 };
 
+const ACTIVE_TREND_EVENT_LIMIT = 20;
+
 /**
- * כמה חברי קהילה שונים הגיעו לפחות למפגש אחד ב-30 הימים האחרונים,
- * עם מגמה מול 30 הימים שלפני כן וגרף-זרם שבועי (8 נקודות). שאילתה
- * אחת מוגבלת ל-79 יום אחורה בלבד (49 לנקודות הגרף + 30 לחלון
- * הגלילה הראשון שלו) - לא כל ההיסטוריה, בדיוק כמו גרפי "8 המפגשים
- * האחרונים".
+ * מי שהגיע/ה לפחות לאחד משני המפגשים האחרונים (מתוך מי שהגיע/ה
+ * לפחות פעם אחת אי-פעם) - המשלים המדויק של "אורחים"
+ * (getNeedsOutreachMembers): כל מי שאי-פעם הגיע/ה נמצא/ת תמיד בדיוק
+ * באחד מהשניים, אף פעם לא בשניהם ואף פעם לא באף אחד. נספר לפי ציר
+ * המפגשים, לא ימים בלוח (היה כך בעבר) - אותה סיבה בדיוק כמו
+ * "חוזרים"/"אורחים": מפגשים תלויי תנאי ים, לא לו"ז שבועי קבוע, אז
+ * "30 יום" יכול להיות גם אפס מפגשים וגם חמישה. שאילתה עצמאית
+ * ומוגבלת (20 מפגשים אחרונים בלבד - מספיק לעומק של 8 נקודות הגרף) -
+ * לא דרך getAdminData, כמו כל גרפי הדף הזה.
  */
 export async function getActiveMembersTrend(
   clubId: string,
 ): Promise<ActiveMembersTrend> {
-  const now = new Date();
-  const since = new Date(now);
-  since.setDate(since.getDate() - 79);
+  const now = Date.now();
 
-  let rows: { profileId: string; startsAtMs: number }[];
+  let events: { startsAtMs: number; attendedProfileIds: string[] }[];
+
   if (demoMode) {
-    const eventStartsById = new Map(
-      demo.demoEvents().map((e) => [e.id, e.starts_at]),
-    );
-    rows = demo
-      .demoAttendances()
-      .map((a) => {
-        const startsAt = eventStartsById.get(a.eventId);
-        return { profileId: a.profileId, startsAtMs: startsAt ? new Date(startsAt).getTime() : NaN };
-      })
-      .filter((r) => !Number.isNaN(r.startsAtMs) && r.startsAtMs >= since.getTime());
+    const attendancesByEvent = new Map<string, string[]>();
+    for (const a of demo.demoAttendances()) {
+      const list = attendancesByEvent.get(a.eventId) ?? [];
+      list.push(a.profileId);
+      attendancesByEvent.set(a.eventId, list);
+    }
+    events = demo.demoEvents().map((e) => ({
+      startsAtMs: new Date(e.starts_at).getTime(),
+      attendedProfileIds: attendancesByEvent.get(e.id) ?? [],
+    }));
   } else {
     const supabase = await createClient();
     const { data } = await supabase
-      .from("attendances")
-      .select("profile_id, events!inner(starts_at, club_id)")
-      .eq("events.club_id", clubId)
-      .gte("events.starts_at", since.toISOString());
+      .from("events")
+      .select("starts_at, attendances(profile_id)")
+      .eq("club_id", clubId)
+      .lt("starts_at", new Date().toISOString())
+      .order("starts_at", { ascending: false })
+      .limit(ACTIVE_TREND_EVENT_LIMIT);
 
-    rows = (
+    events = (
       (data ?? []) as unknown as {
-        profile_id: string;
-        events: { starts_at: string } | null;
+        starts_at: string;
+        attendances: { profile_id: string }[];
       }[]
-    )
-      .filter((r) => r.events?.starts_at)
-      .map((r) => ({
-        profileId: r.profile_id,
-        startsAtMs: new Date(r.events!.starts_at).getTime(),
-      }));
+    ).map((e) => ({
+      startsAtMs: new Date(e.starts_at).getTime(),
+      attendedProfileIds: e.attendances.map((a) => a.profile_id),
+    }));
   }
 
-  const activeCount = (windowEnd: Date) => {
-    const windowStartMs = windowEnd.getTime() - 30 * 24 * 60 * 60 * 1000;
-    const windowEndMs = windowEnd.getTime();
-    const ids = new Set(
-      rows
-        .filter((r) => r.startsAtMs > windowStartMs && r.startsAtMs <= windowEndMs)
-        .map((r) => r.profileId),
-    );
-    return ids.size;
+  const pastEventsAsc = events
+    .filter((e) => e.startsAtMs <= now)
+    .sort((a, b) => a.startsAtMs - b.startsAtMs);
+
+  const lastIndex = pastEventsAsc.length - 1;
+  if (lastIndex < 0) return { current: 0, diff: 0, sparkline: [] };
+
+  // לכל profile, באילו אינדקסים (לא תאריכים) של מפגשים נכח/ה - כדי
+  // לבדוק "האם זה אחד משני המפגשים האחרונים" מול cutoff נתון, בדיוק
+  // כמו ב-getReturnRateTrend למעלה.
+  const attendedIndexesByProfile = new Map<string, number[]>();
+  pastEventsAsc.forEach((event, i) => {
+    for (const profileId of event.attendedProfileIds) {
+      const list = attendedIndexesByProfile.get(profileId) ?? [];
+      list.push(i);
+      attendedIndexesByProfile.set(profileId, list);
+    }
+  });
+
+  const activeCountAtCutoff = (cutoff: number) => {
+    let count = 0;
+    for (const indexes of attendedIndexesByProfile.values()) {
+      let lastUpToCutoff = -1;
+      for (const idx of indexes) {
+        if (idx <= cutoff && idx > lastUpToCutoff) lastUpToCutoff = idx;
+      }
+      if (lastUpToCutoff === -1) continue; // עוד לא נכח/ה עד כאן
+      if (lastUpToCutoff >= cutoff - 1) count++; // אחד משני המפגשים האחרונים
+    }
+    return count;
   };
 
-  const current = activeCount(now);
-  const previousEnd = new Date(now);
-  previousEnd.setDate(previousEnd.getDate() - 30);
-  const previous = activeCount(previousEnd);
+  const current = activeCountAtCutoff(lastIndex);
+  const previous = activeCountAtCutoff(Math.max(0, lastIndex - 4));
 
-  const sparkline = Array.from({ length: 8 }, (_, i) => {
-    const end = new Date(now);
-    end.setDate(end.getDate() - 7 * (7 - i));
-    return activeCount(end);
-  });
+  const pointCount = Math.min(8, lastIndex + 1);
+  const sparkline: number[] = [];
+  const step = lastIndex / Math.max(pointCount - 1, 1);
+  for (let i = 0; i < pointCount; i++) {
+    sparkline.push(activeCountAtCutoff(Math.round(step * i)));
+  }
 
   return { current, diff: current - previous, sparkline };
 }
