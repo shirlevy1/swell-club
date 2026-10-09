@@ -86,7 +86,7 @@ export default async function AdminInsightsPage() {
       </div>
 
       <LinkButton href="/admin/core" className="w-full">
-        הגרעין · <span className="ltr-nums">{coreMembers.length}</span>
+        גרעין · <span className="ltr-nums">{coreMembers.length}</span>
       </LinkButton>
 
       <LinkButton href="/admin/outreach" className="w-full">

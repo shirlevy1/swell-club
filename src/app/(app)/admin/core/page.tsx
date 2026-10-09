@@ -4,7 +4,7 @@ import { BackLink, EmptyState } from "@/components/ui";
 import { MemberSearchList } from "@/components/member-search-list";
 
 /**
- * "הגרעין" - חברי קהילה ותיקים (קבועים כבר מזמן, לא טריים) שעדיין
+ * "גרעין" - חברי קהילה ותיקים (קבועים כבר מזמן, לא טריים) שעדיין
  * פעילים כרגע (ראו getCoreMembers ב-lib/data.ts). אותו רכיב
  * חיפוש+תצוגה בדיוק כמו admin/outreach ו-admin/ghosts, רק עם רשימה
  * מסוננת.
@@ -20,7 +20,7 @@ export default async function AdminCorePage() {
       <BackLink href="/admin/insights">לתובנות</BackLink>
 
       <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold">
-        הגרעין
+        גרעין
       </h1>
 
       {members.length === 0 ? (
