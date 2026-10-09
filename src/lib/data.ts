@@ -310,9 +310,15 @@ export async function getPendingMembers(
  * משהו — RPC חוסם אחרת. משמשת את התצוגה הנפרדת ב-/admin/removed
  * (שמאפשרת שחזור חברות בלי הרשמה מחדש עם אימייל אחר) וגם את ייצוא
  * האקסל שם — לכן הפרטים המלאים כאן, לא רק שם ותאריך.
+ *
+ * includeEmail: ברירת מחדל false, אותה סיבה בדיוק כמו ב-getAdminData -
+ * מייל עולה פנייה נפרדת לשרת לכל אדם בנפרד. לא עמוד admin/removed
+ * ולא כפתור הספירה ב-admin/insights מציגים מייל - רק ייצוא ה-CSV
+ * (getAdminRemovedReport) מעביר includeEmail: true במפורש.
  */
 export async function getRemovedMembers(
   clubId: string,
+  { includeEmail = false }: { includeEmail?: boolean } = {},
 ): Promise<RemovedMember[]> {
   if (demoMode) {
     return demo.demoListRemovedMembers();
@@ -340,9 +346,9 @@ export async function getRemovedMembers(
     attended_dates: string[] | null;
   }[];
 
-  const emailByProfileId = await emailsByProfileId(
-    rows.map((row) => row.profile_id),
-  );
+  const emailByProfileId = includeEmail
+    ? await emailsByProfileId(rows.map((row) => row.profile_id))
+    : new Map<string, string>();
 
   return rows.map((row) => ({
     profileId: row.profile_id,
@@ -404,7 +410,7 @@ export async function getAdminRemovedReport(
   clubId: string,
 ): Promise<string[][]> {
   const [removed, { events }] = await Promise.all([
-    getRemovedMembers(clubId),
+    getRemovedMembers(clubId, { includeEmail: true }),
     getAdminData(clubId),
   ]);
 
@@ -1736,7 +1742,19 @@ async function emailsByProfileId(
   return map;
 }
 
-export async function getAdminData(clubId: string) {
+/**
+ * includeEmail: ברירת מחדל false בכוונה - מייל עולה פנייה נפרדת
+ * לשרת האימייל של Supabase *לכל חבר/ה בנפרד* (emailsByProfileId
+ * למטה), לא מגיע חינם באותה שאילתה כמו שאר השדות. אף אחד מ-8 עמודי
+ * הרשימה/גרפים שקוראים לפונקציה הזו לא מציג מייל על המסך - רק שני
+ * ייצואי ה-CSV ("חברים", "אקסים") שבאמת צריכים אותו מעבירים
+ * includeEmail: true במפורש. בקנה מידה גדול (מאות חברים) זה ההבדל
+ * בין "0 פניות מיותרות" ל"מאות פניות מיותרות" בכל טעינת עמוד.
+ */
+export async function getAdminData(
+  clubId: string,
+  { includeEmail = false }: { includeEmail?: boolean } = {},
+) {
   if (demoMode) {
     const rsvps = demo.demoRsvps();
     const attendances = demo.demoAttendances();
@@ -1809,7 +1827,14 @@ export async function getAdminData(clubId: string) {
       .order("starts_at", { ascending: false }),
     supabase
       .from("club_members")
-      .select("profile_id, role, status, profiles(*)")
+      // עמודות מפורשות, לא "*" — אותה סיבה כמו ב-getMemberProfile:
+      // "*" על profiles הייתה שולחת גם כל עמודה עתידית שתתווסף לטבלה
+      // בלי החלטה מודעת. הרשימה כאן היא בדיוק מה שבאמת בשימוש היום
+      // (בכרטיסי רשימה ובדוחות ה-CSV) - לא avatar_path/privacy_accepted_at/
+      // legal_version, שאף אחד לא קורא דרך AdminMember.profile בשום מקום.
+      .select(
+        "profile_id, role, status, profiles(id, full_name, phone, instagram, birth_date, city, gender, swim_level, waiver_accepted_at, created_at)",
+      )
       // ממתינים לאישור לא "חברים" עדיין — יש להם סעיף נפרד
       // (getPendingMembers) עם כפתורי אישור/דחייה, לא רשימה עם 0 נוכחויות.
       // מי שהוסר/ה כן נכלל/ת כאן (לא מסונן/ת ב-SQL) — צריך אותם/ן
@@ -1878,9 +1903,9 @@ export async function getAdminData(clubId: string) {
     profiles: Profile | null;
   }[];
 
-  const emailByProfileId = await emailsByProfileId(
-    memberRowsTyped.map((m) => m.profile_id),
-  );
+  const emailByProfileId = includeEmail
+    ? await emailsByProfileId(memberRowsTyped.map((m) => m.profile_id))
+    : new Map<string, string>();
 
   const toAdminMember = (m: (typeof memberRowsTyped)[number]): AdminMember[] =>
     m.profiles
@@ -2560,7 +2585,7 @@ export async function getNeedsOutreachMembers(
 export async function getAdminMembersReport(
   clubId: string,
 ): Promise<string[][]> {
-  const { events, members } = await getAdminData(clubId);
+  const { events, members } = await getAdminData(clubId, { includeEmail: true });
 
   // המכנה של אחוז ההגעה הוא מפגשים שכבר אפשר היה לסמן בהם נוכחות
   // (חלון הצ'ק-אין נפתח), לא רק מפגשים שהסתיימו - אחרת מי שסימן
