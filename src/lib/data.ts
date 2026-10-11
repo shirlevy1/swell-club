@@ -1853,10 +1853,11 @@ export async function getAdminData(
           // עמודות מפורשות, לא "*" — אותה סיבה כמו ב-getMemberProfile:
           // "*" על profiles הייתה שולחת גם כל עמודה עתידית שתתווסף לטבלה
           // בלי החלטה מודעת. הרשימה כאן היא בדיוק מה שבאמת בשימוש היום
-          // (בכרטיסי רשימה ובדוחות ה-CSV) - לא avatar_path/privacy_accepted_at/
-          // legal_version, שאף אחד לא קורא דרך AdminMember.profile בשום מקום.
+          // (בכרטיסי רשימה ובדוחות ה-CSV) - לא avatar_path/privacy_accepted_at,
+          // שאף אחד לא קורא דרך AdminMember.profile בשום מקום. legal_version
+          // כן נדרש - עמודת "גרסת טקסט משפטי" בייצוא ה-CSV.
           .select(
-            "profile_id, role, status, profiles(id, full_name, phone, instagram, birth_date, city, gender, swim_level, waiver_accepted_at, created_at)",
+            "profile_id, role, status, profiles(id, full_name, phone, instagram, birth_date, city, gender, swim_level, waiver_accepted_at, legal_version, created_at)",
           )
           // ממתינים לאישור לא "חברים" עדיין — יש להם סעיף נפרד
           // (getPendingMembers) עם כפתורי אישור/דחייה, לא רשימה עם 0 נוכחויות.
@@ -2974,6 +2975,7 @@ export async function getAdminMembersReport(
       "מפגשים",
       "אחוז הגעה",
       "אישרו את תנאי ההצטרפות",
+      "גרסת טקסט משפטי שאושרה",
     ],
     // members כבר ממוין לפי תאריך הצטרפות ב-getAdminData
     ...members.map((m) => [
@@ -2995,6 +2997,9 @@ export async function getAdminMembersReport(
       // תיבת אישור אחת בהרשמה (legal_accepted) שומרת waiver+privacy
       // באותו רגע בדיוק - שני העמודים תמיד זהים, ולכן עמודה אחת מספיקה.
       m.profile.waiver_accepted_at ? "כן" : "",
+      // ריק לחשבון ישן שנוצר לפני שהעמודה הזו נוספה (migration 0065) -
+      // לא 0, כדי לא להיראות כאילו אושרה "גרסה 0" שאף פעם לא הייתה קיימת.
+      m.profile.legal_version?.toString() ?? "",
     ]),
   ];
 }
