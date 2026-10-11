@@ -72,11 +72,11 @@ export default async function AdminInsightsPage() {
       {/* סדר ה-DOM הפוך מסדר הקריאה (ימין-לשמאל): נבדק בפועל ש-grid כאן
           לא מכבד dir=rtl למיקום העמודות - האיבר הראשון ב-DOM נוחת
           הכי שמאלה, לא הכי ימינה. כדי שבפועל ייראה (מימין לשמאל)
-          רמת שחייה → מגדר → ותק חברים, ה-DOM חייב להיות הפוך. */}
+          נשים מול גברים → רמת שחייה → ותק חברים, ה-DOM חייב להיות הפוך. */}
       <div className="grid grid-cols-3 gap-2">
         <TenureDonutChart data={tenureBreakdown} />
-        <GenderDonutChart data={genderBreakdown} />
         <SwimLevelDonutChart data={swimLevelBreakdown} />
+        <GenderDonutChart data={genderBreakdown} />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
