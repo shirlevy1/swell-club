@@ -8,10 +8,11 @@ import {
   getMyAttendedEventIds,
   getRandomEventAlbum,
 } from "@/lib/data";
-import { getWaveForecast, getBestSwimDays } from "@/lib/gosurf";
+import { getWaveForecast, getBestSwimDays, getCurrentWaterTempC } from "@/lib/gosurf";
 import { EmptyState } from "@/components/ui";
 import { NextEventCard } from "@/components/next-event-card";
 import { WaveForecastStrip } from "@/components/wave-forecast-strip";
+import { WaterTemperatureGauge } from "@/components/water-temperature-gauge";
 import { KnownPeopleStrip } from "@/components/known-people-strip";
 import { RandomEventAlbumCard } from "@/components/random-event-album";
 import { CommunityStats } from "@/components/community-stats";
@@ -30,6 +31,7 @@ export default async function HomePage() {
   const [
     waveDays,
     bestDays,
+    waterTempC,
     knownPeople,
     upcomingEvents,
     myGoingIds,
@@ -40,6 +42,7 @@ export default async function HomePage() {
   ] = await Promise.all([
     getWaveForecast(),
     getBestSwimDays(),
+    getCurrentWaterTempC(),
     getMetPeople(viewer.userId),
     getUpcomingEvents(viewer.club.id),
     getMyGoingEventIds(viewer.userId),
@@ -61,6 +64,7 @@ export default async function HomePage() {
         />
       )}
       <WaveForecastStrip days={waveDays} bestDays={bestDays} />
+      <WaterTemperatureGauge tempC={waterTempC} />
       <KnownPeopleStrip people={knownPeople} />
       {randomAlbum && (
         <RandomEventAlbumCard eventId={randomAlbum.eventId} photoUrls={randomAlbum.photoUrls} />

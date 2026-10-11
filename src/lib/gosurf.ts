@@ -304,6 +304,43 @@ export async function getWaveForecast(): Promise<WaveForecastDay[]> {
   }
 }
 
+/**
+ * טמפרטורת המים הנוכחית, מהקוביה "מים" בקטע "עכשיו" של GoSurf (לא
+ * מהתחזית השעתית/שבועית — זו נקודת מדידה חיה, מתעדכנת כל 1800 שניות
+ * כמו כל שאר השליפות מהאתר הזה). מחזירה null בכל כשל, לא מפילה את
+ * עמוד הבית.
+ */
+export async function getCurrentWaterTempC(): Promise<number | null> {
+  try {
+    const res = await fetch(`https://gosurf.co.il/forecast/${GOSURF_LOCATION_SLUG}`, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      },
+      next: { revalidate: 1800 },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+
+    const $ = cheerio.load(html);
+    const kpiText = $(".fw.title")
+      .filter((_, el) => $(el).text().trim() === "מים")
+      .first()
+      .closest("td")
+      .find("span.kpi58")
+      .first()
+      .text()
+      .trim();
+    const match = kpiText.match(/-?\d+(?:\.\d+)?/);
+    if (!match) return null;
+    const value = Number(match[0]);
+    return Number.isFinite(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
 export type BestSwimDay = {
   dateISO: string;
   dayName: string;
