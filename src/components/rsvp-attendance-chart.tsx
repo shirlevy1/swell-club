@@ -5,6 +5,16 @@ import { Card } from "./ui";
 
 const CHART_HEIGHT_PX = 140;
 
+// גוון פסטל-רך לכל קטגוריה - אותו גוון-בסיס סמנטי (verified/fail/warn,
+// שומר על המשמעות), מעורבב עם לבן כדי לרכך. אותה טכניקת color-mix
+// שכבר בשימוש באתר (למשל live-highlight ב-globals.css) - לא צבעים
+// קבועים חדשים, רק גרסה בהירה יותר של הטוקנים הקיימים.
+const PASTEL = {
+  matched: "color-mix(in srgb, var(--color-verified) 45%, white)",
+  noShow: "color-mix(in srgb, var(--color-fail) 45%, white)",
+  walkIn: "color-mix(in srgb, var(--color-warn) 45%, white)",
+};
+
 /**
  * גרף 2 ב-admin/insights: לא רק "כמה אחוז מהסימונים הגיעו" (זה החמיץ
  * לגמרי מי שהגיע/ה בלי לסמן בכלל - שיר שאלה למה, והתברר שזה באמת
@@ -42,17 +52,17 @@ export function RsvpAttendanceChart({
 
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
         <span className="flex items-center gap-1.5 text-(--color-ink-soft)">
-          <span className="size-2 rounded-full bg-(--color-verified)" />
+          <span className="size-2 rounded-full" style={{ background: PASTEL.matched }} />
           סימנו והגיעו ·{" "}
           <span className="font-bold text-(--color-ink) ltr-nums">{matchedPct}%</span>
         </span>
         <span className="flex items-center gap-1.5 text-(--color-ink-soft)">
-          <span className="size-2 rounded-full bg-(--color-fail)" />
+          <span className="size-2 rounded-full" style={{ background: PASTEL.noShow }} />
           סימנו ולא הגיעו ·{" "}
           <span className="font-bold text-(--color-ink) ltr-nums">{noShowPct}%</span>
         </span>
         <span className="flex items-center gap-1.5 text-(--color-ink-soft)">
-          <span className="size-2 rounded-full bg-(--color-warn)" />
+          <span className="size-2 rounded-full" style={{ background: PASTEL.walkIn }} />
           הגיעו בלי לסמן ·{" "}
           <span className="font-bold text-(--color-ink) ltr-nums">{walkInPct}%</span>
         </span>
@@ -83,24 +93,24 @@ export function RsvpAttendanceChart({
               >
                 {matchedHeight > 0 && (
                   <div
-                    className="flex items-center justify-center bg-(--color-verified) text-[0.58rem] font-medium text-white/80 ltr-nums"
-                    style={{ height: matchedHeight }}
+                    className="flex items-center justify-center text-[0.58rem] font-medium text-(--color-ink)/70 ltr-nums"
+                    style={{ height: matchedHeight, background: PASTEL.matched }}
                   >
                     {e.matched}
                   </div>
                 )}
                 {noShowHeight > 0 && (
                   <div
-                    className="flex items-center justify-center bg-(--color-fail) text-[0.58rem] font-medium text-white/80 ltr-nums"
-                    style={{ height: noShowHeight }}
+                    className="flex items-center justify-center text-[0.58rem] font-medium text-(--color-ink)/70 ltr-nums"
+                    style={{ height: noShowHeight, background: PASTEL.noShow }}
                   >
                     {e.noShow}
                   </div>
                 )}
                 {walkInHeight > 0 && (
                   <div
-                    className="flex items-center justify-center bg-(--color-warn) text-[0.58rem] font-medium text-white/80 ltr-nums"
-                    style={{ height: walkInHeight }}
+                    className="flex items-center justify-center text-[0.58rem] font-medium text-(--color-ink)/70 ltr-nums"
+                    style={{ height: walkInHeight, background: PASTEL.walkIn }}
                   >
                     {e.walkIn}
                   </div>
