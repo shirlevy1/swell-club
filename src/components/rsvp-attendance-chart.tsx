@@ -70,7 +70,7 @@ export function RsvpAttendanceChart({
         </span>
         <span className="flex items-center gap-1.5 text-(--color-ink-soft)">
           <span className="size-2 rounded-full" style={{ background: PASTEL.walkIn }} />
-          הגיעו בלי לסמן ·{" "}
+          רק הגיעו ·{" "}
           <span className="font-bold text-(--color-ink) ltr-nums">{walkInPct}%</span>
         </span>
       </div>
