@@ -58,7 +58,9 @@ export default async function AdminMemberPage({
               ? { href: "/admin/outreach", label: "לאורחים" }
               : from === "admin-returning"
                 ? { href: "/admin/returning", label: "לחוזרים" }
-                : from === "admin-members"
+                : from === "admin-active"
+                  ? { href: "/admin/active", label: "לפעילים" }
+                  : from === "admin-members"
                 ? { href: "/admin/members", label: "לכל חברי הקהילה" }
                 : from === "admin-insights-gender"
                   ? { href: "/admin/insights/gender", label: "לנשים מול גברים" }

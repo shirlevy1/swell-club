@@ -2399,6 +2399,86 @@ export async function getActiveMembersTrend(
   return { current, diff: current - previous, sparkline };
 }
 
+/**
+ * פירוט השמות מאחורי המספר ב"פעילים" (getActiveMembersTrend) - אותו
+ * תנאי בדיוק (הגיע/ה לאחד משני המפגשים האחרונים שהיו), רק מחזירה
+ * רשימת חברים במקום מספר. דרך getAdminData (היסטוריה מלאה) ולא
+ * השאילתה המוגבלת-20 של הטרנד - זה עמוד פירוט שנטען רק בלחיצה, לא
+ * כרטיס שעולה עם כל טעינת תובנות, אותו שיקול כמו getReturnRateMembers
+ * למטה.
+ */
+export async function getActiveMembers(clubId: string): Promise<AdminMember[]> {
+  const { events, members } = await getAdminData(clubId);
+  const now = Date.now();
+
+  const pastEventsAsc = events
+    .filter((e) => new Date(e.starts_at).getTime() <= now)
+    .sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+  const lastIndex = pastEventsAsc.length - 1;
+  if (lastIndex < 0) return [];
+
+  const lastAttendedIndexByProfile = new Map<string, number>();
+  pastEventsAsc.forEach((event, i) => {
+    for (const profileId of event.attendedProfileIds) {
+      lastAttendedIndexByProfile.set(profileId, i);
+    }
+  });
+
+  return members.filter((m) => {
+    const lastAttended = lastAttendedIndexByProfile.get(m.profile.id);
+    return lastAttended !== undefined && lastAttended >= lastIndex - 1;
+  });
+}
+
+/**
+ * מי סימן/ה "אני בא/ה" למפגש הקרוב ביותר (אם יש) - לטבעת הירוקה
+ * הזוהרת סביב תמונת הפרופיל ברשימות הנגישות דרך תובנות (שיר ביקשה
+ * את זה כדי לראות במבט אחד, בכל רשימה, מי כבר רשומ/ה למפגש הבא).
+ * שאילתה עצמאית קטנה - לא דרך getAdminData, כי כל מה שצריך כאן זה
+ * RSVP למפגש אחד בודד, לא היסטוריה. אם אין מפגש עתידי - סט ריק, אף
+ * אחד לא מודגש בשום רשימה.
+ */
+export async function getNextEventGoingProfileIds(
+  clubId: string,
+): Promise<Set<string>> {
+  const now = Date.now();
+
+  if (demoMode) {
+    const next = demo
+      .demoEvents()
+      .filter((e) => new Date(e.starts_at).getTime() >= now)
+      .sort((a, b) => a.starts_at.localeCompare(b.starts_at))[0];
+    if (!next) return new Set();
+    return new Set(
+      demo
+        .demoRsvps()
+        .filter((r) => r.eventId === next.id && r.going)
+        .map((r) => r.profileId),
+    );
+  }
+
+  const supabase = await createClient();
+  const { data: nextEvent } = await supabase
+    .from("events")
+    .select("id")
+    .eq("club_id", clubId)
+    .gte("starts_at", new Date().toISOString())
+    .order("starts_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (!nextEvent) return new Set();
+
+  const { data: rsvpRows } = await supabase
+    .from("rsvps")
+    .select("profile_id")
+    .eq("event_id", (nextEvent as { id: string }).id)
+    .eq("going", true);
+
+  return new Set(
+    ((rsvpRows ?? []) as { profile_id: string }[]).map((r) => r.profile_id),
+  );
+}
+
 export type ReturnRateTrend = {
   current: number;
   sparkline: number[];

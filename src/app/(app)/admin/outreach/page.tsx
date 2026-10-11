@@ -1,6 +1,10 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
-import { getViewer, getNeedsOutreachMembers } from "@/lib/data";
+import {
+  getViewer,
+  getNeedsOutreachMembers,
+  getNextEventGoingProfileIds,
+} from "@/lib/data";
 import { BackLink, EmptyState } from "@/components/ui";
 import { MemberSearchList } from "@/components/member-search-list";
 import { OutreachCheckbox } from "@/components/outreach-checkbox";
@@ -19,7 +23,10 @@ export default async function AdminOutreachPage() {
   if (!viewer?.club || viewer.role !== "organizer") redirect("/events");
 
   const clubId = viewer.club.id;
-  const members = await getNeedsOutreachMembers(clubId);
+  const [members, goingProfileIds] = await Promise.all([
+    getNeedsOutreachMembers(clubId),
+    getNextEventGoingProfileIds(clubId),
+  ]);
 
   const checkboxes = new Map<string, ReactNode>(
     members.map((m) => [
@@ -53,6 +60,7 @@ export default async function AdminOutreachPage() {
           members={members}
           renderBefore={checkboxes}
           backFrom="admin-outreach"
+          goingProfileIds={goingProfileIds}
         />
       )}
     </div>

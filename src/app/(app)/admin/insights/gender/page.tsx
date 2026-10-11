@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getViewer, getAdminData } from "@/lib/data";
+import { getViewer, getAdminData, getNextEventGoingProfileIds } from "@/lib/data";
 import { BackLink, EmptyState } from "@/components/ui";
 import { MemberSearchList } from "@/components/member-search-list";
 
@@ -13,7 +13,10 @@ export default async function AdminInsightsGenderPage() {
   const viewer = await getViewer();
   if (!viewer?.club || viewer.role !== "organizer") redirect("/events");
 
-  const { members } = await getAdminData(viewer.club.id);
+  const [{ members }, goingProfileIds] = await Promise.all([
+    getAdminData(viewer.club.id),
+    getNextEventGoingProfileIds(viewer.club.id),
+  ]);
   const women = members.filter((m) => m.profile.gender === "female");
   const men = members.filter((m) => m.profile.gender === "male");
 
@@ -32,7 +35,11 @@ export default async function AdminInsightsGenderPage() {
         {women.length === 0 ? (
           <EmptyState title="אין כאן אף אחת" body="עדיין אין חברות קהילה." />
         ) : (
-          <MemberSearchList members={women} backFrom="admin-insights-gender" />
+          <MemberSearchList
+            members={women}
+            backFrom="admin-insights-gender"
+            goingProfileIds={goingProfileIds}
+          />
         )}
       </section>
 
@@ -43,7 +50,11 @@ export default async function AdminInsightsGenderPage() {
         {men.length === 0 ? (
           <EmptyState title="אין כאן אף אחד" body="עדיין אין חברי קהילה." />
         ) : (
-          <MemberSearchList members={men} backFrom="admin-insights-gender" />
+          <MemberSearchList
+            members={men}
+            backFrom="admin-insights-gender"
+            goingProfileIds={goingProfileIds}
+          />
         )}
       </section>
     </div>

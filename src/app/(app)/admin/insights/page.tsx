@@ -73,6 +73,7 @@ export default async function AdminInsightsPage() {
           value={activeTrend.current}
           trend={activeTrend.diff === 0 ? null : { kind: "diff", value: activeTrend.diff }}
           sparkline={activeTrend.sparkline}
+          href="/admin/active"
         />
         <SparklineCard
           title="חוזרים"

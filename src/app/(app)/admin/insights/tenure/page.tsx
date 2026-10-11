@@ -1,5 +1,11 @@
 import { redirect } from "next/navigation";
-import { getViewer, getAdminData, tenureBucket, type TenureBucket } from "@/lib/data";
+import {
+  getViewer,
+  getAdminData,
+  getNextEventGoingProfileIds,
+  tenureBucket,
+  type TenureBucket,
+} from "@/lib/data";
 import { BackLink, EmptyState } from "@/components/ui";
 import { MemberSearchList } from "@/components/member-search-list";
 
@@ -20,7 +26,10 @@ export default async function AdminInsightsTenurePage() {
   const viewer = await getViewer();
   if (!viewer?.club || viewer.role !== "organizer") redirect("/events");
 
-  const { members } = await getAdminData(viewer.club.id);
+  const [{ members }, goingProfileIds] = await Promise.all([
+    getAdminData(viewer.club.id),
+    getNextEventGoingProfileIds(viewer.club.id),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -42,7 +51,11 @@ export default async function AdminInsightsTenurePage() {
             {bucketMembers.length === 0 ? (
               <EmptyState title="אין כאן אף אחד" body="אף חבר/ת קהילה לא בקטגוריה הזו." />
             ) : (
-              <MemberSearchList members={bucketMembers} backFrom="admin-insights-tenure" />
+              <MemberSearchList
+                members={bucketMembers}
+                backFrom="admin-insights-tenure"
+                goingProfileIds={goingProfileIds}
+              />
             )}
           </section>
         );

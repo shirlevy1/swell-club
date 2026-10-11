@@ -1,5 +1,9 @@
 import { redirect } from "next/navigation";
-import { getViewer, getCoreMembers } from "@/lib/data";
+import {
+  getViewer,
+  getCoreMembers,
+  getNextEventGoingProfileIds,
+} from "@/lib/data";
 import { BackLink, EmptyState } from "@/components/ui";
 import { MemberSearchList } from "@/components/member-search-list";
 
@@ -12,7 +16,10 @@ export default async function AdminCorePage() {
   const viewer = await getViewer();
   if (!viewer?.club || viewer.role !== "organizer") redirect("/events");
 
-  const members = await getCoreMembers(viewer.club.id);
+  const [members, goingProfileIds] = await Promise.all([
+    getCoreMembers(viewer.club.id),
+    getNextEventGoingProfileIds(viewer.club.id),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -28,7 +35,11 @@ export default async function AdminCorePage() {
           body="ברגע שחברי קהילה ותיקים יהיו גם פעילים לאורך זמן, הם יופיעו כאן."
         />
       ) : (
-        <MemberSearchList members={members} backFrom="admin-core" />
+        <MemberSearchList
+          members={members}
+          backFrom="admin-core"
+          goingProfileIds={goingProfileIds}
+        />
       )}
     </div>
   );

@@ -1,5 +1,9 @@
 import { redirect } from "next/navigation";
-import { getViewer, getReturnRateMembers } from "@/lib/data";
+import {
+  getViewer,
+  getReturnRateMembers,
+  getNextEventGoingProfileIds,
+} from "@/lib/data";
 import { BackLink, EmptyState } from "@/components/ui";
 import { MemberSearchList } from "@/components/member-search-list";
 
@@ -19,7 +23,10 @@ export default async function AdminReturningPage() {
   const viewer = await getViewer();
   if (!viewer?.club || viewer.role !== "organizer") redirect("/events");
 
-  const groups = await getReturnRateMembers(viewer.club.id);
+  const [groups, goingProfileIds] = await Promise.all([
+    getReturnRateMembers(viewer.club.id),
+    getNextEventGoingProfileIds(viewer.club.id),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -39,7 +46,11 @@ export default async function AdminReturningPage() {
             {sectionMembers.length === 0 ? (
               <EmptyState title="אין כאן אף אחד" body="אף חבר/ת קהילה לא בקטגוריה הזו." />
             ) : (
-              <MemberSearchList members={sectionMembers} backFrom="admin-returning" />
+              <MemberSearchList
+                members={sectionMembers}
+                backFrom="admin-returning"
+                goingProfileIds={goingProfileIds}
+              />
             )}
           </section>
         );

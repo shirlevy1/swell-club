@@ -11,7 +11,7 @@ import {
   swimLevelBadgeStyle,
 } from "@/lib/swim-level";
 import { InstagramIcon, WhatsAppIcon, WaveIcon } from "./social-icons";
-import { Card, Input, EmptyState } from "./ui";
+import { Card, Input, EmptyState, cx } from "./ui";
 
 /**
  * שדה חיפוש לפי שם מעל רשימת חברי הקהילה. חיפוש בצד לקוח בלבד
@@ -42,17 +42,24 @@ import { Card, Input, EmptyState } from "./ui";
  * אמורה להוביל" (זו בדיוק התקלה שתוקנה כאן - שיר גילתה שחזרה
  * מ"נשים מול גברים" נחתה ב"לניהול" במקום בחזרה לעוגה עצמה, כי
  * הקישור כאן לא העביר שום from).
+ *
+ * goingProfileIds: סט מזהים (getNextEventGoingProfileIds) - מי מהם
+ * מסומן/ת "אני בא/ה" למפגש הקרוב מקבל/ת טבעת ירוקה זוהרת סביב
+ * התמונה. אופציונלי - רק עמודי הפירוט שנגישים דרך תובנות מעבירים
+ * את זה (לא admin/members/admin עצמו, לפי בקשת שיר המפורשת).
  */
 export function MemberSearchList({
   members,
   whenEmpty,
   renderBefore,
   backFrom,
+  goingProfileIds,
 }: {
   members: AdminMember[];
   whenEmpty?: ReactNode;
   renderBefore?: Map<string, ReactNode>;
   backFrom: string;
+  goingProfileIds?: Set<string>;
 }) {
   const [query, setQuery] = useState("");
 
@@ -95,7 +102,14 @@ export function MemberSearchList({
                   href={`/admin/members/${m.profile.id}?from=${backFrom}`}
                   className="flex min-w-0 flex-1 items-center gap-2"
                 >
-                  <div className="size-9 shrink-0 overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)">
+                  <div
+                    className={cx(
+                      "size-9 shrink-0 overflow-hidden rounded-full border bg-(--color-haze)",
+                      goingProfileIds?.has(m.profile.id)
+                        ? "border-(--color-verified) ring-2 ring-(--color-verified) shadow-[0_0_6px_0_var(--color-verified)]"
+                        : "border-(--color-line)",
+                    )}
+                  >
                     {m.latestSelfieUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
