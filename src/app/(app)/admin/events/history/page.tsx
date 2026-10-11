@@ -11,7 +11,12 @@ export default async function AdminEventsHistoryPage() {
   const viewer = await getViewer();
   if (!viewer?.club || viewer.role !== "organizer") redirect("/events");
 
-  const { events } = await getAdminData(viewer.club.id);
+  // includeMembers: false - העמוד הזה משתמש רק ב-events, אף פעם לא
+  // בחברים - אין סיבה לשלוף את כל הפרופילים/לחתום תמונה לכל אחד/ת
+  // בכל כניסה. אותו תיקון כמו ב-admin/page.tsx, ראו ההערה ב-getAdminData.
+  const { events } = await getAdminData(viewer.club.id, {
+    includeMembers: false,
+  });
   const { pastAll: pastEvents } = splitAdminEvents(events);
 
   return (
