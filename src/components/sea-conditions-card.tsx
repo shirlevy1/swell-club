@@ -28,7 +28,7 @@ export function SeaConditionsCard({
       {hasForecast && <WaveForecastStrip days={days} bestDays={bestDays} />}
       {hasTemp && (
         <div className={hasForecast ? "border-t border-(--color-line) pt-3" : undefined}>
-          <WaterTemperatureGauge tempC={tempC} />
+          <WaterTemperatureGauge tempC={tempC} showSource={!hasForecast} />
         </div>
       )}
     </div>

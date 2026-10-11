@@ -37,7 +37,15 @@ function bandColorFor(tempC: number): string {
  * ואותה תדירות עדכון (getCurrentWaterTempC ב-lib/gosurf.ts). מחזירה
  * null כשאין נתון (למשל GoSurf לא זמין כרגע) כדי לא להציג מד שבור.
  */
-export function WaterTemperatureGauge({ tempC }: { tempC: number | null }) {
+export function WaterTemperatureGauge({
+  tempC,
+  showSource = false,
+}: {
+  tempC: number | null;
+  /** רק כש"תחזית גלים ורוח" לא מוצגת לידו — אחרת "מקור: GoSurf" כבר
+   * מופיע למעלה, באותו כרטיס, ולא צריך פעמיים (ראו sea-conditions-card.tsx). */
+  showSource?: boolean;
+}) {
   if (tempC == null) return null;
 
   const markerRight = rightPercentFor(tempC);
@@ -54,17 +62,19 @@ export function WaterTemperatureGauge({ tempC }: { tempC: number | null }) {
         <p className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
           טמפרטורת מים
         </p>
-        <span className="text-xs text-(--color-ink-faint)">
-          מקור:{" "}
-          <a
-            href="https://gosurf.co.il/forecast/tel-aviv"
-            target="_blank"
-            rel="noreferrer"
-            className="underline underline-offset-2"
-          >
-            GoSurf
-          </a>
-        </span>
+        {showSource && (
+          <span className="text-xs text-(--color-ink-faint)">
+            מקור:{" "}
+            <a
+              href="https://gosurf.co.il/forecast/tel-aviv"
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-2"
+            >
+              GoSurf
+            </a>
+          </span>
+        )}
       </div>
 
       {/* !mt-9 (לא רק mt-9): חייב לנצח את space-y-3 שעל הכרטיס מסביב.
