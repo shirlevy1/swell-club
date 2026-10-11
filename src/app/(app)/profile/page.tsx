@@ -17,6 +17,7 @@ import {
 import { EditIcon, WaveIcon } from "@/components/social-icons";
 import { LeaveCommunityButton } from "@/components/leave-community-button";
 import { SignOutButton } from "@/components/sign-out-button";
+import { NotificationIconToggle } from "@/components/notification-icon-toggle";
 
 export default async function ProfilePage() {
   const viewer = await getViewer();
@@ -76,15 +77,18 @@ export default async function ProfilePage() {
           </div>
         </div>
 
-        {viewer.profile && (
-          <Link
-            href="/profile/edit"
-            aria-label="עריכת פרופיל"
-            className="flex size-11 shrink-0 items-center justify-center rounded-full border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
-          >
-            <EditIcon className="size-5" />
-          </Link>
-        )}
+        <div className="flex shrink-0 items-center gap-2">
+          {viewer.profile && (
+            <Link
+              href="/profile/edit"
+              aria-label="עריכת פרופיל"
+              className="flex size-11 shrink-0 items-center justify-center rounded-full border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
+            >
+              <EditIcon className="size-5" />
+            </Link>
+          )}
+          <NotificationIconToggle />
+        </div>
       </header>
 
       <StreakCard streak={streak} gender={viewer.profile?.gender ?? null} />

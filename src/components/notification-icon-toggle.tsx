@@ -14,7 +14,7 @@ import {
 
 /**
  * אייקון פעמון קומפקטי (בגודל אייקון עריכה), לא כרטיס עם טקסט הסבר —
- * כדי לא לתפוס מקום בשורת הכותרת של /events.
+ * כדי לא לתפוס מקום. יושב בכותרת עמוד הפרופיל, משמאל לעיפרון העריכה.
  */
 
 const VAPID = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
@@ -214,10 +214,10 @@ export function NotificationIconToggle() {
       </button>
 
       {notice && (
-        // end-0 (לא start-0): הפעמון הזה יושב בקצה הדף (ראו events/page.tsx —
-        // הכותרת בצד ההתחלה, הפעמון בצד הסוף), אז בועה שנפתחת לכיוון start
-        // ממשיכה החוצה מהמסך הצר של הטלפון ומצטמצמת/נחתכת. end-0 פותח אותה
-        // לכיוון מרכז המסך, איפה שיש מקום.
+        // end-0 (לא start-0): הפעמון הזה יושב בקצה הדף (ראו profile/page.tsx —
+        // שם ותמונת הפרופיל בצד ההתחלה, העיפרון והפעמון בצד הסוף), אז בועה
+        // שנפתחת לכיוון start ממשיכה החוצה מהמסך הצר של הטלפון ומצטמצמת/נחתכת.
+        // end-0 פותח אותה לכיוון מרכז המסך, איפה שיש מקום.
         <div className="absolute end-0 top-full z-10 mt-2 w-56 max-w-[80vw] rounded-xl border border-(--color-line) bg-(--color-surface) p-3 text-xs leading-relaxed text-(--color-ink-soft) shadow-lg">
           {notice}
         </div>
