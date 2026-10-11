@@ -38,9 +38,31 @@ export default function TermsPage() {
               מתחייב/ת לפעול בהתאם להנחיות צוות Swell Club במהלך המפגשים.
             </p>
             <p>
-              אני מבין/ה כי צוות Swell Club אינו אחראי לכל פגיעה, נזק,
-              אובדן או הוצאה שעלולים להיגרם לפני, במהלך או לאחר הפעילות,
-              בכפוף לכל דין.
+              אני מבין/ה כי צוות Swell Club - וכן כל צד שלישי הקשור
+              לפעילות, לרבות Speedo ישראל בפעילויות המשותפות עם Swell
+              Club, והקאנטרי/הבריכה המארחת במפגשים שמתקיימים בשטחה -
+              אינם אחראים לכל פגיעה, נזק, אובדן או הוצאה שעלולים להיגרם
+              לפני, במהלך או לאחר הפעילות, בכפוף לכל דין.
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-3 border-t border-(--color-line) pt-5">
+          <p className="font-bold text-(--color-ink)">
+            שיתוף פעולה עם Speedo ישראל
+          </p>
+          <div className="space-y-3 text-sm leading-relaxed text-(--color-ink-soft)">
+            <p>
+              חלק מפעילות Swell Club מתקיימת בשיתוף פעולה עם Speedo
+              ישראל.
+            </p>
+            <p>
+              ל-Speedo ישראל יש זכות להשתמש בתמונות שצולמו באירועים
+              המשותפים בין Swell Club ל-Speedo.
+            </p>
+            <p>
+              הפרטים שמסרתם בהרשמה חשופים גם ל-Speedo ישראל, במסגרת
+              שיתוף הפעולה בינה לבין Swell Club.
             </p>
           </div>
         </div>
