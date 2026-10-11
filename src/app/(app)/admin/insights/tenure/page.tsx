@@ -55,6 +55,7 @@ export default async function AdminInsightsTenurePage() {
                 members={bucketMembers}
                 backFrom="admin-insights-tenure"
                 goingProfileIds={goingProfileIds}
+                secondaryInfo={key === "ghost" ? "joinDate" : "count"}
               />
             )}
           </section>

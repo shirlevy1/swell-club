@@ -3,7 +3,12 @@
 import { useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import type { AdminMember } from "@/lib/data";
-import { ageInYears, instagramUrl, whatsappUrl } from "@/lib/format";
+import {
+  ageInYears,
+  instagramUrl,
+  whatsappUrl,
+  formatDateNumericPadded,
+} from "@/lib/format";
 import { facePositionStyle } from "@/lib/face-position";
 import {
   swimLevelLabel,
@@ -47,6 +52,12 @@ import { Card, Input, EmptyState, cx } from "./ui";
  * מסומן/ת "אני בא/ה" למפגש הקרוב מקבל/ת טבעת ירוקה זוהרת סביב
  * התמונה. אופציונלי - רק עמודי הפירוט שנגישים דרך תובנות מעבירים
  * את זה (לא admin/members/admin עצמו, לפי בקשת שיר המפורשת).
+ *
+ * secondaryInfo: מה מוצג אחרי הגיל בכל שורה - ברירת המחדל "count"
+ * (מספר נוכחויות). "joinDate" מציג במקום זאת את תאריך ההצטרפות
+ * (profile.created_at) - לשימוש ב"רוח רפאים" בלבד, ששם מספר
+ * הנוכחויות הוא תמיד 0 ולכן לא אומר כלום; תאריך ההצטרפות כן מבדיל
+ * בין מי שהצטרף/ה אתמול למי שמעולם לא הגיע/ה כבר הרבה זמן.
  */
 export function MemberSearchList({
   members,
@@ -54,12 +65,14 @@ export function MemberSearchList({
   renderBefore,
   backFrom,
   goingProfileIds,
+  secondaryInfo = "count",
 }: {
   members: AdminMember[];
   whenEmpty?: ReactNode;
   renderBefore?: Map<string, ReactNode>;
   backFrom: string;
   goingProfileIds?: Set<string>;
+  secondaryInfo?: "count" | "joinDate";
 }) {
   const [query, setQuery] = useState("");
 
@@ -124,8 +137,14 @@ export function MemberSearchList({
                   <p className="flex min-w-0 items-baseline gap-1 text-sm font-semibold">
                     <span className="truncate">{m.profile.full_name}</span>
                     <span className="shrink-0 whitespace-nowrap font-normal text-(--color-ink-faint)">
-                      {age !== null && <>· {age} </>}
-                      · <span className="ltr-nums">{m.attendedCount}</span>
+                      {age !== null && <>· {age} </>}·{" "}
+                      {secondaryInfo === "joinDate" ? (
+                        <span className="ltr-nums">
+                          {formatDateNumericPadded(m.profile.created_at)}
+                        </span>
+                      ) : (
+                        <span className="ltr-nums">{m.attendedCount}</span>
+                      )}
                     </span>
                   </p>
                 </Link>
