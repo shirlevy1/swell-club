@@ -198,9 +198,10 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
         // עמודות מפורשות, לא "*" — ראו ההערה המלאה ב-getMemberProfile
         // למטה, אותה סיבה בדיוק. זה הפרופיל של הצופה עצמו/ה, אז אין
         // כאן הגבלה על מה מותר להראות — רק מניעה שעמודה עתידית תודלף
-        // בלי החלטה מודעת.
+        // בלי החלטה מודעת. legal_version נדרש כאן — (app)/layout.tsx
+        // משתמש בו כדי להציג מחדש את הטקסט המשפטי כשהוא מתעדכן.
         .select(
-          "id, full_name, phone, instagram, birth_date, city, gender, swim_level, waiver_accepted_at, privacy_accepted_at, avatar_path, created_at",
+          "id, full_name, phone, instagram, birth_date, city, gender, swim_level, waiver_accepted_at, privacy_accepted_at, legal_version, avatar_path, created_at",
         )
         .eq("id", userId)
         .maybeSingle(),

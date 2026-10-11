@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getViewer, getOrganizerPendingCounts } from "@/lib/data";
 import { demoMode } from "@/lib/config";
+import { CURRENT_LEGAL_VERSION } from "@/lib/legal";
 import { AppNav } from "@/components/app-nav";
 import { AppHeader } from "@/components/app-header";
 import { DemoBadge } from "@/components/demo-badge";
@@ -10,6 +11,8 @@ import { NotificationPromptBanner } from "@/components/notification-prompt-banne
 import { HomeScreenNudge } from "@/components/home-screen-nudge";
 import { SignOutButton } from "@/components/sign-out-button";
 import { AmbiguousMembershipScreen } from "@/components/ambiguous-membership-screen";
+import { LegalUpdateGate } from "@/components/legal-update-gate";
+import { LegalUpdateBanner } from "@/components/legal-update-banner";
 import { Card, LinkButton } from "@/components/ui";
 import { InstagramIcon } from "@/components/social-icons";
 
@@ -42,6 +45,16 @@ export default async function AppLayout({
     isOrganizer && viewer.club?.id
       ? await getOrganizerPendingCounts(viewer.club.id)
       : { members: 0, photos: 0 };
+
+  // demoMode תמיד "מעודכן" במכוון - הנתונים שם לא מייצגים הסכמה
+  // אמיתית של אף אחד, ואין טעם לחסום מישהו שסתם בודק את ההדגמה.
+  // מנהלת מקבלת רק באנר (לא חסימה) - ראו ההסבר ב-legal-update-banner.tsx.
+  const legalStale =
+    !demoMode &&
+    viewer.profile != null &&
+    (viewer.profile.legal_version == null ||
+      viewer.profile.legal_version < CURRENT_LEGAL_VERSION);
+  const legalBlocksMember = legalStale && !isOrganizer;
 
   return (
     <div className="relative isolate flex h-full flex-col overflow-hidden">
@@ -119,8 +132,11 @@ export default async function AppLayout({
             // שמתועדת ב-getViewer() (lib/data.ts). לא מציגים את ההודעה
             // המבהילה מיד — ראו ambiguous-membership-screen.tsx.
             <AmbiguousMembershipScreen />
+          ) : legalBlocksMember ? (
+            <LegalUpdateGate profileId={viewer.userId} />
           ) : (
             <>
+              {legalStale && <LegalUpdateBanner profileId={viewer.userId} />}
               <HomeScreenNudge />
               <NotificationPromptBanner recentlyRestored={recentlyRestored} />
               {children}
@@ -131,7 +147,8 @@ export default async function AppLayout({
 
       {viewer.status !== "pending" &&
         viewer.status !== "removed" &&
-        viewer.status !== null && (
+        viewer.status !== null &&
+        !legalBlocksMember && (
         <AppNav
           isOrganizer={isOrganizer}
           clubId={viewer.club?.id ?? null}
