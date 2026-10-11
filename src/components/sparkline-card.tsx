@@ -76,17 +76,17 @@ export function SparklineCard({
 
   const card = (
     <Card className={href ? "h-full transition hover:border-(--color-sea)/40" : undefined}>
-      <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
-        <p className="flex items-center gap-1 text-sm font-bold text-(--color-ink-soft)">
-          {title}
-          {href && (
-            <ChevronIcon className="size-3 shrink-0 text-(--color-ink-faint)" />
-          )}
+      <div className="flex items-center justify-between gap-2">
+        <p className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <span className="text-sm font-bold text-(--color-ink-soft)">{title}</span>
+          <span className="font-[family-name:var(--font-display)] text-lg font-bold text-(--color-ink) ltr-nums">
+            {value}
+            {valueSuffix}
+          </span>
         </p>
-        <span className="font-[family-name:var(--font-display)] text-lg font-bold text-(--color-ink) ltr-nums">
-          {value}
-          {valueSuffix}
-        </span>
+        {href && (
+          <ChevronIcon className="size-3.5 shrink-0 text-(--color-ink-faint)" />
+        )}
       </div>
       {points.length >= 2 && (
         <div className="relative mt-3 h-8 w-full">
