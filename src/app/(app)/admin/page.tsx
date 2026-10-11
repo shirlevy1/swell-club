@@ -17,7 +17,6 @@ import { EmptyState, LinkButton, PageHeader } from "@/components/ui";
 import { ExportButton } from "@/components/export-button";
 import { AdminEventCard } from "@/components/admin-event-card";
 import { PendingMembersCard } from "@/components/pending-member-row";
-import { MemberSearchList } from "@/components/member-search-list";
 import { PendingPhotosSection } from "@/components/pending-photo-group";
 import { AdminLiveRefresh } from "@/components/admin-live-refresh";
 import { ChartIcon } from "@/components/social-icons";
@@ -77,10 +76,14 @@ export default async function AdminPage() {
   const viewer = await getViewer();
   if (!viewer?.club || viewer.role !== "organizer") redirect("/events");
 
-  // שלוש שאילתות בלתי-תלויות זו בזו — בבת אחת, לא ברצף
-  const [{ events, members }, pendingMembers, pendingPhotos] =
+  // שלוש שאילתות בלתי-תלויות זו בזו — בבת אחת, לא ברצף.
+  // includeMembers: false - העמוד הזה (הנפתח הכי הרבה מכל עמודי
+  // הניהול) צריך רק מספר חברים, לא את הפרופילים/תמונות המלאים של
+  // כולם - אלה עברו לגמרי ל-admin/members, שנטען רק כשבאמת נכנסים
+  // אליו. ראו ההערה המלאה ב-getAdminData.
+  const [{ events, memberCount }, pendingMembers, pendingPhotos] =
     await Promise.all([
-      getAdminData(viewer.club.id),
+      getAdminData(viewer.club.id, { includeMembers: false }),
       getPendingMembers(viewer.club.id),
       getPendingEventPhotos(viewer.club.id),
     ]);
@@ -104,11 +107,11 @@ export default async function AdminPage() {
         title="ניהול"
         subtitle={
           <>
-            {members.length === 1 ? (
+            {memberCount === 1 ? (
               "חבר אחד"
             ) : (
               <>
-                <span className="ltr-nums">{members.length}</span> חברים
+                <span className="ltr-nums">{memberCount}</span> חברים
               </>
             )}{" "}
             ·{" "}
@@ -219,9 +222,9 @@ export default async function AdminPage() {
       <section id="members" className="space-y-3 scroll-mt-20">
         <div className="flex items-center justify-between">
           <h2 className="text-xs font-bold tracking-[0.2em] text-(--color-ink-faint)">
-            חברי הקהילה · <span className="ltr-nums">{members.length}</span>
+            חברי הקהילה · <span className="ltr-nums">{memberCount}</span>
           </h2>
-          {members.length > 0 && (
+          {memberCount > 0 && (
             <div className="flex items-center gap-2">
               <ExportButton
                 action={getAdminAttendanceMatrixReportAction}
@@ -237,24 +240,18 @@ export default async function AdminPage() {
           )}
         </div>
 
-        {members.length === 0 ? (
+        {memberCount === 0 ? (
           <EmptyState
             title="עוד אין חברי קהילה"
             body="כשמישהו יצטרף לקהילה, הוא יופיע כאן."
           />
         ) : (
-          <MemberSearchList
-            members={members}
-            backFrom="admin-members-section"
-            whenEmpty={
-              <Link
-                href="/admin/members"
-                className="block text-center text-sm font-semibold text-(--color-sea)"
-              >
-                כל חברי הקהילה
-              </Link>
-            }
-          />
+          <Link
+            href="/admin/members"
+            className="block text-center text-sm font-semibold text-(--color-sea)"
+          >
+            כל חברי הקהילה
+          </Link>
         )}
       </section>
     </div>

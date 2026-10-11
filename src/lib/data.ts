@@ -1753,10 +1753,20 @@ async function emailsByProfileId(
  * ייצואי ה-CSV ("חברים", "אקסים") שבאמת צריכים אותו מעבירים
  * includeEmail: true במפורש. בקנה מידה גדול (מאות חברים) זה ההבדל
  * בין "0 פניות מיותרות" ל"מאות פניות מיותרות" בכל טעינת עמוד.
+ *
+ * includeMembers: ברירת מחדל true - כש-false, מדלגת לגמרי על שאילתת
+ * club_members המלאה (כולל הפרופיל המלא + חתימת תמונה לכל חבר/ה) ומביאה
+ * במקומה רק ספירה (count בלבד, בלי שורות). ל-admin/page.tsx - העמוד הראשי
+ * שנפתח הכי הרבה - שצריך רק "X חברים" ולא את הרשימה/החיפוש עצמם (אלה
+ * עברו לגמרי ל-admin/members). members/historicalMembers חוזרים ריקים
+ * במצב הזה - אסור לקרוא כך לכל קורא/ת שבאמת צריכ/ה את הרשימה עצמה.
  */
 export async function getAdminData(
   clubId: string,
-  { includeEmail = false }: { includeEmail?: boolean } = {},
+  {
+    includeEmail = false,
+    includeMembers = true,
+  }: { includeEmail?: boolean; includeMembers?: boolean } = {},
 ) {
   if (demoMode) {
     const rsvps = demo.demoRsvps();
@@ -1781,6 +1791,15 @@ export async function getAdminData(
           attendedProfileIds: eventAttendances.map((a) => a.profileId),
         };
       });
+
+    if (!includeMembers) {
+      return {
+        events,
+        members: [] as AdminMember[],
+        historicalMembers: [] as AdminMember[],
+        memberCount: demo.demoActiveProfiles().length,
+      };
+    }
 
     const eventOrder = new Map(
       demo.demoEvents().map((e) => [e.id, e.starts_at]),
@@ -1816,11 +1835,11 @@ export async function getAdminData(
       .demoProfiles()
       .map(toAdminMember);
 
-    return { events, members, historicalMembers };
+    return { events, members, historicalMembers, memberCount: members.length };
   }
 
   const supabase = await createClient();
-  const [{ data: eventRows }, { data: memberRows }] = await Promise.all([
+  const [{ data: eventRows }, memberResult] = await Promise.all([
     supabase
       .from("events")
       .select(
@@ -1828,23 +1847,31 @@ export async function getAdminData(
       )
       .eq("club_id", clubId)
       .order("starts_at", { ascending: false }),
-    supabase
-      .from("club_members")
-      // עמודות מפורשות, לא "*" — אותה סיבה כמו ב-getMemberProfile:
-      // "*" על profiles הייתה שולחת גם כל עמודה עתידית שתתווסף לטבלה
-      // בלי החלטה מודעת. הרשימה כאן היא בדיוק מה שבאמת בשימוש היום
-      // (בכרטיסי רשימה ובדוחות ה-CSV) - לא avatar_path/privacy_accepted_at/
-      // legal_version, שאף אחד לא קורא דרך AdminMember.profile בשום מקום.
-      .select(
-        "profile_id, role, status, profiles(id, full_name, phone, instagram, birth_date, city, gender, swim_level, waiver_accepted_at, created_at)",
-      )
-      // ממתינים לאישור לא "חברים" עדיין — יש להם סעיף נפרד
-      // (getPendingMembers) עם כפתורי אישור/דחייה, לא רשימה עם 0 נוכחויות.
-      // מי שהוסר/ה כן נכלל/ת כאן (לא מסונן/ת ב-SQL) — צריך אותם/ן
-      // בהמשך לדוחות ההיסטוריים (attendanceMatrixCsv), גם אם לא ברשימת
-      // "חברי הקהילה" הפעילה עצמה. הסינון בפועל קורה למטה, בקוד.
-      .eq("club_id", clubId)
-      .neq("status", "pending"),
+    includeMembers
+      ? supabase
+          .from("club_members")
+          // עמודות מפורשות, לא "*" — אותה סיבה כמו ב-getMemberProfile:
+          // "*" על profiles הייתה שולחת גם כל עמודה עתידית שתתווסף לטבלה
+          // בלי החלטה מודעת. הרשימה כאן היא בדיוק מה שבאמת בשימוש היום
+          // (בכרטיסי רשימה ובדוחות ה-CSV) - לא avatar_path/privacy_accepted_at/
+          // legal_version, שאף אחד לא קורא דרך AdminMember.profile בשום מקום.
+          .select(
+            "profile_id, role, status, profiles(id, full_name, phone, instagram, birth_date, city, gender, swim_level, waiver_accepted_at, created_at)",
+          )
+          // ממתינים לאישור לא "חברים" עדיין — יש להם סעיף נפרד
+          // (getPendingMembers) עם כפתורי אישור/דחייה, לא רשימה עם 0 נוכחויות.
+          // מי שהוסר/ה כן נכלל/ת כאן (לא מסונן/ת ב-SQL) — צריך אותם/ן
+          // בהמשך לדוחות ההיסטוריים (attendanceMatrixCsv), גם אם לא ברשימת
+          // "חברי הקהילה" הפעילה עצמה. הסינון בפועל קורה למטה, בקוד.
+          .eq("club_id", clubId)
+          .neq("status", "pending")
+      : // כש-false: רק ספירה, בלי פרופילים/תמונות - ראו הערת includeMembers
+        // למעלה. אותו סינון status בדיוק כמו ברשימה המלאה, כדי שהמספר יתאים.
+        supabase
+          .from("club_members")
+          .select("*", { count: "exact", head: true })
+          .eq("club_id", clubId)
+          .eq("status", "approved"),
   ]);
 
   const rows = (eventRows ?? []) as unknown as (SwellEvent & {
@@ -1858,6 +1885,26 @@ export async function getAdminData(
       profiles: { gender: Gender | null } | null;
     }[];
   })[];
+
+  const events: AdminEvent[] = rows.map((e) => ({
+    ...e,
+    goingCount: e.rsvps.filter((r) => r.going).length,
+    cameCount: e.attendances.length,
+    femaleCame: e.attendances.filter((a) => a.profiles?.gender === "female")
+      .length,
+    maleCame: e.attendances.filter((a) => a.profiles?.gender === "male")
+      .length,
+    attendedProfileIds: e.attendances.map((a) => a.profile_id),
+  }));
+
+  if (!includeMembers) {
+    return {
+      events,
+      members: [] as AdminMember[],
+      historicalMembers: [] as AdminMember[],
+      memberCount: (memberResult as { count: number | null }).count ?? 0,
+    };
+  }
 
   // המפגשים כבר ממוינים מהחדש לישן, ולכן הסלפי הראשון שנתקלים בו
   // לכל אדם הוא העדכני ביותר
@@ -1888,18 +1935,7 @@ export async function getAdminData(
     }
   }
 
-  const events: AdminEvent[] = rows.map((e) => ({
-    ...e,
-    goingCount: e.rsvps.filter((r) => r.going).length,
-    cameCount: e.attendances.length,
-    femaleCame: e.attendances.filter((a) => a.profiles?.gender === "female")
-      .length,
-    maleCame: e.attendances.filter((a) => a.profiles?.gender === "male")
-      .length,
-    attendedProfileIds: e.attendances.map((a) => a.profile_id),
-  }));
-
-  const memberRowsTyped = (memberRows ?? []) as unknown as {
+  const memberRowsTyped = (memberResult.data ?? []) as unknown as {
     profile_id: string;
     role: MemberRole;
     status: MemberStatus;
@@ -1948,7 +1984,7 @@ export async function getAdminData(
     .flatMap(toAdminMember)
     .sort(byJoinDateDesc);
 
-  return { events, members, historicalMembers };
+  return { events, members, historicalMembers, memberCount: members.length };
 }
 
 export type RecentEventStats = {
