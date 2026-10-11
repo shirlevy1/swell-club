@@ -5,14 +5,19 @@ import { Card } from "./ui";
 
 const CHART_HEIGHT_PX = 140;
 
-// גוון פסטל-רך לכל קטגוריה - אותו גוון-בסיס סמנטי (verified/fail/warn,
-// שומר על המשמעות), מעורבב עם לבן כדי לרכך. אותה טכניקת color-mix
-// שכבר בשימוש באתר (למשל live-highlight ב-globals.css) - לא צבעים
-// קבועים חדשים, רק גרסה בהירה יותר של הטוקנים הקיימים.
+// צבעים מפורשים שבחרה שיר לגרף הזה בדיוק (לא נגזרים מ-color-mix על
+// הטוקנים הסמנטיים כמו קודם) - אדום-אלמוג, ירוק, צהוב-חמאה חיוור.
+// טקסט-על-הרקע נקבע בנפרד לכל אחד (לבן על אדום/ירוק, כהה על הצהוב
+// הבהיר) - צבע אחיד אחד לא היה קריא על שלושתם.
 const PASTEL = {
-  matched: "color-mix(in srgb, var(--color-verified) 70%, white)",
-  noShow: "color-mix(in srgb, var(--color-fail) 70%, white)",
-  walkIn: "color-mix(in srgb, var(--color-warn) 70%, white)",
+  matched: "#329F5B",
+  noShow: "#F94144",
+  walkIn: "#FFE787",
+};
+const TEXT = {
+  matched: "text-white/90",
+  noShow: "text-white/90",
+  walkIn: "text-(--color-ink)/75",
 };
 
 /**
@@ -20,7 +25,7 @@ const PASTEL = {
  * לגמרי מי שהגיע/ה בלי לסמן בכלל - שיר שאלה למה, והתברר שזה באמת
  * לא נכלל בחישוב הקודם) - אלא שלוש ההתנהגויות עצמן, לכל מפגש:
  * סימנו+הגיעו (ירוק, "כמו שהובטח"), סימנו ולא הגיעו (אדום, no-show),
- * הגיעו בלי לסמן (כתום, walk-in לא מתוכנן). האחוזים למעלה הם סיכום
+ * הגיעו בלי לסמן (צהוב, walk-in לא מתוכנן). האחוזים למעלה הם סיכום
  * מצטבר על פני כל 8 המפגשים (לא ממוצע-של-ממוצעים), כדי שהם יבטאו
  * "מתוך כל מי שהיה מעורב/ת איכשהו, כמה % מכל קטגוריה" בצורה ישירה.
  */
@@ -93,7 +98,7 @@ export function RsvpAttendanceChart({
               >
                 {matchedHeight > 0 && (
                   <div
-                    className="flex items-center justify-center text-[0.58rem] font-medium text-(--color-ink)/70 ltr-nums"
+                    className={`flex items-center justify-center text-[0.58rem] font-medium ltr-nums ${TEXT.matched}`}
                     style={{ height: matchedHeight, background: PASTEL.matched }}
                   >
                     {e.matched}
@@ -101,7 +106,7 @@ export function RsvpAttendanceChart({
                 )}
                 {noShowHeight > 0 && (
                   <div
-                    className="flex items-center justify-center text-[0.58rem] font-medium text-(--color-ink)/70 ltr-nums"
+                    className={`flex items-center justify-center text-[0.58rem] font-medium ltr-nums ${TEXT.noShow}`}
                     style={{ height: noShowHeight, background: PASTEL.noShow }}
                   >
                     {e.noShow}
@@ -109,7 +114,7 @@ export function RsvpAttendanceChart({
                 )}
                 {walkInHeight > 0 && (
                   <div
-                    className="flex items-center justify-center text-[0.58rem] font-medium text-(--color-ink)/70 ltr-nums"
+                    className={`flex items-center justify-center text-[0.58rem] font-medium ltr-nums ${TEXT.walkIn}`}
                     style={{ height: walkInHeight, background: PASTEL.walkIn }}
                   >
                     {e.walkIn}
