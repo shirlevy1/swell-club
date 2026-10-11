@@ -13,7 +13,6 @@ import { compressImageFile, blobToDataUrl, ALBUM_PHOTO_OPTIONS } from "@/lib/ima
 import { Button, Notice, cx } from "@/components/ui";
 import { PhotoLightbox } from "@/components/photo-lightbox";
 import { useConfirmDialog } from "@/components/confirm-dialog";
-import { AlbumCameraCapture } from "@/components/album-camera-capture";
 import { CheckIcon, DownloadIcon, TrashIcon } from "@/components/social-icons";
 import { useNewLiveIds } from "@/components/live-refresh-context";
 import type { EventPhoto } from "@/lib/data";
@@ -130,7 +129,6 @@ export function EventPhotoAlbum({
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState<ReactNode>(null);
-  const [cameraOpen, setCameraOpen] = useState(false);
 
   function flashDownloaded(message: ReactNode) {
     setDownloaded(message);
@@ -419,21 +417,6 @@ export function EventPhotoAlbum({
               {selecting ? "ביטול" : "בחירה"}
             </button>
           )}
-          {/* כפתור נפרד מ"הוספת תמונות": זה פותח את המצלמה של האתר
-              עצמו (AlbumCameraCapture) עם תיקון-מראה, בשביל סלפי
-              שמצטלם עכשיו - לעומת "הוספת תמונות" שפותח את בורר
-              הקבצים של הטלפון (גלריה/מצלמה מובנית), שם אין לאתר
-              שליטה על הצילום ולכן אי אפשר לתקן אותו. */}
-          {canUpload && (
-            <button
-              type="button"
-              onClick={() => setCameraOpen(true)}
-              disabled={uploading}
-              className="text-xs font-semibold text-(--color-sea) disabled:opacity-40"
-            >
-              צילום לאלבום
-            </button>
-          )}
           {canUpload && (
             <button
               type="button"
@@ -455,14 +438,6 @@ export function EventPhotoAlbum({
           multiple
           onChange={onFilesSelected}
           className="hidden"
-        />
-      )}
-
-      {cameraOpen && (
-        <AlbumCameraCapture
-          eventId={eventId}
-          onDone={() => setCameraOpen(false)}
-          onCancel={() => setCameraOpen(false)}
         />
       )}
 
