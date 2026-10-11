@@ -112,9 +112,20 @@ export function WaterTemperatureGauge({
       </div>
 
       <div dir="ltr" className="flex justify-between gap-0.5">
-        {BANDS.map((band) => (
+        {BANDS.map((band, i) => (
           <div key={band.name} className="flex flex-1 flex-col items-center">
-            <span className="whitespace-nowrap text-[0.62rem] font-extrabold text-(--color-ink-soft) ltr-nums">
+            {/* הטווח הראשון ("29°C ומעלה") הוא מחרוזת מעורבת, לא
+                מספרים טהורים — ltr-nums כאן היה הופך את סדר המילים
+                ומעמיד את "ומעלה" מימין ל-29 במקום משמאל. dir="rtl"
+                מפורש מנצח את ה-ltr של השורה כולה, רק לטווח הזה. */}
+            <span
+              dir={i === 0 ? "rtl" : undefined}
+              className={
+                i === 0
+                  ? "whitespace-nowrap text-[0.62rem] font-extrabold text-(--color-ink-soft)"
+                  : "whitespace-nowrap text-[0.62rem] font-extrabold text-(--color-ink-soft) ltr-nums"
+              }
+            >
               {band.range}
             </span>
             <span className="whitespace-nowrap text-[0.58rem] text-(--color-ink-faint)">
