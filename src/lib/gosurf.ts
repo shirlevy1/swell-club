@@ -324,11 +324,15 @@ export async function getCurrentWaterTempC(): Promise<number | null> {
     const html = await res.text();
 
     const $ = cheerio.load(html);
+    // לא span.kpi58: המחלקה הזו היא "kpi" + מספר שמשתנה בין טעינות
+    // (ראינו kpi58 וגם kpi74 על אותו עמוד, באותו שדה בדיוק) — כנראה
+    // נגזר דינמית ב-GoSurf עצמם, לא יציב לזיהוי. span.kpi_unit הוא
+    // תמיד הריק ("&nbsp;"), אז הראשון מתוך שני ה-span-ים הוא הערך.
     const kpiText = $(".fw.title")
       .filter((_, el) => $(el).text().trim() === "מים")
       .first()
       .closest("td")
-      .find("span.kpi58")
+      .find(".kpi_cont span")
       .first()
       .text()
       .trim();
