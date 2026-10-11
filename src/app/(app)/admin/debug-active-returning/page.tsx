@@ -1,5 +1,11 @@
 import { redirect } from "next/navigation";
-import { getViewer, getAdminData, type AdminEvent, type AdminMember } from "@/lib/data";
+import {
+  getViewer,
+  getAdminData,
+  getRemovedMembers,
+  type AdminEvent,
+  type AdminMember,
+} from "@/lib/data";
 import { BackLink, Card } from "@/components/ui";
 import { formatDateNumericPadded } from "@/lib/format";
 
@@ -89,7 +95,10 @@ export default async function DebugActiveReturningPage() {
   const viewer = await getViewer();
   if (!viewer?.club || viewer.role !== "organizer") redirect("/events");
 
-  const { events, members } = await getAdminData(viewer.club.id);
+  const [{ events, members }, removedMembers] = await Promise.all([
+    getAdminData(viewer.club.id),
+    getRemovedMembers(viewer.club.id),
+  ]);
   const {
     pastEventsAsc,
     attendedIndexesByProfile,
@@ -99,9 +108,13 @@ export default async function DebugActiveReturningPage() {
     notEligibleProfileIds,
   } = computeBreakdown(events);
 
-  const nameOf = (id: string) =>
-    (members as AdminMember[]).find((m) => m.profile.id === id)?.profile.full_name ??
-    "(לא ידוע)";
+  const nameOf = (id: string) => {
+    const member = (members as AdminMember[]).find((m) => m.profile.id === id);
+    if (member) return member.profile.full_name;
+    const removed = removedMembers.find((m) => m.profileId === id);
+    if (removed) return `${removed.fullName} (עזב/ה או הוסר/ה מהקהילה)`;
+    return "(לא נמצא בכלל - בדוק/י ידנית)";
+  };
   const lastEventLabel = (id: string) => {
     const indexes = attendedIndexesByProfile.get(id) ?? [];
     const idx = Math.max(...indexes);
