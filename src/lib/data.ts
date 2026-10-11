@@ -42,6 +42,15 @@ const SELFIE_TTL = 60 * 60;
  */
 const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
 const SIGNED_URL_SAFETY_MARGIN_MS = 5 * 60 * 1000;
+// סלפי יכול להתחלף באותו נתיב בדיוק (עריכת סלפי, צ'ק-אין חוזר עם
+// upsert) - בניגוד לתמונות מפגש, שתמיד מקבלות נתיב חדש. לכן חלון-
+// המטמון לסלפי קצר בהרבה מתוקף הקישור עצמו (SELFIE_TTL): לפני
+// התיקון הזה cacheable היה false לגמרי לדלי הזה, כלומר getAdminData
+// חתם קישור חדש לכל אחד/ת מחברי הקהילה (עד 300) בכל טעינה בודדת של
+// כל עמוד ניהול/תובנות, בלי שום שימוש-חוזר - בדיוק הבעיה שתועדה
+// ב"דשבורד ניהול". חלון קצר (דקה) חוסך את רוב החתימות החוזרות
+// בתוך סבב גלישה רגיל, בלי להשאיר עריכת-סלפי "לא נראית" יותר מדקה.
+const SELFIE_CACHE_WINDOW_MS = 60 * 1000;
 
 async function createSignedUrlsCached(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -52,16 +61,8 @@ async function createSignedUrlsCached(
   const result = new Map<string, string>();
   const missing: string[] = [];
 
-  // סלפי יכול להתחלף באותו נתיב בדיוק (עריכת סלפי, צ'ק-אין חוזר עם
-  // upsert) — קישור חתום שכבר נשמר במטמון מצביע על הנתיב הנכון, אבל
-  // לא "יודע" שהקובץ מתחתיו הוחלף, ויכול להמשיך ולשרת את אותו קישור
-  // (ולכן את מה שכבר נטען ממנו בדפדפן) עד דקות ארוכות אחרי שהתמונה
-  // בפועל כבר התחלפה. לתמונות מפגש (event-photos) זה בטוח כרגיל —
-  // נתיב חדש לכל העלאה, אף פעם לא מוחלף באותו נתיב.
-  const cacheable = bucket !== "selfies";
-
   for (const path of paths) {
-    const cached = cacheable ? signedUrlCache.get(`${bucket}/${path}`) : undefined;
+    const cached = signedUrlCache.get(`${bucket}/${path}`);
     if (cached && cached.expiresAt > now) {
       result.set(path, cached.url);
     } else {
@@ -73,13 +74,15 @@ async function createSignedUrlsCached(
     const { data: signed } = await supabase.storage
       .from(bucket)
       .createSignedUrls(missing, SELFIE_TTL);
-    const expiresAt = now + SELFIE_TTL * 1000 - SIGNED_URL_SAFETY_MARGIN_MS;
+    const cacheWindowMs =
+      bucket === "selfies"
+        ? SELFIE_CACHE_WINDOW_MS
+        : SELFIE_TTL * 1000 - SIGNED_URL_SAFETY_MARGIN_MS;
+    const expiresAt = now + cacheWindowMs;
     for (const s of signed ?? []) {
       if (!s.error && s.signedUrl && s.path) {
         result.set(s.path, s.signedUrl);
-        if (cacheable) {
-          signedUrlCache.set(`${bucket}/${s.path}`, { url: s.signedUrl, expiresAt });
-        }
+        signedUrlCache.set(`${bucket}/${s.path}`, { url: s.signedUrl, expiresAt });
       }
     }
   }
