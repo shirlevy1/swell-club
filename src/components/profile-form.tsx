@@ -98,6 +98,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     };
     if (!profile.waiver_accepted_at || !profile.privacy_accepted_at) {
       patch.legal_version = CURRENT_LEGAL_VERSION;
+      patch.legal_version_updated_at = new Date().toISOString();
     }
     if (!profile.waiver_accepted_at) {
       patch.waiver_accepted_at = new Date().toISOString();

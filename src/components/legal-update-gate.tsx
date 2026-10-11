@@ -36,6 +36,9 @@ export function LegalUpdateGate({ profileId }: { profileId: string }) {
           // migration 0031) - רק קובעים לראשונה לחשבון ישן מאוד שעדיין null.
           waiver_accepted_at: new Date().toISOString(),
           privacy_accepted_at: new Date().toISOString(),
+          // בניגוד לשתי אלה - לא נעול, מתעדכן בכל אישור כולל חוזר
+          // (migration 0074).
+          legal_version_updated_at: new Date().toISOString(),
         })
         .eq("id", profileId);
       setPending(false);

@@ -201,7 +201,7 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
         // בלי החלטה מודעת. legal_version נדרש כאן — (app)/layout.tsx
         // משתמש בו כדי להציג מחדש את הטקסט המשפטי כשהוא מתעדכן.
         .select(
-          "id, full_name, phone, instagram, birth_date, city, gender, swim_level, waiver_accepted_at, privacy_accepted_at, legal_version, avatar_path, created_at",
+          "id, full_name, phone, instagram, birth_date, city, gender, swim_level, waiver_accepted_at, privacy_accepted_at, legal_version, legal_version_updated_at, avatar_path, created_at",
         )
         .eq("id", userId)
         .maybeSingle(),
@@ -1856,9 +1856,10 @@ export async function getAdminData(
           // בלי החלטה מודעת. הרשימה כאן היא בדיוק מה שבאמת בשימוש היום
           // (בכרטיסי רשימה ובדוחות ה-CSV) - לא avatar_path/privacy_accepted_at,
           // שאף אחד לא קורא דרך AdminMember.profile בשום מקום. legal_version
-          // כן נדרש - עמודת "גרסת טקסט משפטי" בייצוא ה-CSV.
+          // ו-legal_version_updated_at כן נדרשים - שתי עמודות "גרסת טקסט
+          // משפטי"/"תאריך אישור אחרון" בייצוא ה-CSV.
           .select(
-            "profile_id, role, status, profiles(id, full_name, phone, instagram, birth_date, city, gender, swim_level, waiver_accepted_at, legal_version, created_at)",
+            "profile_id, role, status, profiles(id, full_name, phone, instagram, birth_date, city, gender, swim_level, waiver_accepted_at, legal_version, legal_version_updated_at, created_at)",
           )
           // ממתינים לאישור לא "חברים" עדיין — יש להם סעיף נפרד
           // (getPendingMembers) עם כפתורי אישור/דחייה, לא רשימה עם 0 נוכחויות.
@@ -2977,6 +2978,7 @@ export async function getAdminMembersReport(
       "אחוז הגעה",
       "אישרו את תנאי ההצטרפות",
       "גרסת טקסט משפטי שאושרה",
+      "תאריך אישור אחרון",
     ],
     // members כבר ממוין לפי תאריך הצטרפות ב-getAdminData
     ...members.map((m) => [
@@ -3001,6 +3003,12 @@ export async function getAdminMembersReport(
       // ריק לחשבון ישן שנוצר לפני שהעמודה הזו נוספה (migration 0065) -
       // לא 0, כדי לא להיראות כאילו אושרה "גרסה 0" שאף פעם לא הייתה קיימת.
       m.profile.legal_version?.toString() ?? "",
+      // לחשבונות שאושרו לפני migration 0074: הערכה בלבד (ממולא
+      // מ-waiver_accepted_at בזמן ה-migration), לא תאריך מדויק - ראו
+      // ההערה שם. אישור עתידי, כולל חוזר, כן נרשם במדויק.
+      m.profile.legal_version_updated_at
+        ? formatDate(m.profile.legal_version_updated_at)
+        : "",
     ]),
   ];
 }

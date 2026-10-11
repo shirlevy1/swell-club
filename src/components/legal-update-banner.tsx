@@ -27,6 +27,7 @@ export function LegalUpdateBanner({ profileId }: { profileId: string }) {
           legal_version: CURRENT_LEGAL_VERSION,
           waiver_accepted_at: new Date().toISOString(),
           privacy_accepted_at: new Date().toISOString(),
+          legal_version_updated_at: new Date().toISOString(),
         })
         .eq("id", profileId);
       setDismissed(true);

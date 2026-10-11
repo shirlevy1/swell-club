@@ -75,6 +75,7 @@ function profiles(): Profile[] {
     waiver_accepted_at: new Date().toISOString(),
     privacy_accepted_at: new Date().toISOString(),
     legal_version: 1,
+    legal_version_updated_at: new Date().toISOString(),
     avatar_path: null,
     created_at: new Date().toISOString(),
   };
@@ -93,6 +94,7 @@ function profiles(): Profile[] {
       waiver_accepted_at: new Date().toISOString(),
     privacy_accepted_at: new Date().toISOString(),
     legal_version: 1,
+    legal_version_updated_at: new Date().toISOString(),
       avatar_path: `/demo/avatar-${i + 1}.png`,
       created_at: new Date().toISOString(),
     })),
@@ -739,6 +741,7 @@ export function demoApproveMember(profileId: string) {
     waiver_accepted_at: request.requestedAt,
     privacy_accepted_at: request.requestedAt,
     legal_version: 1,
+    legal_version_updated_at: request.requestedAt,
     avatar_path: null,
     created_at: request.requestedAt,
   });

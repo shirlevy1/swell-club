@@ -15,6 +15,7 @@ export type Profile = {
   waiver_accepted_at: string | null;
   privacy_accepted_at: string | null;
   legal_version: number | null;
+  legal_version_updated_at: string | null;
   avatar_path: string | null;
   created_at: string;
 };
