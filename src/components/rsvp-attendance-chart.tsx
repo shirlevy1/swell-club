@@ -10,9 +10,9 @@ const CHART_HEIGHT_PX = 140;
 // שכבר בשימוש באתר (למשל live-highlight ב-globals.css) - לא צבעים
 // קבועים חדשים, רק גרסה בהירה יותר של הטוקנים הקיימים.
 const PASTEL = {
-  matched: "color-mix(in srgb, var(--color-verified) 45%, white)",
-  noShow: "color-mix(in srgb, var(--color-fail) 45%, white)",
-  walkIn: "color-mix(in srgb, var(--color-warn) 45%, white)",
+  matched: "color-mix(in srgb, var(--color-verified) 70%, white)",
+  noShow: "color-mix(in srgb, var(--color-fail) 70%, white)",
+  walkIn: "color-mix(in srgb, var(--color-warn) 70%, white)",
 };
 
 /**
