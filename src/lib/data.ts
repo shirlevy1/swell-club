@@ -1762,14 +1762,22 @@ async function emailsByProfileId(
  * שנפתח הכי הרבה - שצריך רק "X חברים" ולא את הרשימה/החיפוש עצמם (אלה
  * עברו לגמרי ל-admin/members). members/historicalMembers חוזרים ריקים
  * במצב הזה - אסור לקרוא כך לכל קורא/ת שבאמת צריכ/ה את הרשימה עצמה.
+ *
+ * עטופה ב-cache() (כמו getViewer למעלה) כי admin/insights/page.tsx
+ * קורא לה פעמיים בעקיפין באותה טעינה - getCoreMembers() ו-
+ * getNeedsOutreachMembers() כל אחת קוראת לה בנפרד רק כדי לחשב .length
+ * לכפתור "גרעין"/"אורחים". בלי cache() זו הרצה כפולה מיותרת של כל
+ * השאילתה (events+rsvps+attendances+members+חתימות סלפי) בכל טעינה
+ * של העמוד הזה. cache() מזהה שתי הקריאות עם אותו clubId באותה בקשה
+ * ומחזיר את התוצאה שכבר חושבה, בלי שינוי בקוד הקורא בכלל.
  */
-export async function getAdminData(
+export const getAdminData = cache(async (
   clubId: string,
   {
     includeEmail = false,
     includeMembers = true,
   }: { includeEmail?: boolean; includeMembers?: boolean } = {},
-) {
+) => {
   if (demoMode) {
     const rsvps = demo.demoRsvps();
     const attendances = demo.demoAttendances();
@@ -1989,7 +1997,7 @@ export async function getAdminData(
     .sort(byJoinDateDesc);
 
   return { events, members, historicalMembers, memberCount: members.length };
-}
+});
 
 export type RecentEventStats = {
   eventId: string;
