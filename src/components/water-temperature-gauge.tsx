@@ -10,7 +10,7 @@ const MAX_TEMP_C = 32; // קצה עליון של "29°C ומעלה", לצורך 
  */
 const BANDS = [
   { name: "חם מאוד", range: "29°C ומעלה", color: "#c0392b" },
-  { name: "חמים וכיפיים", range: "26–28°C", color: "#d9793f" },
+  { name: "חמים", range: "26–28°C", color: "#d9793f" },
   { name: "נעים", range: "23–25°C", color: "#d8c79a" },
   { name: "קריר", range: "20–22°C", color: "#5f8fc0" },
   { name: "קר", range: "17–19°C", color: "#2f6698" },
