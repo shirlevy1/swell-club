@@ -13,6 +13,7 @@ import {
   formatTime,
   formatWeekdayName,
   genderLabel,
+  median,
   normalizeInstagram,
 } from "./format";
 import { checkInWindow } from "./checkin";
@@ -2304,7 +2305,11 @@ export async function getNewVsReturningByEvent(
   });
 }
 
-export type GenderBreakdown = { maleCount: number; femaleCount: number };
+export type GenderBreakdown = {
+  maleCount: number;
+  femaleCount: number;
+  medianAge: number | null;
+};
 
 /**
  * חלוקת כל חברי הקהילה הפעילים (לא רק 8 המפגשים האחרונים) לפי מגדר -
@@ -2312,31 +2317,43 @@ export type GenderBreakdown = { maleCount: number; femaleCount: number };
  * מפגשים - גדלה עם מספר החברים (איטי), לא עם מספר המפגשים (מצטבר
  * כל שבוע) - לכן לא זקוקה לאותה הגבלת-היקף כמו גרפי האירועים.
  * לא כולל gender='other', כמו גרף 1 - שני טורים בלבד בכוונה.
+ *
+ * medianAge הוא חציון, לא ממוצע חשבוני - ראו median() ב-format.ts.
+ * מי שאין לו/לה birth_date (לא אמור לקרות, יש אילוץ חובה בהרשמה) לא
+ * נכלל/ת בחישוב.
  */
 export async function getGenderBreakdown(
   clubId: string,
 ): Promise<GenderBreakdown> {
   if (demoMode) {
     const profiles = demo.demoActiveProfiles();
+    const ages = profiles
+      .map((p) => ageInYears(p.birth_date))
+      .filter((a): a is number => a !== null);
     return {
       maleCount: profiles.filter((p) => p.gender === "male").length,
       femaleCount: profiles.filter((p) => p.gender === "female").length,
+      medianAge: median(ages),
     };
   }
 
   const supabase = await createClient();
   const { data } = await supabase
     .from("club_members")
-    .select("profiles(gender)")
+    .select("profiles(gender, birth_date)")
     .eq("club_id", clubId)
     .eq("status", "approved");
 
   const rows = (data ?? []) as unknown as {
-    profiles: { gender: Gender | null } | null;
+    profiles: { gender: Gender | null; birth_date: string | null } | null;
   }[];
+  const ages = rows
+    .map((r) => ageInYears(r.profiles?.birth_date ?? null))
+    .filter((a): a is number => a !== null);
   return {
     maleCount: rows.filter((r) => r.profiles?.gender === "male").length,
     femaleCount: rows.filter((r) => r.profiles?.gender === "female").length,
+    medianAge: median(ages),
   };
 }
 

@@ -135,6 +135,19 @@ export function ageInYears(birthDate: string | null): number | null {
   return age;
 }
 
+/**
+ * חציון (לא ממוצע חשבוני) - כדי שחבר/ה קהילה בודד/ה עם גיל קיצוני
+ * לא יטה את המספר בטירוף. משמש לחישוב "גיל ממוצע" בעוגת המגדר.
+ */
+export function median(values: number[]): number | null {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0
+    ? Math.round((sorted[mid - 1] + sorted[mid]) / 2)
+    : sorted[mid];
+}
+
 export function formatWeekday(iso: string): string {
   return new Intl.DateTimeFormat("he-IL", {
     weekday: "long",

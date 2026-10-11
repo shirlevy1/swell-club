@@ -53,6 +53,16 @@ export function GenderDonutChart({ data }: { data: GenderBreakdown }) {
               נשים · <span className="ltr-nums">{femalePercent}%</span>
             </li>
           </ul>
+          {data.medianAge !== null && (
+            <div className="flex items-center gap-1">
+              <span className="text-[0.6rem] text-(--color-ink-soft)">
+                גיל ממוצע
+              </span>
+              <span className="font-[family-name:var(--font-display)] text-sm font-bold text-(--color-ink) ltr-nums">
+                {data.medianAge}
+              </span>
+            </div>
+          )}
         </div>
       </Card>
     </Link>
