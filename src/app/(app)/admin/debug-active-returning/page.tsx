@@ -3,6 +3,7 @@ import {
   getViewer,
   getAdminData,
   getRemovedMembers,
+  removalVerb,
   type AdminEvent,
   type AdminMember,
 } from "@/lib/data";
@@ -112,7 +113,12 @@ export default async function DebugActiveReturningPage() {
     const member = (members as AdminMember[]).find((m) => m.profile.id === id);
     if (member) return member.profile.full_name;
     const removed = removedMembers.find((m) => m.profileId === id);
-    if (removed) return `${removed.fullName} (עזב/ה או הוסר/ה מהקהילה)`;
+    if (removed) {
+      const verb = removed.removedReason
+        ? removalVerb(removed.removedReason, removed.gender)
+        : "כבר לא בקהילה";
+      return `${removed.fullName} (${verb})`;
+    }
     return "(לא נמצא בכלל - בדוק/י ידנית)";
   };
   const lastEventLabel = (id: string) => {
