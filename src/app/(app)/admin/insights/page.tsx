@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import {
   getViewer,
   getRecentEventStats,
+  getRsvpAttendanceBreakdown,
   getNewVsReturningByEvent,
   getGenderBreakdown,
   getTenureBreakdown,
@@ -30,6 +31,7 @@ export default async function AdminInsightsPage() {
 
   const [
     eventStats,
+    rsvpAttendanceBreakdown,
     newVsReturning,
     genderBreakdown,
     tenureBreakdown,
@@ -40,6 +42,7 @@ export default async function AdminInsightsPage() {
     removedMembers,
   ] = await Promise.all([
     getRecentEventStats(viewer.club.id),
+    getRsvpAttendanceBreakdown(viewer.club.id),
     getNewVsReturningByEvent(viewer.club.id),
     getGenderBreakdown(viewer.club.id),
     getTenureBreakdown(viewer.club.id),
@@ -60,7 +63,7 @@ export default async function AdminInsightsPage() {
 
       <GenderAttendanceChart events={eventStats} />
       <NewVsReturningChart events={newVsReturning} />
-      <RsvpAttendanceChart events={eventStats} />
+      <RsvpAttendanceChart events={rsvpAttendanceBreakdown} />
 
       <div className="grid grid-cols-2 gap-3">
         <GenderDonutChart data={genderBreakdown} />

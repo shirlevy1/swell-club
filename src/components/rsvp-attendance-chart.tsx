@@ -1,87 +1,72 @@
 import Link from "next/link";
-import type { RecentEventStats } from "@/lib/data";
+import type { RsvpAttendanceBreakdown } from "@/lib/data";
 import { formatDayMonth } from "@/lib/format";
 import { Card } from "./ui";
-import { average, TrendBadge, type Trend } from "./trend-badge";
 
 const CHART_HEIGHT_PX = 140;
 
 /**
- * גרף 2 ב-admin/insights: כמה סימנו הגעה (RSVP) מול כמה הגיעו בפועל,
- * באותם N המפגשים האחרונים כמו גרף 1 (GenderAttendanceChart) - אותה
- * שפה חזותית בכוונה: Card, כותרת+מקרא באותו מבנה, בממוצע+מגמה למעלה,
- * עמודות עם מספר מעליהן ותאריך מתחתן, לחיצה על עמודה פותחת את המפגש.
- *
- * ההפרש בין גרף 1 לגרף 2: כאן שני ערכים עצמאיים (לא חלק-מתוך-שלם),
- * אז העמודות זוגיות זו-לצד-זו, לא ערומות זו-על-זו.
- *
- * מגמת הכותרת היא על "אחוז הגעה בפועל מתוך מי שסימן/ה" (לא על ספירת
- * אנשים) - לכן בכוונה לא משתמשת ב-computeTrend המשותף (שהסף שלו של
- * "בסיס קטן מ-3" מיועד לספירות אנשים, לא לאחוזים) - ההפרש מוצג תמיד
- * בנקודות אחוז גולמיות ("↑10"), לא "שינוי יחסי באחוז" שהיה מבלבל.
+ * גרף 2 ב-admin/insights: לא רק "כמה אחוז מהסימונים הגיעו" (זה החמיץ
+ * לגמרי מי שהגיע/ה בלי לסמן בכלל - שיר שאלה למה, והתברר שזה באמת
+ * לא נכלל בחישוב הקודם) - אלא שלוש ההתנהגויות עצמן, לכל מפגש:
+ * סימנו+הגיעו (ירוק, "כמו שהובטח"), סימנו ולא הגיעו (אדום, no-show),
+ * הגיעו בלי לסמן (כתום, walk-in לא מתוכנן). האחוזים למעלה הם סיכום
+ * מצטבר על פני כל 8 המפגשים (לא ממוצע-של-ממוצעים), כדי שהם יבטאו
+ * "מתוך כל מי שהיה מעורב/ת איכשהו, כמה % מכל קטגוריה" בצורה ישירה.
  */
 export function RsvpAttendanceChart({
   events,
 }: {
-  events: RecentEventStats[];
+  events: RsvpAttendanceBreakdown[];
 }) {
   if (events.length === 0) return null;
 
+  const totalMatched = events.reduce((sum, e) => sum + e.matched, 0);
+  const totalNoShow = events.reduce((sum, e) => sum + e.noShow, 0);
+  const totalWalkIn = events.reduce((sum, e) => sum + e.walkIn, 0);
+  const grandTotal = totalMatched + totalNoShow + totalWalkIn;
+
+  const matchedPct = grandTotal > 0 ? Math.round((totalMatched / grandTotal) * 100) : 0;
+  const noShowPct = grandTotal > 0 ? Math.round((totalNoShow / grandTotal) * 100) : 0;
+  // המשלים ל-100%, לא עוד עיגול נפרד - אותו עיקרון כמו בעוגת הוותק.
+  const walkInPct = grandTotal > 0 ? 100 - matchedPct - noShowPct : 0;
+
   const maxVal = Math.max(
     1,
-    ...events.flatMap((e) => [e.goingCount, e.attendedCount]),
+    ...events.map((e) => e.matched + e.noShow + e.walkIn),
   );
-
-  const chronological = [...events].reverse();
-  const rates = chronological
-    .filter((e) => e.goingCount > 0)
-    .map((e) => (e.attendedCount / e.goingCount) * 100);
-  const avgRate = rates.length ? Math.round(average(rates)) : null;
-
-  let rateTrend: Trend = null;
-  if (rates.length >= 4) {
-    const mid = Math.floor(rates.length / 2);
-    const diff = Math.round(
-      average(rates.slice(mid)) - average(rates.slice(0, mid)),
-    );
-    if (diff !== 0) rateTrend = { kind: "diff", value: diff };
-  }
 
   return (
     <Card>
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
-        <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
-          <p className="text-sm font-bold text-(--color-ink-soft)">
-            הגיעו מול סימנו
-          </p>
-          <span className="text-xs text-(--color-ink-faint)">בממוצע</span>
-          <span className="font-[family-name:var(--font-display)] text-lg font-bold text-(--color-ink) ltr-nums">
-            {avgRate !== null ? `${avgRate}%` : "—"}
-          </span>
-          {rateTrend !== null && (
-            <span className="text-xs">
-              <TrendBadge trend={rateTrend} />
-            </span>
-          )}
-        </div>
-        <div className="flex gap-3 text-xs">
-          <span className="flex items-center gap-1 text-(--color-ink-soft)">
-            <span className="size-2 rounded-full bg-(--color-sea)" />
-            הגיעו
-          </span>
-          <span className="flex items-center gap-1 text-(--color-ink-soft)">
-            <span className="size-2 rounded-full bg-(--color-line)" />
-            סימנו
-          </span>
-        </div>
+      <p className="text-sm font-bold text-(--color-ink-soft)">הגיעו מול סימנו</p>
+
+      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+        <span className="flex items-center gap-1.5 text-(--color-ink-soft)">
+          <span className="size-2 rounded-full bg-(--color-verified)" />
+          סימנו והגיעו ·{" "}
+          <span className="font-bold text-(--color-ink) ltr-nums">{matchedPct}%</span>
+        </span>
+        <span className="flex items-center gap-1.5 text-(--color-ink-soft)">
+          <span className="size-2 rounded-full bg-(--color-fail)" />
+          סימנו ולא הגיעו ·{" "}
+          <span className="font-bold text-(--color-ink) ltr-nums">{noShowPct}%</span>
+        </span>
+        <span className="flex items-center gap-1.5 text-(--color-ink-soft)">
+          <span className="size-2 rounded-full bg-(--color-warn)" />
+          הגיעו בלי לסמן ·{" "}
+          <span className="font-bold text-(--color-ink) ltr-nums">{walkInPct}%</span>
+        </span>
       </div>
 
-      <div className="mt-5 flex items-end gap-1">
+      <div className="mt-5 flex items-end gap-1" style={{ height: CHART_HEIGHT_PX }}>
         {events.map((e) => {
-          const goingHeight = Math.round((e.goingCount / maxVal) * CHART_HEIGHT_PX);
-          const attendedHeight = Math.round(
-            (e.attendedCount / maxVal) * CHART_HEIGHT_PX,
-          );
+          const total = e.matched + e.noShow + e.walkIn;
+          const stackHeight = Math.round((total / maxVal) * CHART_HEIGHT_PX);
+          const matchedHeight =
+            total > 0 ? Math.round((e.matched / total) * stackHeight) : 0;
+          const noShowHeight =
+            total > 0 ? Math.round((e.noShow / total) * stackHeight) : 0;
+          const walkInHeight = stackHeight - matchedHeight - noShowHeight;
 
           return (
             <Link
@@ -89,28 +74,37 @@ export function RsvpAttendanceChart({
               href={`/events/${e.eventId}?from=admin-insights`}
               className="flex h-full flex-1 flex-col items-center justify-end gap-1 rounded-lg px-0.5 transition hover:bg-(--color-haze)"
             >
+              <span className="text-xs font-bold text-(--color-ink) ltr-nums">
+                {total}
+              </span>
               <div
-                className="flex w-full items-end justify-center gap-1"
-                style={{ height: CHART_HEIGHT_PX }}
+                className="flex w-full flex-col-reverse overflow-hidden rounded-t"
+                style={{ height: stackHeight }}
               >
-                <div className="flex h-full w-1/2 max-w-3 flex-col items-center justify-end gap-0.5">
-                  <span className="text-[0.58rem] font-bold text-(--color-ink) ltr-nums">
-                    {e.attendedCount}
-                  </span>
+                {matchedHeight > 0 && (
                   <div
-                    className="w-full rounded-t bg-(--color-sea)"
-                    style={{ height: attendedHeight }}
-                  />
-                </div>
-                <div className="flex h-full w-1/2 max-w-3 flex-col items-center justify-end gap-0.5">
-                  <span className="text-[0.58rem] font-bold text-(--color-ink-faint) ltr-nums">
-                    {e.goingCount}
-                  </span>
+                    className="flex items-center justify-center bg-(--color-verified) text-[0.58rem] font-medium text-white/80 ltr-nums"
+                    style={{ height: matchedHeight }}
+                  >
+                    {e.matched}
+                  </div>
+                )}
+                {noShowHeight > 0 && (
                   <div
-                    className="w-full rounded-t bg-(--color-line)"
-                    style={{ height: goingHeight }}
-                  />
-                </div>
+                    className="flex items-center justify-center bg-(--color-fail) text-[0.58rem] font-medium text-white/80 ltr-nums"
+                    style={{ height: noShowHeight }}
+                  >
+                    {e.noShow}
+                  </div>
+                )}
+                {walkInHeight > 0 && (
+                  <div
+                    className="flex items-center justify-center bg-(--color-warn) text-[0.58rem] font-medium text-white/80 ltr-nums"
+                    style={{ height: walkInHeight }}
+                  >
+                    {e.walkIn}
+                  </div>
+                )}
               </div>
               <span className="text-[0.64rem] text-(--color-ink-faint) ltr-nums">
                 {formatDayMonth(e.startsAt)}

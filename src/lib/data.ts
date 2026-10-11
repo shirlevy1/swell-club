@@ -2077,6 +2077,94 @@ export async function getRecentEventStats(
   }));
 }
 
+export type RsvpAttendanceBreakdown = {
+  eventId: string;
+  startsAt: string;
+  /** סימנו "אני בא/ה" וגם הגיעו בפועל. */
+  matched: number;
+  /** סימנו אבל לא הגיעו - no-show. */
+  noShow: number;
+  /** הגיעו בלי לסמן מראש בכלל - לא נספר/ת ב-goingCount של getRecentEventStats. */
+  walkIn: number;
+};
+
+/**
+ * פירוט ברמת-אדם (לא רק ספירות) של "הגיעו מול סימנו", לכל אחד
+ * מה-N המפגשים האחרונים - שיר ביקשה שהגרף יענה במפורש על שלוש
+ * השאלות: מי סימן/ה וגם הגיע/ה, מי סימן/ה ולא הגיע/ה, ומי הגיע/ה
+ * בלי לסמן בכלל. שאילתה נפרדת מ-getRecentEventStats (לא רק ספירות -
+ * צריך profile_id משני הצדדים כדי להצליב מי בדיוק חופף למי), אבל
+ * אותו עקרון "N מפגשים אחרונים בלבד" בדיוק.
+ */
+export async function getRsvpAttendanceBreakdown(
+  clubId: string,
+  limit = 8,
+): Promise<RsvpAttendanceBreakdown[]> {
+  if (demoMode) {
+    const attendances = demo.demoAttendances();
+    const rsvps = demo.demoRsvps();
+    const now = Date.now();
+
+    const recent = demo
+      .demoEvents()
+      .filter((e) => new Date(e.starts_at).getTime() < now)
+      .sort((a, b) => b.starts_at.localeCompare(a.starts_at))
+      .slice(0, limit);
+
+    return recent.map((e) => {
+      const goingIds = new Set(
+        rsvps.filter((r) => r.eventId === e.id && r.going).map((r) => r.profileId),
+      );
+      const attendedIds = new Set(
+        attendances.filter((a) => a.eventId === e.id).map((a) => a.profileId),
+      );
+      let matched = 0;
+      let noShow = 0;
+      for (const id of goingIds) {
+        if (attendedIds.has(id)) matched++;
+        else noShow++;
+      }
+      let walkIn = 0;
+      for (const id of attendedIds) if (!goingIds.has(id)) walkIn++;
+      return { eventId: e.id, startsAt: e.starts_at, matched, noShow, walkIn };
+    });
+  }
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("events")
+    .select(
+      "id, starts_at, attendances(profile_id), rsvps(profile_id, going)",
+    )
+    .eq("club_id", clubId)
+    .lt("starts_at", new Date().toISOString())
+    .order("starts_at", { ascending: false })
+    .limit(limit);
+
+  const rows = (data ?? []) as unknown as {
+    id: string;
+    starts_at: string;
+    attendances: { profile_id: string }[];
+    rsvps: { profile_id: string; going: boolean }[];
+  }[];
+
+  return rows.map((e) => {
+    const goingIds = new Set(
+      e.rsvps.filter((r) => r.going).map((r) => r.profile_id),
+    );
+    const attendedIds = new Set(e.attendances.map((a) => a.profile_id));
+    let matched = 0;
+    let noShow = 0;
+    for (const id of goingIds) {
+      if (attendedIds.has(id)) matched++;
+      else noShow++;
+    }
+    let walkIn = 0;
+    for (const id of attendedIds) if (!goingIds.has(id)) walkIn++;
+    return { eventId: e.id, startsAt: e.starts_at, matched, noShow, walkIn };
+  });
+}
+
 export type NewVsReturningStats = {
   eventId: string;
   startsAt: string;
