@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { Card } from "./ui";
+import { ChevronIcon } from "./social-icons";
 import type { Trend } from "./trend-badge";
 
 /**
@@ -50,6 +52,7 @@ export function SparklineCard({
   value,
   valueSuffix,
   sparkline,
+  href,
 }: {
   title: string;
   value: number;
@@ -58,6 +61,9 @@ export function SparklineCard({
       מחשבות מגמה (כמו "חוזרים") לא יצטרכו להעביר משהו מלאכותי. */
   trend?: Trend;
   sparkline: number[];
+  /** אם קיים - הכרטיס כולו לחיץ ופותח עמוד פירוט (אותו ChevronIcon
+      ואותה התנהגות hover כמו GenderDonutChart/TenureDonutChart). */
+  href?: string;
 }) {
   const points = toPoints(sparkline);
   const linePath = smoothPath(points);
@@ -68,10 +74,15 @@ export function SparklineCard({
       ? `${linePath} L ${points[points.length - 1].x},32 L ${points[0].x},32 Z`
       : "";
 
-  return (
-    <Card>
+  const card = (
+    <Card className={href ? "h-full transition hover:border-(--color-sea)/40" : undefined}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
-        <p className="text-sm font-bold text-(--color-ink-soft)">{title}</p>
+        <p className="flex items-center gap-1 text-sm font-bold text-(--color-ink-soft)">
+          {title}
+          {href && (
+            <ChevronIcon className="size-3 shrink-0 text-(--color-ink-faint)" />
+          )}
+        </p>
         <span className="font-[family-name:var(--font-display)] text-lg font-bold text-(--color-ink) ltr-nums">
           {value}
           {valueSuffix}
@@ -113,5 +124,13 @@ export function SparklineCard({
         </div>
       )}
     </Card>
+  );
+
+  return href ? (
+    <Link href={href} className="block h-full">
+      {card}
+    </Link>
+  ) : (
+    card
   );
 }

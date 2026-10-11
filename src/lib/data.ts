@@ -2506,6 +2506,60 @@ export async function getReturnRateTrend(
   return { current, sparkline };
 }
 
+export type ReturnRateMembers = {
+  returned: AdminMember[];
+  notReturned: AdminMember[];
+  notEligible: AdminMember[];
+};
+
+/**
+ * פירוט השמות מאחורי אחוז "חוזרים" (getReturnRateTrend) - אותו חישוב
+ * בדיוק (זכאי/ת לשפוט רק אחרי שהתקיימו 2 מפגשים מההגעה הראשונה,
+ * חזרה מאוחרת כן "מתקנת" את הסטטוס), רק מחזירה שמות בשלוש קבוצות
+ * במקום אחוז מצטבר אחד. ⚠️ בשונה מהכרטיס עצמו: כאן רק חברים
+ * מאושרים *כרגע* - מי שכבר עזב/הוסר לא מופיע ברשימה הזו למרות
+ * שההיסטוריה שלו/ה עדיין משפיעה על האחוז בכרטיס (אותה החרגה בדיוק
+ * כמו ב-getNeedsOutreachMembers - שיר מטפלת באקסים דרך עמוד נפרד).
+ * מי שמעולם לא הגיע/ה (רוח רפאים) גם לא רלוונטי כאן - אי אפשר
+ * "לחזור" למי שלא הגיע מלכתחילה.
+ */
+export async function getReturnRateMembers(
+  clubId: string,
+): Promise<ReturnRateMembers> {
+  const { events, members } = await getAdminData(clubId);
+  const now = Date.now();
+
+  const pastEventsAsc = events
+    .filter((e) => new Date(e.starts_at).getTime() <= now)
+    .sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+  const lastIndex = pastEventsAsc.length - 1;
+  if (lastIndex < 0) return { returned: [], notReturned: [], notEligible: [] };
+
+  const attendedIndexesByProfile = new Map<string, number[]>();
+  pastEventsAsc.forEach((event, i) => {
+    for (const profileId of event.attendedProfileIds) {
+      const list = attendedIndexesByProfile.get(profileId) ?? [];
+      list.push(i);
+      attendedIndexesByProfile.set(profileId, list);
+    }
+  });
+
+  const returned: AdminMember[] = [];
+  const notReturned: AdminMember[] = [];
+  const notEligible: AdminMember[] = [];
+
+  for (const m of members) {
+    const indexes = attendedIndexesByProfile.get(m.profile.id);
+    if (!indexes || indexes.length === 0) continue;
+    const first = indexes[0];
+    if (first + 2 > lastIndex) notEligible.push(m);
+    else if (indexes.length >= 2) returned.push(m);
+    else notReturned.push(m);
+  }
+
+  return { returned, notReturned, notEligible };
+}
+
 export type OutreachMember = AdminMember & {
   /** המפגש האחרון שבו נכח/ה בפועל - העוגן של "כבר דיברתי איתו/ה". */
   lastAttendedEventId: string;

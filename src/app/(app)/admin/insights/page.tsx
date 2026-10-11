@@ -79,6 +79,7 @@ export default async function AdminInsightsPage() {
           value={returnRateTrend.current}
           valueSuffix="%"
           sparkline={returnRateTrend.sparkline}
+          href="/admin/returning"
         />
       </div>
 
