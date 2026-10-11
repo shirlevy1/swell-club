@@ -85,8 +85,9 @@ export default async function AdminMemberPage({
   const wa = whatsappUrl(profile.phone);
 
   // אופציה ג מתוך 3 הצעות שהוצגו לשיר: כל הכרטיס "עמום" (לא באנר,
-  // לא תגית) - תמונה בשחור-לבן, טקסט דהוי, וסיבה+תאריך כשורה רגילה
+  // לא תגית) - העמוד כולו בשקיפות 60%, וסיבה+תאריך כשורה רגילה
   // מתחת לשם. בלי המילה "מהקהילה" בניסוח, לפי בקשתה המפורשת.
+  // (עודכן: שחור-לבן על התמונה הוחלף בשקיפות אחידה על כל העמוד.)
   const isRemoved = membership?.status === "removed";
   const removedCaption =
     isRemoved && membership.removedReason && membership.removedAt
@@ -94,26 +95,18 @@ export default async function AdminMemberPage({
       : null;
 
   return (
-    <div className="space-y-6">
+    <div className={cx("space-y-6", isRemoved && "opacity-60")}>
       <BackLink href={back.href}>{back.label}</BackLink>
 
-      <header className={cx("flex items-center gap-4", isRemoved && "opacity-70")}>
+      <header className="flex items-center gap-4">
         <SelfieAvatarButton
           shots={shots}
           fullName={profile.full_name}
-          className={cx(
-            "flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)",
-            isRemoved && "grayscale",
-          )}
+          className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--color-line) bg-(--color-haze)"
         />
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h1
-              className={cx(
-                "truncate font-[family-name:var(--font-display)] text-2xl font-bold",
-                isRemoved && "text-(--color-ink-faint)",
-              )}
-            >
+            <h1 className="truncate font-[family-name:var(--font-display)] text-2xl font-bold">
               {profile.full_name}
             </h1>
             {profile.swim_level && (
@@ -129,12 +122,7 @@ export default async function AdminMemberPage({
               </span>
             )}
           </div>
-          <p
-            className={cx(
-              "text-sm text-(--color-ink-soft)",
-              isRemoved && "text-(--color-ink-faint)",
-            )}
-          >
+          <p className="text-sm text-(--color-ink-soft)">
             {removedCaption && <>{removedCaption} · </>}
             {!person || person.attendedCount === 0
               ? byGender(profile.gender, "עוד לא היה איתנו", "עוד לא הייתה איתנו")
