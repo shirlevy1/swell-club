@@ -39,7 +39,9 @@ function WindArrow({ deg }: { deg: number }) {
 }
 
 /**
- * "תחזית גלים ורוח" — אותה תחזית ואותו מבנה בדיוק כמו ב-gosurf.co.il
+ * "תחזית גלים ורוח" — בכרטיס המשותף עם "טמפרטורת מים" (ראו
+ * sea-conditions-card.tsx, שמספק את המסגרת החיצונית; הרכיב הזה הוא
+ * רק התוכן הפנימי). אותה תחזית ואותו מבנה בדיוק כמו ב-gosurf.co.il
  * (כותרות ימים עם חץ כיוון רוח, גרף שטח רציף עם גובה גל בס"מ על כל
  * נקודה), רק בגופנים ובצבעים של Swell. ראו getWaveForecast ב-lib/gosurf.ts.
  * גובה גל גבוה יותר = נקודה גבוהה יותר בגרף — כמו תחזית גלים אמיתית,
@@ -72,7 +74,7 @@ export function WaveForecastStrip({
   const areaPath = `${linePath} L${lastX},${CHART_HEIGHT} L${points[0].x},${CHART_HEIGHT} Z`;
 
   return (
-    <div className="space-y-3 rounded-2xl border border-(--color-line) bg-(--color-surface) p-4">
+    <div className="space-y-3">
       <div className="flex items-baseline justify-between">
         <p className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
           תחזית גלים ורוח

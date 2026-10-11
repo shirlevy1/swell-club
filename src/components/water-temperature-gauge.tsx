@@ -31,10 +31,11 @@ function bandColorFor(tempC: number): string {
 }
 
 /**
- * "טמפרטורת מים" בעמוד הבית, מתחת ל"תחזית גלים ורוח" — אותו מקור
- * (GoSurf) ואותה תדירות עדכון (getCurrentWaterTempC ב-lib/gosurf.ts).
- * מחזירה null כשאין נתון (למשל GoSurf לא זמין כרגע) כדי לא להציג
- * מד שבור, בלי להפיל את עמוד הבית.
+ * "טמפרטורת מים" — בכרטיס המשותף עם "תחזית גלים ורוח"
+ * (ראו sea-conditions-card.tsx, שמספק את המסגרת/הכותרת החיצונית
+ * ואת הקו המפריד; הרכיב הזה הוא רק התוכן הפנימי). אותו מקור (GoSurf)
+ * ואותה תדירות עדכון (getCurrentWaterTempC ב-lib/gosurf.ts). מחזירה
+ * null כשאין נתון (למשל GoSurf לא זמין כרגע) כדי לא להציג מד שבור.
  */
 export function WaterTemperatureGauge({ tempC }: { tempC: number | null }) {
   if (tempC == null) return null;
@@ -48,7 +49,7 @@ export function WaterTemperatureGauge({ tempC }: { tempC: number | null }) {
   const bubbleRight = Math.min(90, Math.max(10, markerRight));
 
   return (
-    <div className="space-y-3 rounded-2xl border border-(--color-line) bg-(--color-surface) p-4">
+    <div className="space-y-3">
       <div className="flex items-baseline justify-between">
         <p className="text-xs font-bold tracking-[0.2em] text-(--color-sea)">
           טמפרטורת מים
