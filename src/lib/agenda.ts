@@ -40,7 +40,7 @@ export function getEventAgendaText(
  * עכשיו ב-what-to-bring.tsx, צמוד לכרטיסים ולאותו תנאי בדיוק.
  */
 export function defaultEquipmentText(): string {
-  return "בגד ים · כובע · משקפת · מצוף בטיחות (חובה!) · שעון חכם";
+  return "(רצוי) בגד ים · כובע · משקפת · מצוף בטיחות · שעון חכם";
 }
 
 export function getEventEquipmentText(
