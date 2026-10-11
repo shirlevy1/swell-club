@@ -99,7 +99,9 @@ export function AppNav({
   // בנפרד — לא סתם מספר אחד מאוחד — כי אלה שתי פעולות שונות לגמרי.
   // נראה בכל מקום באפליקציה שבו המנהלת נמצאת, לא רק בתוך עמוד הניהול
   // עצמו. realtime לתגובה מיידית, ורענון תקופתי כרשת ביטחון (חיבור
-  // חי לא תמיד נשאר פתוח באמינות בנייד).
+  // חי לא תמיד נשאר פתוח באמינות בנייד) - 2 דקות, לא 15 שניות: זה רק
+  // שני מספרים קלים, לא דחוף ברמת שניות, אותו עיקרון כמו ב-
+  // admin-live-refresh.tsx.
   useEffect(() => {
     if (demoMode || !isOrganizer || !clubId) return;
 
@@ -126,7 +128,7 @@ export function AppNav({
       )
       .subscribe();
 
-    const interval = setInterval(refresh, 15_000);
+    const interval = setInterval(refresh, 2 * 60 * 1000);
 
     return () => {
       cancelled = true;
