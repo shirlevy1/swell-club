@@ -6,6 +6,7 @@ import {
   getNewVsReturningByEvent,
   getGenderBreakdown,
   getTenureBreakdown,
+  getSwimLevelBreakdown,
   getActiveMembersTrend,
   getReturnRateTrend,
   getNeedsOutreachMembers,
@@ -18,6 +19,7 @@ import { NewVsReturningChart } from "@/components/new-vs-returning-chart";
 import { RsvpAttendanceChart } from "@/components/rsvp-attendance-chart";
 import { GenderDonutChart } from "@/components/gender-donut-chart";
 import { TenureDonutChart } from "@/components/tenure-donut-chart";
+import { SwimLevelDonutChart } from "@/components/swim-level-donut-chart";
 import { SparklineCard } from "@/components/sparkline-card";
 
 /**
@@ -35,6 +37,7 @@ export default async function AdminInsightsPage() {
     newVsReturning,
     genderBreakdown,
     tenureBreakdown,
+    swimLevelBreakdown,
     activeTrend,
     returnRateTrend,
     outreachMembers,
@@ -46,6 +49,7 @@ export default async function AdminInsightsPage() {
     getNewVsReturningByEvent(viewer.club.id),
     getGenderBreakdown(viewer.club.id),
     getTenureBreakdown(viewer.club.id),
+    getSwimLevelBreakdown(viewer.club.id),
     getActiveMembersTrend(viewer.club.id),
     getReturnRateTrend(viewer.club.id),
     getNeedsOutreachMembers(viewer.club.id),
@@ -65,9 +69,14 @@ export default async function AdminInsightsPage() {
       <NewVsReturningChart events={newVsReturning} />
       <RsvpAttendanceChart events={rsvpAttendanceBreakdown} />
 
-      <div className="grid grid-cols-2 gap-3">
-        <GenderDonutChart data={genderBreakdown} />
+      {/* סדר ה-DOM הפוך מסדר הקריאה (ימין-לשמאל): נבדק בפועל ש-grid כאן
+          לא מכבד dir=rtl למיקום העמודות - האיבר הראשון ב-DOM נוחת
+          הכי שמאלה, לא הכי ימינה. כדי שבפועל ייראה (מימין לשמאל)
+          רמת שחייה → מגדר → ותק חברים, ה-DOM חייב להיות הפוך. */}
+      <div className="grid grid-cols-3 gap-2">
         <TenureDonutChart data={tenureBreakdown} />
+        <GenderDonutChart data={genderBreakdown} />
+        <SwimLevelDonutChart data={swimLevelBreakdown} />
       </div>
 
       <div className="grid grid-cols-2 gap-3">

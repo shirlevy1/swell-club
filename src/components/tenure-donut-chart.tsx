@@ -31,42 +31,39 @@ export function TenureDonutChart({ data }: { data: TenureBreakdown }) {
 
   return (
     <Link href="/admin/insights/tenure" className="block h-full">
-      <Card className="h-full transition hover:border-(--color-sea)/40">
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-sm font-bold text-(--color-ink-soft)">ותק חברים</p>
-          <ChevronIcon className="size-3.5 shrink-0 text-(--color-ink-faint)" />
+      <Card className="!p-3 h-full transition hover:border-(--color-sea)/40">
+        <div className="flex items-center justify-between gap-1">
+          <p className="text-xs font-bold text-(--color-ink-soft)">ותק חברים</p>
+          <ChevronIcon className="size-3 shrink-0 text-(--color-ink-faint)" />
         </div>
-        <div className="mt-4 flex flex-col items-center gap-3">
+        <div className="mt-2 flex flex-col items-center gap-2">
           <div
-            className="relative size-28 shrink-0 rounded-full border border-(--color-line)"
+            className="relative size-16 shrink-0 rounded-full border border-(--color-line)"
             style={{
               background: `conic-gradient(var(--color-line) 0% ${stop1}%, var(--color-sky) ${stop1}% ${stop2}%, var(--color-sea) ${stop2}% ${stop3}%, var(--color-deep) ${stop3}% 100%)`,
             }}
           >
-            <div className="absolute inset-[14%] flex flex-col items-center justify-center rounded-full bg-(--color-surface)">
-              <span className="font-[family-name:var(--font-display)] text-lg font-bold text-(--color-ink) ltr-nums">
+            <div className="absolute inset-[16%] flex items-center justify-center rounded-full bg-(--color-surface)">
+              <span className="font-[family-name:var(--font-display)] text-sm font-bold text-(--color-ink) ltr-nums">
                 {total}
-              </span>
-              <span className="text-[0.6rem] text-(--color-ink-faint)">
-                חברים
               </span>
             </div>
           </div>
-          <ul className="flex flex-col gap-1 text-xs">
-            <li className="flex items-center gap-1.5 text-(--color-ink-soft)">
-              <span className="size-2 shrink-0 rounded-full bg-(--color-deep)" />
+          <ul className="flex flex-col gap-0.5 text-[0.6rem]">
+            <li className="flex items-center gap-1 text-(--color-ink-soft)">
+              <span className="size-1.5 shrink-0 rounded-full bg-(--color-deep)" />
               קבועים · <span className="ltr-nums">{regularPct}%</span>
             </li>
-            <li className="flex items-center gap-1.5 text-(--color-ink-soft)">
-              <span className="size-2 shrink-0 rounded-full bg-(--color-sea)" />
+            <li className="flex items-center gap-1 text-(--color-ink-soft)">
+              <span className="size-1.5 shrink-0 rounded-full bg-(--color-sea)" />
               מזדמנים · <span className="ltr-nums">{occasionalPct}%</span>
             </li>
-            <li className="flex items-center gap-1.5 text-(--color-ink-soft)">
-              <span className="size-2 shrink-0 rounded-full bg-(--color-sky)" />
+            <li className="flex items-center gap-1 text-(--color-ink-soft)">
+              <span className="size-1.5 shrink-0 rounded-full bg-(--color-sky)" />
               חד-פעמיים · <span className="ltr-nums">{oneTimePct}%</span>
             </li>
-            <li className="flex items-center gap-1.5 text-(--color-ink-soft)">
-              <span className="size-2 shrink-0 rounded-full border border-(--color-ink-faint)/40 bg-(--color-line)" />
+            <li className="flex items-center gap-1 text-(--color-ink-soft)">
+              <span className="size-1.5 shrink-0 rounded-full border border-(--color-ink-faint)/40 bg-(--color-line)" />
               רוח רפאים · <span className="ltr-nums">{ghostPct}%</span>
             </li>
           </ul>

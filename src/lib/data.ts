@@ -2337,6 +2337,48 @@ export async function getGenderBreakdown(
   };
 }
 
+export type SwimLevelBreakdown = {
+  enteringCount: number;
+  flowingCount: number;
+  deepeningCount: number;
+};
+
+/**
+ * חלוקת כל חברי הקהילה הפעילים לפי רמת שחייה - לתרשים העוגה השלישי
+ * בשורת הדמוגרפיה (לצד "נשים מול גברים" ו"ותק חברים"). אותו עיקרון
+ * בדיוק כמו getGenderBreakdown - שאילתה שטוחה, לא תלויה בהיסטוריית
+ * מפגשים. מי שלא מילא/ה רמת שחייה (null) לא נכלל/ת בשום דלי - אותו
+ * עיקרון כמו gender='other' בעוגת המגדר.
+ */
+export async function getSwimLevelBreakdown(
+  clubId: string,
+): Promise<SwimLevelBreakdown> {
+  if (demoMode) {
+    const profiles = demo.demoActiveProfiles();
+    return {
+      enteringCount: profiles.filter((p) => p.swim_level === "entering").length,
+      flowingCount: profiles.filter((p) => p.swim_level === "flowing").length,
+      deepeningCount: profiles.filter((p) => p.swim_level === "deepening").length,
+    };
+  }
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("club_members")
+    .select("profiles(swim_level)")
+    .eq("club_id", clubId)
+    .eq("status", "approved");
+
+  const rows = (data ?? []) as unknown as {
+    profiles: { swim_level: SwimLevel | null } | null;
+  }[];
+  return {
+    enteringCount: rows.filter((r) => r.profiles?.swim_level === "entering").length,
+    flowingCount: rows.filter((r) => r.profiles?.swim_level === "flowing").length,
+    deepeningCount: rows.filter((r) => r.profiles?.swim_level === "deepening").length,
+  };
+}
+
 export type TenureBreakdown = {
   /** אושרו כחברים, אבל מעולם לא נכחו באף מפגש. */
   ghostCount: number;

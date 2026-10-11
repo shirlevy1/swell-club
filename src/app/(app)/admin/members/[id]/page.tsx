@@ -66,7 +66,9 @@ export default async function AdminMemberPage({
                   ? { href: "/admin/insights/gender", label: "לנשים מול גברים" }
                   : from === "admin-insights-tenure"
                     ? { href: "/admin/insights/tenure", label: "לותק חברים" }
-                    : { href: "/admin#members", label: "לניהול" };
+                    : from === "admin-insights-swim-level"
+                      ? { href: "/admin/insights/swim-level", label: "לרמת שחייה" }
+                      : { href: "/admin#members", label: "לניהול" };
   const viewer = await getViewer();
   if (!viewer?.club || viewer.role !== "organizer") redirect("/events");
 

@@ -23,36 +23,33 @@ export function GenderDonutChart({ data }: { data: GenderBreakdown }) {
 
   return (
     <Link href="/admin/insights/gender" className="block h-full">
-      <Card className="h-full transition hover:border-(--color-sea)/40">
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-sm font-bold text-(--color-ink-soft)">
+      <Card className="!p-3 h-full transition hover:border-(--color-sea)/40">
+        <div className="flex items-center justify-between gap-1">
+          <p className="text-xs font-bold text-(--color-ink-soft)">
             נשים מול גברים
           </p>
-          <ChevronIcon className="size-3.5 shrink-0 text-(--color-ink-faint)" />
+          <ChevronIcon className="size-3 shrink-0 text-(--color-ink-faint)" />
         </div>
-        <div className="mt-4 flex flex-col items-center gap-3">
+        <div className="mt-2 flex flex-col items-center gap-2">
           <div
-            className="relative size-28 shrink-0 rounded-full border border-(--color-line)"
+            className="relative size-16 shrink-0 rounded-full border border-(--color-line)"
             style={{
               background: `conic-gradient(var(--color-deep) 0% ${femalePercent}%, var(--color-sea) ${femalePercent}% 100%)`,
             }}
           >
-            <div className="absolute inset-[14%] flex flex-col items-center justify-center rounded-full bg-(--color-surface)">
-              <span className="font-[family-name:var(--font-display)] text-lg font-bold text-(--color-ink) ltr-nums">
+            <div className="absolute inset-[16%] flex items-center justify-center rounded-full bg-(--color-surface)">
+              <span className="font-[family-name:var(--font-display)] text-sm font-bold text-(--color-ink) ltr-nums">
                 {total}
-              </span>
-              <span className="text-[0.6rem] text-(--color-ink-faint)">
-                חברים
               </span>
             </div>
           </div>
-          <ul className="flex flex-col gap-1 text-xs">
-            <li className="flex items-center gap-1.5 text-(--color-ink-soft)">
-              <span className="size-2 shrink-0 rounded-full bg-(--color-sea)" />
+          <ul className="flex flex-col gap-0.5 text-[0.6rem]">
+            <li className="flex items-center gap-1 text-(--color-ink-soft)">
+              <span className="size-1.5 shrink-0 rounded-full bg-(--color-sea)" />
               גברים · <span className="ltr-nums">{malePercent}%</span>
             </li>
-            <li className="flex items-center gap-1.5 text-(--color-ink-soft)">
-              <span className="size-2 shrink-0 rounded-full bg-(--color-deep)" />
+            <li className="flex items-center gap-1 text-(--color-ink-soft)">
+              <span className="size-1.5 shrink-0 rounded-full bg-(--color-deep)" />
               נשים · <span className="ltr-nums">{femalePercent}%</span>
             </li>
           </ul>
