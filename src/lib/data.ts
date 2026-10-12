@@ -1849,44 +1849,44 @@ export const getAdminData = cache(async (
   }
 
   const supabase = await createClient();
-  const [{ data: eventRows }, memberResult] = await Promise.all([
-    supabase
-      .from("events")
-      .select(
-        "*, rsvps(profile_id, going), attendances(profile_id, selfie_path, checked_in_at, face_x, face_y, profiles(gender))",
-      )
-      .eq("club_id", clubId)
-      .order("starts_at", { ascending: false }),
-    includeMembers
-      ? supabase
-          .from("club_members")
-          // עמודות מפורשות, לא "*" — אותה סיבה כמו ב-getMemberProfile:
-          // "*" על profiles הייתה שולחת גם כל עמודה עתידית שתתווסף לטבלה
-          // בלי החלטה מודעת. הרשימה כאן היא בדיוק מה שבאמת בשימוש היום
-          // (בכרטיסי רשימה ובדוחות ה-CSV) - לא avatar_path/privacy_accepted_at,
-          // שאף אחד לא קורא דרך AdminMember.profile בשום מקום. legal_version
-          // ו-legal_version_updated_at כן נדרשים - שתי עמודות "גרסת טקסט
-          // משפטי"/"תאריך אישור אחרון" בייצוא ה-CSV.
-          .select(
-            "profile_id, role, status, profiles(id, full_name, phone, instagram, birth_date, city, gender, swim_level, waiver_accepted_at, legal_version, legal_version_updated_at, created_at)",
-          )
-          // ממתינים לאישור לא "חברים" עדיין — יש להם סעיף נפרד
-          // (getPendingMembers) עם כפתורי אישור/דחייה, לא רשימה עם 0 נוכחויות.
-          // מי שהוסר/ה כן נכלל/ת כאן (לא מסונן/ת ב-SQL) — צריך אותם/ן
-          // בהמשך לדוחות ההיסטוריים (attendanceMatrixCsv), גם אם לא ברשימת
-          // "חברי הקהילה" הפעילה עצמה. הסינון בפועל קורה למטה, בקוד.
-          .eq("club_id", clubId)
-          .neq("status", "pending")
-      : // כש-false: רק ספירה, בלי פרופילים/תמונות - ראו הערת includeMembers
-        // למעלה. אותו סינון status בדיוק כמו ברשימה המלאה, כדי שהמספר יתאים.
-        supabase
-          .from("club_members")
-          .select("*", { count: "exact", head: true })
-          .eq("club_id", clubId)
-          .eq("status", "approved"),
-  ]);
 
-  const rows = (eventRows ?? []) as unknown as (SwellEvent & {
+  const memberQuery = includeMembers
+    ? supabase
+        .from("club_members")
+        // עמודות מפורשות, לא "*" — אותה סיבה כמו ב-getMemberProfile:
+        // "*" על profiles הייתה שולחת גם כל עמודה עתידית שתתווסף לטבלה
+        // בלי החלטה מודעת. הרשימה כאן היא בדיוק מה שבאמת בשימוש היום
+        // (בכרטיסי רשימה ובדוחות ה-CSV) - לא avatar_path/privacy_accepted_at,
+        // שאף אחד לא קורא דרך AdminMember.profile בשום מקום. legal_version
+        // ו-legal_version_updated_at כן נדרשים - שתי עמודות "גרסת טקסט
+        // משפטי"/"תאריך אישור אחרון" בייצוא ה-CSV.
+        .select(
+          "profile_id, role, status, profiles(id, full_name, phone, instagram, birth_date, city, gender, swim_level, waiver_accepted_at, legal_version, legal_version_updated_at, created_at)",
+        )
+        // ממתינים לאישור לא "חברים" עדיין — יש להם סעיף נפרד
+        // (getPendingMembers) עם כפתורי אישור/דחייה, לא רשימה עם 0 נוכחויות.
+        // מי שהוסר/ה כן נכלל/ת כאן (לא מסונן/ת ב-SQL) — צריך אותם/ן
+        // בהמשך לדוחות ההיסטוריים (attendanceMatrixCsv), גם אם לא ברשימת
+        // "חברי הקהילה" הפעילה עצמה. הסינון בפועל קורה למטה, בקוד.
+        .eq("club_id", clubId)
+        .neq("status", "pending")
+    : // כש-false: רק ספירה, בלי פרופילים/תמונות - ראו הערת includeMembers
+      // למעלה. אותו סינון status בדיוק כמו ברשימה המלאה, כדי שהמספר יתאים.
+      supabase
+        .from("club_members")
+        .select("*", { count: "exact", head: true })
+        .eq("club_id", clubId)
+        .eq("status", "approved");
+
+  type EventDetail = {
+    goingCount: number;
+    cameCount: number;
+    femaleCame: number;
+    maleCame: number;
+    attendedProfileIds: string[];
+  };
+  type EventDetailRow = {
+    id: string;
     rsvps: { profile_id: string; going: boolean }[];
     attendances: {
       profile_id: string;
@@ -1896,10 +1896,8 @@ export const getAdminData = cache(async (
       face_y: number | null;
       profiles: { gender: Gender | null } | null;
     }[];
-  })[];
-
-  const events: AdminEvent[] = rows.map((e) => ({
-    ...e,
+  };
+  const toDetail = (e: EventDetailRow): EventDetail => ({
     goingCount: e.rsvps.filter((r) => r.going).length,
     cameCount: e.attendances.length,
     femaleCame: e.attendances.filter((a) => a.profiles?.gender === "female")
@@ -1907,9 +1905,64 @@ export const getAdminData = cache(async (
     maleCame: e.attendances.filter((a) => a.profiles?.gender === "male")
       .length,
     attendedProfileIds: e.attendances.map((a) => a.profile_id),
-  }));
+  });
 
+  // includeMembers:false (admin/page.tsx - העמוד הניהולי הנפתח הכי
+  // הרבה) לא צריך את רשימת ה-RSVP/נוכחות המלאה של כל מפגש שהיה אי-פעם -
+  // רק ספירות (events.length, splitAdminEvents) וכרטיס מפורט לכל
+  // היותר למפגשים הקרובים + מפגש אחד שהיה (מה ש-admin/page.tsx בפועל
+  // מציג). בלי הענף הקל הזה, כל טעינה הייתה שולפת נוכחות מלאה (כולל
+  // join ל-profiles לכל שורת נוכחות) לכל ההיסטוריה, רק כדי שרוב זה
+  // ייזרק אחרי ספירה. נמצא ב-ביקורת מקיפה טרום-השקה, סעיף 4.
   if (!includeMembers) {
+    const [{ data: lightRows }, memberResult] = await Promise.all([
+      supabase
+        .from("events")
+        .select("*")
+        .eq("club_id", clubId)
+        .order("starts_at", { ascending: false }),
+      memberQuery,
+    ]);
+
+    const light = (lightRows ?? []) as SwellEvent[];
+    const now = Date.now();
+    const upcomingIds = light
+      .filter((e) => new Date(e.starts_at).getTime() >= now)
+      .map((e) => e.id);
+    // light כבר ממוין מהחדש לישן - האיבר הראשון עם starts_at שכבר עבר
+    // הוא בדיוק "המפגש האחרון שהיה" (mostRecentPastEvent ב-admin/page.tsx).
+    const mostRecentPastId = light.find(
+      (e) => new Date(e.starts_at).getTime() < now,
+    )?.id;
+    const neededIds = mostRecentPastId
+      ? [...upcomingIds, mostRecentPastId]
+      : upcomingIds;
+
+    const detailById = new Map<string, EventDetail>();
+    if (neededIds.length > 0) {
+      const { data: detailRows } = await supabase
+        .from("events")
+        .select(
+          "id, rsvps(profile_id, going), attendances(profile_id, selfie_path, checked_in_at, face_x, face_y, profiles(gender))",
+        )
+        .in("id", neededIds);
+      for (const row of (detailRows ?? []) as unknown as EventDetailRow[]) {
+        detailById.set(row.id, toDetail(row));
+      }
+    }
+
+    const emptyDetail: EventDetail = {
+      goingCount: 0,
+      cameCount: 0,
+      femaleCame: 0,
+      maleCame: 0,
+      attendedProfileIds: [],
+    };
+    const events: AdminEvent[] = light.map((e) => ({
+      ...e,
+      ...(detailById.get(e.id) ?? emptyDetail),
+    }));
+
     return {
       events,
       members: [] as AdminMember[],
@@ -1917,6 +1970,30 @@ export const getAdminData = cache(async (
       memberCount: (memberResult as { count: number | null }).count ?? 0,
     };
   }
+
+  // includeMembers: true מכאן ואילך - ללא שינוי. גרעין/אורחים/פעילים/
+  // חוזרים/ייצואי CSV באמת צריכים נוכחות מלאה לכל ההיסטוריה כדי לחשב
+  // נכון ("4+ נוכחויות לפני X מפגשים" וכו') - אין יתרון בפיצול קל כאן.
+  const [{ data: eventRows }, memberResult] = await Promise.all([
+    supabase
+      .from("events")
+      .select(
+        "*, rsvps(profile_id, going), attendances(profile_id, selfie_path, checked_in_at, face_x, face_y, profiles(gender))",
+      )
+      .eq("club_id", clubId)
+      .order("starts_at", { ascending: false }),
+    memberQuery,
+  ]);
+
+  const rows = (eventRows ?? []) as unknown as (SwellEvent &
+    EventDetailRow)[];
+
+  const events: AdminEvent[] = rows.map(
+    (e) => ({
+      ...e,
+      ...toDetail(e),
+    }),
+  );
 
   // המפגשים כבר ממוינים מהחדש לישן, ולכן הסלפי הראשון שנתקלים בו
   // לכל אדם הוא העדכני ביותר
