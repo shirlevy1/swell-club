@@ -1441,10 +1441,11 @@ export type MemberPickerRow = {
 
 /**
  * חברי הקהילה עם התמונה העדכנית שלהם (מכל מפגש, לא רק זה הנוכחי) —
- * לרשימת הבחירה בהוספת נוכחות ידנית. אותה לוגיקה בדיוק כמו "התמונה
- * העדכנית" ב-getAdminData (מפגשים מהחדש לישן, הסלפי הראשון שנתקלים
- * בו לכל אדם הוא העדכני ביותר), אבל בלי שאר הנתונים הכבדים שהיא
- * מביאה — זו נטענת לפי דרישה מכל עמוד מפגש, לא רק מהניהול.
+ * לרשימת הבחירה בהוספת נוכחות ידנית. החישוב עצמו (מי הסלפי העדכני של
+ * כל חבר/ה) רץ בתוך Postgres דרך club_members_latest_selfies()
+ * (migration 0075) — לכל חבר/ה בנפרד, לא כל היסטוריית הקהילה בכל
+ * קריאה. אותה מחלה-שלא-קיימת-כבר-כאן: הפונקציה ב-SQL מדלגת על נוכחות
+ * בלי סלפי (הוספה ידנית) ומחפשת את הקודמת, כמו ב-event_going_list().
  */
 export async function getClubMembersWithLatestSelfie(
   clubId: string,
@@ -1465,52 +1466,24 @@ export async function getClubMembersWithLatestSelfie(
   }
 
   const supabase = await createClient();
-  const [{ data: memberRows }, { data: eventRows }] = await Promise.all([
-    supabase
-      .from("club_members")
-      .select("profile_id, profiles(id, full_name)")
-      .eq("club_id", clubId)
-      .eq("status", "approved"),
-    supabase
-      .from("events")
-      .select("attendances(profile_id, selfie_path)")
-      .eq("club_id", clubId)
-      .order("starts_at", { ascending: false }),
-  ]);
+  const { data } = await supabase.rpc("club_members_latest_selfies", {
+    p_club_id: clubId,
+  });
 
-  const latestPathByProfile = new Map<string, string>();
-  for (const event of (eventRows ?? []) as unknown as {
-    attendances: { profile_id: string; selfie_path: string | null }[];
-  }[]) {
-    for (const a of event.attendances) {
-      if (a.selfie_path && !latestPathByProfile.has(a.profile_id)) {
-        latestPathByProfile.set(a.profile_id, a.selfie_path);
-      }
-    }
-  }
+  const rows = (data ?? []) as {
+    profile_id: string;
+    full_name: string;
+    selfie_path: string | null;
+  }[];
 
-  const paths = [...latestPathByProfile.values()];
+  const paths = rows.flatMap((r) => (r.selfie_path ? [r.selfie_path] : []));
   const urlByPath = await createSignedUrlsCached(supabase, "selfies", paths);
 
-  return (
-    (memberRows ?? []) as unknown as {
-      profile_id: string;
-      profiles: { id: string; full_name: string } | null;
-    }[]
-  ).flatMap((m) =>
-    m.profiles
-      ? [
-          {
-            profileId: m.profiles.id,
-            fullName: m.profiles.full_name,
-            selfieUrl: (() => {
-              const path = latestPathByProfile.get(m.profile_id);
-              return path ? (urlByPath.get(path) ?? null) : null;
-            })(),
-          },
-        ]
-      : [],
-  );
+  return rows.map((r) => ({
+    profileId: r.profile_id,
+    fullName: r.full_name,
+    selfieUrl: r.selfie_path ? urlByPath.get(r.selfie_path) ?? null : null,
+  }));
 }
 
 export type EventPhoto = {
