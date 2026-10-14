@@ -18,6 +18,11 @@ import { withSentryConfig } from "@sentry/nextjs/config";
  *     ב-connect-src, כל דיווח שגיאה היה נחסם בשקט ע"י ה-CSP עצמו.
  *   - מייל שנשלח למנהלת/חברים (email-server.ts) כן טוען Google Fonts
  *     בעצמו — לא רלוונטי כאן, זה HTML של אימייל, לא עמוד שה-CSP חל עליו.
+ *   - רייל אינסטגרם בדף הבית (instagram-reel-card.tsx): embed.js
+ *     הרשמי של אינסטגרם טוען מ-www.instagram.com ומעבד את ה-blockquote
+ *     לאייפריים אמיתי מאותו דומיין - צריך גם script-src וגם frame-src
+ *     (לא היה frame-src בכלל עד עכשיו, אז נפל אחורה ל-default-src
+ *     'self' - שלא כולל אייפריים חיצוני).
  *
  * script-src/style-src נשארים עם 'unsafe-inline' במכוון — Next App
  * Router פולט סקריפטים פנימיים קטנים לשחזור (hydration), והאתר
@@ -50,8 +55,9 @@ const csp = [
   "manifest-src 'self'",
   `img-src 'self' data: blob: ${supabaseOrigin} https://basemaps.cartocdn.com`,
   "font-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net",
+  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.instagram.com",
   "style-src 'self' 'unsafe-inline'",
+  "frame-src 'self' https://www.instagram.com",
   "worker-src 'self' blob:",
   `connect-src 'self' ${supabaseOrigin} ${supabaseWs} https://cdn.jsdelivr.net https://storage.googleapis.com https://o4512198536658944.ingest.de.sentry.io`,
 ].join("; ");
