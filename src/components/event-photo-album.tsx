@@ -120,6 +120,10 @@ export function EventPhotoAlbum({
 }) {
   const router = useRouter();
   const fileInput = useRef<HTMLInputElement>(null);
+  // נעילה סינכרונית בנוסף ל-uploading (state): מגינה על החלון הקטן בין
+  // לחיצה כפולה מהירה לבין שה-UI מספיק להתעדכן ל-disabled. state
+  // מתעדכן רק ב-render הבא; ref נקרא/נכתב מיידית, באותו tick.
+  const uploadingRef = useRef(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -195,88 +199,102 @@ export function EventPhotoAlbum({
     e.target.value = "";
     if (!files.length) return;
 
+    // בדיקה+נעילה מיידית, לפני כל await - סוגרת את החלון בין לחיצה
+    // כפולה מהירה לבין שה-UI (uploading state) מספיק להתעדכן ל-
+    // disabled. בלי זה, לחיצה שנייה שמגיעה ממש צמוד לראשונה יכולה
+    // "להיכנס" ולהעלות את אותה תמונה פעמיים (נתיב ייחודי חדש בכל
+    // פעם, אין הגנה במסד מול זה).
+    if (uploadingRef.current) return;
+    uploadingRef.current = true;
+
     setError(null);
     setUploading(true);
 
-    // כל תמונה מנוסה בנפרד — כישלון באחת (למשל פורמט לא נתמך) לא עוצר
-    // את שאר התור. בסוף מדווחים בדיוק כמה הצליחו וכמה לא, במקום הודעת
-    // "הכול נכשל" גורפת שיכולה להיות שגויה (חלק כן הועלו בהצלחה).
-    let succeeded = 0;
-    let failed = 0;
-    // מזהי השורות שבאמת נוצרו (לא רק מספר) — השרת מאמת אותם בעצמו
-    // מול המסד לפני שהוא שולח התראה, במקום לסמוך על מספר שהלקוח
-    // טוען שהוא נכון. ראו notify-new-photo / notify-photos-added.
-    const approvedPhotoIds: string[] = [];
-    const pendingPhotoIds: string[] = [];
+    try {
+      // כל תמונה מנוסה בנפרד — כישלון באחת (למשל פורמט לא נתמך) לא עוצר
+      // את שאר התור. בסוף מדווחים בדיוק כמה הצליחו וכמה לא, במקום הודעת
+      // "הכול נכשל" גורפת שיכולה להיות שגויה (חלק כן הועלו בהצלחה).
+      let succeeded = 0;
+      let failed = 0;
+      // מזהי השורות שבאמת נוצרו (לא רק מספר) — השרת מאמת אותם בעצמו
+      // מול המסד לפני שהוא שולח התראה, במקום לסמוך על מספר שהלקוח
+      // טוען שהוא נכון. ראו notify-new-photo / notify-photos-added.
+      const approvedPhotoIds: string[] = [];
+      const pendingPhotoIds: string[] = [];
 
-    for (const file of files) {
-      try {
-        const blob = await compressImageFile(file, ALBUM_PHOTO_OPTIONS);
+      for (const file of files) {
+        try {
+          const blob = await compressImageFile(file, ALBUM_PHOTO_OPTIONS);
 
-        if (demoMode) {
-          const dataUrl = await blobToDataUrl(blob);
-          await addEventPhotoAction(eventId, dataUrl);
+          if (demoMode) {
+            const dataUrl = await blobToDataUrl(blob);
+            await addEventPhotoAction(eventId, dataUrl);
+            succeeded++;
+            continue;
+          }
+
+          const supabase = createClient();
+          const path = `${eventId}/${crypto.randomUUID()}.jpg`;
+          const { error: uploadError } = await supabase.storage
+            .from("event-photos")
+            .upload(path, blob, { contentType: "image/jpeg" });
+          if (uploadError) throw uploadError;
+
+          // רושמת את התמונה כ"ממתינה לאישור" (או מאושרת מיד, אם מדובר
+          // במנהלת) — בלי זה הקובץ קיים ב-storage אבל לא מופיע לאף אחד.
+          const { data: photoRow, error: addError } = await supabase.rpc(
+            "add_event_photo",
+            { p_event_id: eventId, p_storage_path: path },
+          );
+          if (addError) throw addError;
+
+          // רק אוספים את המזהה כאן — העלאת מנהלת מאושרת מיד ולא צריכה
+          // להודיע לעצמה. ההתראה בפועל יוצאת פעם אחת בסוף כל סבב, לא
+          // לכל תמונה.
+          if (photoRow?.status === "pending") {
+            pendingPhotoIds.push(photoRow.id);
+          } else if (photoRow?.status === "approved") {
+            approvedPhotoIds.push(photoRow.id);
+          }
           succeeded++;
-          continue;
+        } catch {
+          failed++;
         }
-
-        const supabase = createClient();
-        const path = `${eventId}/${crypto.randomUUID()}.jpg`;
-        const { error: uploadError } = await supabase.storage
-          .from("event-photos")
-          .upload(path, blob, { contentType: "image/jpeg" });
-        if (uploadError) throw uploadError;
-
-        // רושמת את התמונה כ"ממתינה לאישור" (או מאושרת מיד, אם מדובר
-        // במנהלת) — בלי זה הקובץ קיים ב-storage אבל לא מופיע לאף אחד.
-        const { data: photoRow, error: addError } = await supabase.rpc(
-          "add_event_photo",
-          { p_event_id: eventId, p_storage_path: path },
-        );
-        if (addError) throw addError;
-
-        // רק אוספים את המזהה כאן — העלאת מנהלת מאושרת מיד ולא צריכה
-        // להודיע לעצמה. ההתראה בפועל יוצאת פעם אחת בסוף כל סבב, לא
-        // לכל תמונה.
-        if (photoRow?.status === "pending") {
-          pendingPhotoIds.push(photoRow.id);
-        } else if (photoRow?.status === "approved") {
-          approvedPhotoIds.push(photoRow.id);
-        }
-        succeeded++;
-      } catch {
-        failed++;
       }
-    }
 
-    // התראה אחת לכל סבב העלאה, לא אחת לכל תמונה — גם אם הועלו כמה
-    // תמונות ברצף. לא ממתינים לזה, זה לא חוסם את ההעלאה.
-    if (approvedPhotoIds.length > 0) {
-      fetch("/api/push/notify-photos-added", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event_id: eventId, photo_ids: approvedPhotoIds }),
-      }).catch(() => {});
-    }
-    if (pendingPhotoIds.length > 0) {
-      fetch("/api/push/notify-new-photo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event_id: eventId, photo_ids: pendingPhotoIds }),
-      }).catch(() => {});
-    }
+      // התראה אחת לכל סבב העלאה, לא אחת לכל תמונה — גם אם הועלו כמה
+      // תמונות ברצף. לא ממתינים לזה, זה לא חוסם את ההעלאה.
+      if (approvedPhotoIds.length > 0) {
+        fetch("/api/push/notify-photos-added", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ event_id: eventId, photo_ids: approvedPhotoIds }),
+        }).catch(() => {});
+      }
+      if (pendingPhotoIds.length > 0) {
+        fetch("/api/push/notify-new-photo", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ event_id: eventId, photo_ids: pendingPhotoIds }),
+        }).catch(() => {});
+      }
 
-    if (failed > 0) {
-      setError(
-        succeeded > 0
-          ? `${succeeded} מתוך ${files.length} תמונות הועלו. ${failed === 1 ? "תמונה אחת נכשלה" : `${failed} תמונות נכשלו`} - יכול להיות שהפורמט לא נתמך.`
-          : "העלאת התמונות נכשלה. יכול להיות שהפורמט לא נתמך - נסו תמונה אחרת.",
-      );
+      if (failed > 0) {
+        setError(
+          succeeded > 0
+            ? `${succeeded} מתוך ${files.length} תמונות הועלו. ${failed === 1 ? "תמונה אחת נכשלה" : `${failed} תמונות נכשלו`} - יכול להיות שהפורמט לא נתמך.`
+            : "העלאת התמונות נכשלה. יכול להיות שהפורמט לא נתמך - נסו תמונה אחרת.",
+        );
+      }
+      // גם אם הכול נכשל, לא רק בהצלחה חלקית/מלאה: יכול להיות ששרידי
+      // ניסיון קודם כן נוספו ל-storage/DB לפני שהזריקה קרתה.
+      router.refresh();
+    } finally {
+      // תמיד משחררים, גם אם קרתה שגיאה לא-צפויה למעלה - אחרת מישהו/י
+      // שנתקל/ת בתקלה נתקע/ת עם הכפתור חסום עד רענון ידני.
+      uploadingRef.current = false;
+      setUploading(false);
     }
-    // גם אם הכול נכשל, לא רק בהצלחה חלקית/מלאה: יכול להיות ששרידי
-    // ניסיון קודם כן נוספו ל-storage/DB לפני שהזריקה קרתה.
-    router.refresh();
-    setUploading(false);
   }
 
   async function onApprove(photoId: string) {
