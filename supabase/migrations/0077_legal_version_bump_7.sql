@@ -1,0 +1,66 @@
+-- ============================================================================
+-- Swell — גרסת הטקסט המשפטי 7 (מצוף בטיחות, ציוד, שחייה, אלכוהול, סירוב, ביטוח)
+-- ============================================================================
+-- כתב הוויתור (components/legal-text.tsx, WaiverBody) עודכן בשישה סעיפים
+-- חדשים, לפי בקשת שיר: (1) חובה להגיע לכל מפגש שחייה במים פתוחים עם
+-- מצוף בטיחות אישי ולהשתמש בו, (2) Swell Club וצוותה אינם אחראים לציוד
+-- או חפצים אישיים כלשהם - גם מה שמושאר בחוף וגם מה שנלקח למים, (3) הצהרת
+-- יכולת שחייה בסיסית (לפחות קילומטר במים פתוחים), (4) איסור השתתפות תחת
+-- השפעת אלכוהול/סמים, (5) זכות הצוות לסרב להשתתפות (למשל בלי מצוף
+-- בטיחות, או אי-כשירות נראית לעין), (6) הבהרה שהפעילות אינה מבוטחת על
+-- ידי Swell Club. ראו הסבר מלא ב-0065 וב-src/lib/legal.ts.
+-- ============================================================================
+
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_club uuid;
+  v_is_first boolean;
+  v_birth_date date;
+begin
+  v_birth_date := nullif(new.raw_user_meta_data ->> 'birth_date', '')::date;
+
+  if v_birth_date is not null
+     and extract(year from age(current_date, v_birth_date)) < 21
+  then
+    raise exception 'AGE_UNDER_MINIMUM';
+  end if;
+
+  insert into public.profiles (id, full_name, phone, birth_date, city, gender, swim_level, waiver_accepted_at, privacy_accepted_at, legal_version, legal_version_updated_at, instagram)
+  values (
+    new.id,
+    coalesce(nullif(new.raw_user_meta_data ->> 'full_name', ''), 'חבר קהילה'),
+    nullif(new.raw_user_meta_data ->> 'phone', ''),
+    v_birth_date,
+    nullif(new.raw_user_meta_data ->> 'city', ''),
+    nullif(new.raw_user_meta_data ->> 'gender', '')::public.gender,
+    nullif(new.raw_user_meta_data ->> 'swim_level', '')::public.swim_level,
+    now(),
+    now(),
+    7,
+    now(),
+    nullif(new.raw_user_meta_data ->> 'instagram', '')
+  );
+
+  select id into v_club from public.clubs where slug = 'swell';
+  if v_club is not null then
+    perform pg_advisory_xact_lock(hashtext('swell:club:' || v_club::text));
+
+    v_is_first := not exists (
+      select 1 from public.club_members where club_id = v_club
+    );
+    insert into public.club_members (club_id, profile_id, role, status)
+    values (
+      v_club,
+      new.id,
+      case when v_is_first then 'organizer' else 'member' end::public.member_role,
+      case when v_is_first then 'approved' else 'pending' end::public.member_status
+    )
+    on conflict do nothing;
+  end if;
+
+  return new;
+end;
+$$;
