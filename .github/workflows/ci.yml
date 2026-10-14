@@ -20,6 +20,12 @@ jobs:
 
       - run: npm ci
 
+      - name: Generate Next.js route types
+        # tsc לבד לא מריץ next build/dev, ולכן next-env.d.ts (שמייבא
+        # קבצים מ-.next/dev/types/) לא קיים עדיין ב-checkout נקי -
+        # typegen מייצר רק אותם, בלי build מלא.
+        run: npx next typegen
+
       - name: Typecheck
         run: npx tsc --noEmit
 
