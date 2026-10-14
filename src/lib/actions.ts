@@ -180,6 +180,31 @@ export type LocationSearchResult =
   | { ok: false; error: string };
 
 /**
+ * מקומות שגוגל מפות מכיר אבל ל-OpenStreetMap אין בכלל תיוג שם עסק
+ * עליהם (מרכזים קהילתיים/קאנטרי פרטיים, בעיקר) - Nominatim מחזיר
+ * תוצאה ריקה גם לשם המדויק, כי מבחינתו אין שם כזה בכלל, לא רק ניסוח
+ * לא-מדויק. נ.צ נלקחו מחיפוש הכתובת המדויקת (קהילת סלוניקי 16,
+ * תל אביב-יפו) ב-Nominatim עצמו, שכן מכיר את הכתובת - רק לא את שם
+ * העסק שיושב עליה. aliases כוללות גם ניסוח חלקי כדי שהשלמה תוך כדי
+ * הקלדה תעבוד, לא רק הקלדה מלאה.
+ */
+const KNOWN_VENUE_OVERRIDES: {
+  aliases: string[];
+  label: string;
+  shortLabel: string;
+  lat: number;
+  lng: number;
+}[] = [
+  {
+    aliases: ["קאנטרי קהילתי נאות אפקה", "קאנטרי נאות אפקה"],
+    label: "קאנטרי קהילתי נאות אפקה, קהילת סלוניקי 16, תל אביב-יפו, ישראל",
+    shortLabel: "קאנטרי קהילתי נאות אפקה, תל אביב-יפו",
+    lat: 32.112808,
+    lng: 34.823656,
+  },
+];
+
+/**
  * השלמת כתובות תוך כדי הקלדה, דרך Nominatim (OpenStreetMap) —
  * אותו מקור מפות שכבר מזין את Leaflet באתר, בלי מפתח API ובלי עלות.
  * מדיניות השימוש שלהם דורשת User-Agent מזהה אמיתי ובקשות מהשרת,
@@ -203,6 +228,10 @@ export async function searchLocationAction(
   const q = query.trim();
   if (q.length < 3) return { ok: true, suggestions: [] };
 
+  const overrideMatches = KNOWN_VENUE_OVERRIDES.filter((v) =>
+    v.aliases.some((alias) => alias.startsWith(q)),
+  ).map(({ label, shortLabel, lat, lng }) => ({ label, shortLabel, lat, lng }));
+
   const url = new URL("https://nominatim.openstreetmap.org/search");
   url.searchParams.set("q", q);
   url.searchParams.set("format", "jsonv2");
@@ -219,6 +248,12 @@ export async function searchLocationAction(
       },
     });
     if (!response.ok) {
+      // מקום ידוע תמיד נשאר זמין גם אם Nominatim עצמו נופל כרגע -
+      // אין סיבה שתקלה בשירות חיצוני תחסום חיפוש של מקום שכבר פתרנו
+      // ידנית מראש.
+      if (overrideMatches.length > 0) {
+        return { ok: true, suggestions: overrideMatches };
+      }
       return {
         ok: false,
         error: `שירות החיפוש הגיב עם שגיאה (${response.status}).`,
@@ -243,35 +278,41 @@ export async function searchLocationAction(
 
     return {
       ok: true,
-      suggestions: results.map((r) => {
-        const addr = r.address ?? {};
-        const street = [addr.road, addr.house_number].filter(Boolean).join(" ");
-        const city = addr.city ?? addr.town ?? addr.village ?? addr.suburb ?? addr.county;
-        // מקום בעל שם בלי כתובת רחוב (חוף, פארק, אתר) — Nominatim מחזיר
-        // את השם שלו ב-r.name, לא תחת road/house_number. בלי הנפילה
-        // הזו ל-r.name, shortLabel היה מאבד את השם לגמרי ונשאר עם
-        // שם העיר בלבד (זה מה שקרה בפועל עם "חוף מציצים" → "תל אביב").
-        //
-        // רחוב "מנצח" את השם רק כשיש גם מספר בית — זו כתובת מדויקת
-        // וממוקדת (כמו "דיזנגוף 50"), ואז הוא באמת הכי שימושי. בלי
-        // מספר בית, רחוב הוא רק שיוך כללי וחלש (לפעמים ממש מקרי) —
-        // ואז השם עצמו עדיף. בלעדי זה, מקום בעל שם שיש לו גם רחוב
-        // משויך בלי מספר (למשל תחנת שכירת אופניים הקרויה על שם חוף,
-        // שיושבת על רחוב כלשהו) היה מאבד את השם המזהה שלו לטובת שם
-        // הרחוב התמים-לגמרי-לא-קשור שעליו היא יושבת בפועל.
-        const primary = addr.house_number ? street || r.name : r.name || street;
-        const shortLabel = [primary, city].filter(Boolean).join(", ") || r.display_name;
-        return {
-          label: r.display_name,
-          shortLabel,
-          lat: Number(r.lat),
-          lng: Number(r.lon),
-        };
-      }),
+      suggestions: [
+        ...overrideMatches,
+        ...results.map((r) => {
+          const addr = r.address ?? {};
+          const street = [addr.road, addr.house_number].filter(Boolean).join(" ");
+          const city = addr.city ?? addr.town ?? addr.village ?? addr.suburb ?? addr.county;
+          // מקום בעל שם בלי כתובת רחוב (חוף, פארק, אתר) — Nominatim מחזיר
+          // את השם שלו ב-r.name, לא תחת road/house_number. בלי הנפילה
+          // הזו ל-r.name, shortLabel היה מאבד את השם לגמרי ונשאר עם
+          // שם העיר בלבד (זה מה שקרה בפועל עם "חוף מציצים" → "תל אביב").
+          //
+          // רחוב "מנצח" את השם רק כשיש גם מספר בית — זו כתובת מדויקת
+          // וממוקדת (כמו "דיזנגוף 50"), ואז הוא באמת הכי שימושי. בלי
+          // מספר בית, רחוב הוא רק שיוך כללי וחלש (לפעמים ממש מקרי) —
+          // ואז השם עצמו עדיף. בלעדי זה, מקום בעל שם שיש לו גם רחוב
+          // משויך בלי מספר (למשל תחנת שכירת אופניים הקרויה על שם חוף,
+          // שיושבת על רחוב כלשהו) היה מאבד את השם המזהה שלו לטובת שם
+          // הרחוב התמים-לגמרי-לא-קשור שעליו היא יושבת בפועל.
+          const primary = addr.house_number ? street || r.name : r.name || street;
+          const shortLabel = [primary, city].filter(Boolean).join(", ") || r.display_name;
+          return {
+            label: r.display_name,
+            shortLabel,
+            lat: Number(r.lat),
+            lng: Number(r.lon),
+          };
+        }),
+      ],
     };
   } catch (err) {
     console.error("searchLocationAction: failed", err);
     Sentry.captureException(err);
+    if (overrideMatches.length > 0) {
+      return { ok: true, suggestions: overrideMatches };
+    }
     return {
       ok: false,
       error:
