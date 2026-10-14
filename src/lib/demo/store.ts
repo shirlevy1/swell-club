@@ -567,6 +567,18 @@ export function demoAddManualAttendance(eventId: string, profileId: string) {
   });
 }
 
+/** ההפך מ-demoAddManualAttendance: מסירה את רשומת הנוכחות לגמרי, בלי
+ * הבדל אם היא הגיעה מצ'ק־אין אמיתי או מהוספה ידנית — בדיוק כמו
+ * removeAttendanceAction בשרת. מוגבל-מנהלת, כמו בשרת. */
+export function demoRemoveAttendance(eventId: string, profileId: string) {
+  if (demoMyRole() !== "organizer") return;
+  const rows = db().attendances;
+  const idx = rows.findIndex(
+    (a) => a.eventId === eventId && a.profileId === profileId,
+  );
+  if (idx !== -1) rows.splice(idx, 1);
+}
+
 /** מקביל ל-storage.upload(upsert) + update_selfie_face_position() ב-
  * edit-selfie-button האמיתי: מחליף רק את התמונה ומיקום הפנים של הנוכחות
  * הקיימת שלי במפגש הזה — לא נוגע במיקום/זמן הצ'ק־אין המקורי. */

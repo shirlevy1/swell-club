@@ -282,7 +282,11 @@ export default async function EventPage({
               )}
             </div>
           </div>
-          <AttendeeGrid attendees={attendees} eventId={id} />
+          <AttendeeGrid
+            attendees={attendees}
+            eventId={id}
+            isOrganizer={isOrganizer}
+          />
           {/* אותו חלון זמן בדיוק כמו הצ'ק־אין עצמו — לא נפרד וגם לא
               פתוח לצמיתות. selfies_update_own ב-storage אוכפת את זה
               שוב בשרת, לא רק כאן. */}

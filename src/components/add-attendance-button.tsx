@@ -8,6 +8,7 @@ import { getMembersForAttendanceAction } from "@/lib/actions";
 import { addManualAttendanceAction } from "@/lib/demo/actions";
 import type { MemberPickerRow } from "@/lib/data";
 import { PlusIcon, SwimmerIcon, XIcon } from "./social-icons";
+import { useConfirmDialog } from "./confirm-dialog";
 
 /**
  * הוספת נוכחות ידנית — למי שהגיע בפועל אבל פספס את חלון הצ'ק־אין.
@@ -35,6 +36,7 @@ export function AddAttendanceButton({
   const [addingId, setAddingId] = useState<string | null>(null);
   const [justAdded, setJustAdded] = useState<Set<string>>(new Set());
   const dialogRef = useRef<HTMLDivElement>(null);
+  const { confirm, dialog: confirmDialog } = useConfirmDialog();
 
   // מקלדת: Escape סוגר, ופוקוס עובר לחלון עצמו בפתיחה — עד היום היחיד
   // שסגר את זה היה קליק על הרקע, לא נגיש למי שמנווט/ת במקלדת.
@@ -67,7 +69,16 @@ export function AddAttendanceButton({
     }
   }
 
-  async function addMember(profileId: string) {
+  async function addMember(member: MemberPickerRow) {
+    const { profileId, fullName } = member;
+    const ok = await confirm({
+      title: `להוסיף את ${fullName} למפגש?`,
+      body: "זה יסמן שהוא/היא נכח/ה במפגש, בלי צ'ק־אין בפועל.",
+      confirmText: "כן, להוסיף",
+      tone: "primary",
+    });
+    if (!ok) return;
+
     setAddingId(profileId);
     setError(null);
     try {
@@ -162,7 +173,7 @@ export function AddAttendanceButton({
                     <li key={m.profileId}>
                       <button
                         type="button"
-                        onClick={() => addMember(m.profileId)}
+                        onClick={() => addMember(m)}
                         disabled={addingId === m.profileId}
                         className="flex min-h-11 w-full items-center gap-3 rounded-lg px-2 py-2 text-start transition hover:bg-(--color-haze) disabled:opacity-50"
                       >
@@ -193,6 +204,7 @@ export function AddAttendanceButton({
           </div>
         </div>
       )}
+      {confirmDialog}
     </>
   );
 }

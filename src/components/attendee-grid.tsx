@@ -1,7 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { AttendeeCard as AttendeeCardData } from "@/lib/data";
+import type { Gender } from "@/lib/types";
+import { demoMode } from "@/lib/config";
+import { removeAttendanceAction } from "@/lib/actions";
+import { removeAttendanceAction as removeAttendanceActionDemo } from "@/lib/demo/actions";
 import { byGender, instagramUrl, whatsappUrl } from "@/lib/format";
 import { facePositionStyle } from "@/lib/face-position";
 import {
@@ -9,8 +15,15 @@ import {
   SWIM_LEVEL_COLOR,
   swimLevelBadgeStyle,
 } from "@/lib/swim-level";
-import { InstagramIcon, SwimmerIcon, WaveIcon, WhatsAppIcon } from "./social-icons";
-import { cx } from "./ui";
+import {
+  InstagramIcon,
+  SwimmerIcon,
+  TrashIcon,
+  WaveIcon,
+  WhatsAppIcon,
+} from "./social-icons";
+import { cx, Notice } from "./ui";
+import { useConfirmDialog } from "./confirm-dialog";
 import { useNewLiveIds } from "./live-refresh-context";
 
 /** נוכחות שנוספה ידנית (הוספת נוכחות ידנית) — אין לה סלפי בכלל. */
@@ -25,17 +38,59 @@ function NoSelfieFallback() {
 export function AttendeeGrid({
   attendees,
   eventId,
+  isOrganizer = false,
 }: {
   attendees: AttendeeCardData[];
   /** למה שכל אחד יראה אצלו: הסלפי מהמפגש הזה בדיוק, לא הכי עדכני */
   eventId: string;
+  /** מציג כפתור הסרה על כל אריח — גם למי שנכח/ה באמת וגם למי שנוסף/ה
+   * ידנית. אין הבדל בממשק בין השניים, בדיוק כמו שאין הבדל בהרשאה. */
+  isOrganizer?: boolean;
 }) {
+  const router = useRouter();
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const { confirm, dialog } = useConfirmDialog();
+
   // hook חייב לרוץ בכל render, גם כשהרשימה ריקה — לכן לפני ה-return
   // המוקדם למטה, לא אחריו.
   const newIds = useNewLiveIds(
     `attendees:${eventId}`,
     attendees.map((a) => a.profile.id),
   );
+
+  async function handleRemove(
+    profileId: string,
+    fullName: string,
+    gender: Gender | null,
+  ) {
+    const ok = await confirm({
+      title: `להסיר את ${fullName} מהמפגש?`,
+      body: `${byGender(gender, "הוא לא יוצג", "היא לא תוצג")} יותר כמי ש${byGender(gender, "נכח", "נכחה")} במפגש הזה. אפשר להוסיף ${byGender(gender, "אותו", "אותה")} בחזרה בכל שלב.`,
+      confirmText: "כן, להסיר",
+      tone: "danger",
+    });
+    if (!ok) return;
+
+    setError(null);
+    setRemovingId(profileId);
+    try {
+      if (demoMode) {
+        await removeAttendanceActionDemo(eventId, profileId);
+      } else {
+        const result = await removeAttendanceAction(eventId, profileId);
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
+      }
+      router.refresh();
+    } catch {
+      setError("משהו השתבש. בדקו את החיבור ונסו שוב.");
+    } finally {
+      setRemovingId(null);
+    }
+  }
 
   // מי שלא נכח/ה בעצמו/ה (למשל מנהלת שצופה לפני שהחלון נפתח) יכול/ה
   // לראות רשימה ריקה — הרכיב מוצג גם למי שלא נכח, ראו events/[id]/page.tsx.
@@ -50,16 +105,29 @@ export function AttendeeGrid({
   }
 
   return (
-    <ul className="grid grid-cols-2 gap-3">
-      {attendees.map((attendee) => (
-        <AttendeeTile
-          key={attendee.profile.id}
-          attendee={attendee}
-          eventId={eventId}
-          isNew={newIds.has(attendee.profile.id)}
-        />
-      ))}
-    </ul>
+    <div className="space-y-2">
+      {error && <Notice tone="error">{error}</Notice>}
+      <ul className="grid grid-cols-2 gap-3">
+        {attendees.map((attendee) => (
+          <AttendeeTile
+            key={attendee.profile.id}
+            attendee={attendee}
+            eventId={eventId}
+            isNew={newIds.has(attendee.profile.id)}
+            isOrganizer={isOrganizer}
+            removing={removingId === attendee.profile.id}
+            onRemove={() =>
+              handleRemove(
+                attendee.profile.id,
+                attendee.profile.full_name,
+                attendee.profile.gender,
+              )
+            }
+          />
+        ))}
+      </ul>
+      {dialog}
+    </div>
   );
 }
 
@@ -67,10 +135,16 @@ function AttendeeTile({
   attendee: { profile, selfieUrl, isMe, faceX, faceY },
   eventId,
   isNew,
+  isOrganizer,
+  removing,
+  onRemove,
 }: {
   attendee: AttendeeCardData;
   eventId: string;
   isNew: boolean;
+  isOrganizer: boolean;
+  removing: boolean;
+  onRemove: () => void;
 }) {
   const ig = instagramUrl(profile.instagram);
   const wa = whatsappUrl(profile.phone);
@@ -98,7 +172,7 @@ function AttendeeTile({
   return (
     <li
       className={cx(
-        "overflow-hidden rounded-2xl border bg-(--color-surface)/50",
+        "relative overflow-hidden rounded-2xl border bg-(--color-surface)/50",
         isMe
           ? "border-(--color-sea) ring-1 ring-(--color-sea)/30"
           : "border-(--color-line)/70",
@@ -118,6 +192,21 @@ function AttendeeTile({
         <Link href={`/people/${profile.id}?from=${eventId}`}>
           {photo}
         </Link>
+      )}
+
+      {/* כפתור נפרד, לא בתוך ה-Link - עוגן בתוך עוגן שובר את שניהם.
+          תמיד זמין למנהלת, גם למי שנכח/ה באמת וגם למי שנוסף/ה ידנית -
+          אין הבדל בממשק כמו שאין הבדל בהרשאה. */}
+      {isOrganizer && (
+        <button
+          type="button"
+          onClick={onRemove}
+          disabled={removing}
+          aria-label={`הסרת ${profile.full_name} מהמפגש`}
+          className="absolute end-1 top-1 flex size-[26px] items-center justify-center rounded-full bg-black/55 text-white disabled:opacity-40"
+        >
+          <TrashIcon className="size-[15px]" />
+        </button>
       )}
 
       <div className="space-y-2 p-3">

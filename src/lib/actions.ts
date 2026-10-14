@@ -337,3 +337,50 @@ export async function deleteEventAction(
 
   return { ok: true };
 }
+
+export type RemoveAttendanceResult = { ok: true } | { ok: false; error: string };
+
+/**
+ * מסירה נוכחות של מישהו/י ממפגש — בלי הבדל אם זו הייתה נוכחות אמיתית
+ * (צ'ק־אין עם מצלמה) או הוספה ידנית (admin_add_attendance). תמיד
+ * זמינה למנהלת, על כל מי שמופיע/ה כרגע כנוכח/ת באירוע.
+ *
+ * כמו deleteEventAction: מוחקת קודם את קובץ הסלפי מה-storage (אם יש),
+ * ורק אז את השורה עצמה — אחרת נשאר קובץ יתום לצמיתות (DATA-2, ביקורת
+ * מוכנות ההשקה). service_role כי מחיקת סלפי של מישהו/י אחר/ת לא
+ * עוברת RLS - אין policy שמתירה את זה, ולא מוסיפים כזו (היתר רחב מדי).
+ */
+export async function removeAttendanceAction(
+  eventId: string,
+  profileId: string,
+): Promise<RemoveAttendanceResult> {
+  const viewer = await getViewer();
+  if (viewer?.role !== "organizer") {
+    return { ok: false, error: "רק מנהלת קהילה יכולה להסיר נוכחות." };
+  }
+
+  const db = adminDb();
+
+  const { data: attendance } = await db
+    .from("attendances")
+    .select("selfie_path")
+    .eq("event_id", eventId)
+    .eq("profile_id", profileId)
+    .maybeSingle();
+
+  if (attendance?.selfie_path) {
+    await db.storage.from("selfies").remove([attendance.selfie_path]);
+  }
+
+  const { error } = await db
+    .from("attendances")
+    .delete()
+    .eq("event_id", eventId)
+    .eq("profile_id", profileId);
+
+  if (error) {
+    return { ok: false, error: "לא הצלחנו להסיר. נסו שוב." };
+  }
+
+  return { ok: true };
+}

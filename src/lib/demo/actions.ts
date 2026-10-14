@@ -14,6 +14,7 @@ import {
   demoDeleteEventPhoto,
   demoLeaveCommunity,
   demoRejectMember,
+  demoRemoveAttendance,
   demoRemoveMember,
   demoRestoreMember,
   demoSetMyRole,
@@ -55,6 +56,16 @@ export async function addManualAttendanceAction(
   guard();
   demoAddManualAttendance(eventId, profileId);
   revalidatePath(`/events/${eventId}`);
+}
+
+export async function removeAttendanceAction(
+  eventId: string,
+  profileId: string,
+) {
+  guard();
+  demoRemoveAttendance(eventId, profileId);
+  revalidatePath(`/events/${eventId}`);
+  revalidatePath("/admin");
 }
 
 export async function updateProfileAction(patch: Partial<Profile>) {
