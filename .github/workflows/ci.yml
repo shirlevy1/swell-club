@@ -1,0 +1,42 @@
+name: CI
+
+# רשת ביטחון אוטומטית על כל push: טיפוסים, lint, build, והבדיקה
+# הקיימת. לא נוגע בייצור בשום צורה - רק בודק שהקוד תקין. נמצא בביקורת
+# מקיפה טרום-השקה, סעיף כיסוי בדיקות.
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        # אין מפתחות Supabase אמיתיים ב-CI, ובכוונה - זו רק בדיקה
+        # שהקוד בנוי כהלכה. בלי המשתנה הזה assertNotAccidentalDemo()
+        # ב-config.ts תזרוק שגיאה (ראו ה-build הזה כ"עליה בענן" בלי
+        # מפתחות, וזה בדיוק המצב שהיא נועדה לחסום).
+        run: npm run build
+        env:
+          SWELL_ALLOW_DEMO: "1"
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E tests
+        run: npm run test:e2e
