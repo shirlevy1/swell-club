@@ -1321,6 +1321,23 @@ export type KnownPerson = {
  * הכרתם (יכול להיות עשרות אנשים אחרי כמה חודשים בקהילה). */
 const KNOWN_PEOPLE_LIMIT = 3;
 
+type MetPersonRow = {
+  profile_id: string;
+  full_name: string;
+  selfie_path: string | null;
+  face_x: number | null;
+  face_y: number | null;
+};
+
+/** home/page.tsx קוראת גם ל-getMetPeople() וגם ל-getMetPeopleCount() באותה
+ * בקשה - בלי cache() כל אחת קוראת בנפרד לאותו RPC met_people(), פעמיים
+ * באותו עומס בדיוק. אותה מחלה כמו getAdminData() בעמוד תובנות. */
+const fetchMetPeopleRows = cache(async (): Promise<MetPersonRow[]> => {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("met_people");
+  return (data ?? []) as MetPersonRow[];
+});
+
 /**
  * מדגם אקראי מכל מי שכבר חלקתם לפחות מפגש אחד — לא מפגש ספציפי, כל
  * ההיסטוריה. מתחלף בכל טעינה (sampleRandom), כדי שבכל פעם שפותחים את
@@ -1370,14 +1387,7 @@ export async function getMetPeople(userId: string): Promise<KnownPerson[]> {
   }
 
   const supabase = await createClient();
-  const { data } = await supabase.rpc("met_people");
-  const rows = (data ?? []) as {
-    profile_id: string;
-    full_name: string;
-    selfie_path: string | null;
-    face_x: number | null;
-    face_y: number | null;
-  }[];
+  const rows = await fetchMetPeopleRows();
 
   const paths = rows.map((r) => r.selfie_path).filter(Boolean) as string[];
   const urlByPath = await createSignedUrlsCached(supabase, "selfies", paths);
@@ -1414,9 +1424,8 @@ export async function getMetPeopleCount(userId: string): Promise<number> {
     return metIds.size;
   }
 
-  const supabase = await createClient();
-  const { data } = await supabase.rpc("met_people");
-  return (data ?? []).length;
+  const rows = await fetchMetPeopleRows();
+  return rows.length;
 }
 
 /** כמות חברי הקהילה המאושרים (לא ממתינים/הוסרו) — לסטטיסטיקת "X אנשים
