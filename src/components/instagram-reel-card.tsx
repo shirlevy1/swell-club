@@ -29,7 +29,7 @@ export function InstagramReelCard() {
   }, []);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3 rounded-2xl border border-(--color-line) bg-(--color-surface) p-4">
       <p className="flex items-center gap-1.5 text-sm font-semibold">
         <InstagramIcon className="size-4 text-(--color-sea)" />
         האינסטגרם שלנו
@@ -40,10 +40,10 @@ export function InstagramReelCard() {
           data-instgrm-permalink="https://www.instagram.com/reel/DcOCMDcsu5H/?utm_source=ig_embed&utm_campaign=loading"
           data-instgrm-version="14"
           style={{
-            background: "#FFF",
+            background: "transparent",
             border: 0,
             borderRadius: 12,
-            boxShadow: "0 0 1px 0 rgba(0,0,0,0.5), 0 1px 10px 0 rgba(0,0,0,0.15)",
+            boxShadow: "none",
             margin: "0 auto",
             maxWidth: 326,
             minWidth: 326,
