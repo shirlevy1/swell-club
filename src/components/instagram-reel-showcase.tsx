@@ -60,7 +60,7 @@ export function InstagramReelShowcase() {
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
           <svg
             viewBox="0 0 24 24"
-            className="size-20 translate-x-1 drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)] transition group-hover:scale-110"
+            className="size-44 translate-x-2.5 drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)] transition group-hover:scale-110"
           >
             <path
               d="M8 5v14l11-7z"
@@ -70,7 +70,7 @@ export function InstagramReelShowcase() {
               strokeLinejoin="round"
             />
           </svg>
-          <p className="text-sm font-semibold text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">
+          <p className="text-lg font-semibold text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">
             לצפייה באינסטגרם
           </p>
         </div>
