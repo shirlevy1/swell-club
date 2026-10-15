@@ -1,4 +1,4 @@
-import { InstagramIcon } from "./social-icons";
+import { SwellLogo } from "./swell-logo";
 
 /**
  * גרסה חלופית ל-InstagramReelCard, לצורך השוואה בלבד (ראו שיחה עם
@@ -26,12 +26,7 @@ export function InstagramReelShowcase() {
           rel="noreferrer"
           className="flex items-center gap-2"
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/instagram-reel-cover.jpg"
-            alt=""
-            className="size-9 shrink-0 rounded-full object-cover"
-          />
+          <SwellLogo className="size-9" decorative />
           <span
             className="text-sm font-bold text-(--color-ink)"
             style={{ letterSpacing: "-0.04em" }}
@@ -62,8 +57,7 @@ export function InstagramReelShowcase() {
           loading="lazy"
           className="aspect-[2/3] w-full object-cover transition group-active:scale-[0.98]"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-transparent" />
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
           <svg
             viewBox="0 0 24 24"
             className="size-20 translate-x-1 drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)] transition group-hover:scale-110"
@@ -76,11 +70,10 @@ export function InstagramReelShowcase() {
               strokeLinejoin="round"
             />
           </svg>
+          <p className="text-sm font-semibold text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">
+            לצפייה באינסטגרם
+          </p>
         </div>
-        <p className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 px-3 pb-2.5 pt-8 text-sm font-semibold text-white">
-          <InstagramIcon className="size-4" />
-          לצפייה באינסטגרם
-        </p>
       </a>
     </div>
   );
