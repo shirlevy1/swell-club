@@ -16,6 +16,7 @@ import { KnownPeopleStrip } from "@/components/known-people-strip";
 import { RandomEventAlbumCard } from "@/components/random-event-album";
 import { CommunityStats } from "@/components/community-stats";
 import { InstagramReelCard } from "@/components/instagram-reel-card";
+import { InstagramReelShowcase } from "@/components/instagram-reel-showcase";
 
 export default async function HomePage() {
   const viewer = await getViewer();
@@ -70,6 +71,7 @@ export default async function HomePage() {
       )}
       <CommunityStats memberCount={memberCount} metCount={metCount} />
       <InstagramReelCard />
+      <InstagramReelShowcase />
     </div>
   );
 }
