@@ -60,7 +60,7 @@ export function InstagramReelShowcase() {
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
           <svg
             viewBox="0 0 24 24"
-            className="size-44 translate-x-2.5 drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)] transition group-hover:scale-110"
+            className="size-32 translate-x-2 drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)] transition group-hover:scale-110"
           >
             <path
               d="M8 5v14l11-7z"
