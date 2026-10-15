@@ -1,5 +1,4 @@
 import { InstagramIcon } from "./social-icons";
-import { SwellLogo } from "./swell-logo";
 
 /**
  * גרסה חלופית ל-InstagramReelCard, לצורך השוואה בלבד (ראו שיחה עם
@@ -20,11 +19,6 @@ const PROFILE_LINK = "https://www.instagram.com/swell__club/";
 export function InstagramReelShowcase() {
   return (
     <div className="space-y-3 rounded-2xl border border-(--color-line) bg-(--color-surface) p-4">
-      <p className="flex items-center gap-1.5 text-sm font-semibold">
-        <InstagramIcon className="size-4 text-(--color-sea)" />
-        האינסטגרם שלנו — אפשרות 2
-      </p>
-
       <div className="flex items-center justify-between gap-2">
         <a
           href={PROFILE_LINK}
@@ -32,8 +26,18 @@ export function InstagramReelShowcase() {
           rel="noreferrer"
           className="flex items-center gap-2"
         >
-          <SwellLogo className="size-9" decorative />
-          <span className="text-sm font-bold text-(--color-ink)">swell__club</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/instagram-reel-cover.jpg"
+            alt=""
+            className="size-9 shrink-0 rounded-full object-cover"
+          />
+          <span
+            className="text-sm font-bold text-(--color-ink)"
+            style={{ letterSpacing: "-0.04em" }}
+          >
+            swell__club
+          </span>
         </a>
         <a
           href={PROFILE_LINK}
