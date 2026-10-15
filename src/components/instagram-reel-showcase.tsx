@@ -1,4 +1,5 @@
 import { InstagramIcon } from "./social-icons";
+import { SwellLogo } from "./swell-logo";
 
 /**
  * גרסה חלופית ל-InstagramReelCard, לצורך השוואה בלבד (ראו שיחה עם
@@ -19,11 +20,21 @@ const PROFILE_LINK = "https://www.instagram.com/swell__club/";
 export function InstagramReelShowcase() {
   return (
     <div className="space-y-3 rounded-2xl border border-(--color-line) bg-(--color-surface) p-4">
+      <p className="flex items-center gap-1.5 text-sm font-semibold">
+        <InstagramIcon className="size-4 text-(--color-sea)" />
+        האינסטגרם שלנו — אפשרות 2
+      </p>
+
       <div className="flex items-center justify-between gap-2">
-        <p className="flex items-center gap-1.5 text-sm font-semibold">
-          <InstagramIcon className="size-4 text-(--color-sea)" />
-          האינסטגרם שלנו — אפשרות 2
-        </p>
+        <a
+          href={PROFILE_LINK}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-2"
+        >
+          <SwellLogo className="size-9" decorative />
+          <span className="text-sm font-bold text-(--color-ink)">swell__club</span>
+        </a>
         <a
           href={PROFILE_LINK}
           target="_blank"
@@ -49,15 +60,22 @@ export function InstagramReelShowcase() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-transparent" />
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="flex size-14 items-center justify-center rounded-full bg-white/90 shadow-lg transition group-hover:bg-white">
-            <svg viewBox="0 0 24 24" className="size-6 translate-x-0.5 fill-(--color-deep)">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-          </div>
+          <svg
+            viewBox="0 0 24 24"
+            className="size-20 translate-x-1 drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)] transition group-hover:scale-110"
+          >
+            <path
+              d="M8 5v14l11-7z"
+              fill="white"
+              stroke="white"
+              strokeWidth="2"
+              strokeLinejoin="round"
+            />
+          </svg>
         </div>
         <p className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 px-3 pb-2.5 pt-8 text-sm font-semibold text-white">
           <InstagramIcon className="size-4" />
-          לצפייה ברייל באינסטגרם
+          לצפייה באינסטגרם
         </p>
       </a>
     </div>
