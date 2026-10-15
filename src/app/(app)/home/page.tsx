@@ -15,7 +15,6 @@ import { SeaConditionsCard } from "@/components/sea-conditions-card";
 import { KnownPeopleStrip } from "@/components/known-people-strip";
 import { RandomEventAlbumCard } from "@/components/random-event-album";
 import { CommunityStats } from "@/components/community-stats";
-import { InstagramReelCard } from "@/components/instagram-reel-card";
 import { InstagramReelShowcase } from "@/components/instagram-reel-showcase";
 
 export default async function HomePage() {
@@ -70,7 +69,6 @@ export default async function HomePage() {
         <RandomEventAlbumCard eventId={randomAlbum.eventId} photoUrls={randomAlbum.photoUrls} />
       )}
       <CommunityStats memberCount={memberCount} metCount={metCount} />
-      <InstagramReelCard />
       <InstagramReelShowcase />
     </div>
   );
