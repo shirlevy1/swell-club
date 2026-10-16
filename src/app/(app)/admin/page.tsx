@@ -19,7 +19,7 @@ import { AdminEventCard } from "@/components/admin-event-card";
 import { PendingMembersCard } from "@/components/pending-member-row";
 import { PendingPhotosSection } from "@/components/pending-photo-group";
 import { AdminLiveRefresh } from "@/components/admin-live-refresh";
-import { ChartIcon, InstagramIcon } from "@/components/social-icons";
+import { ChartIcon, MetaIcon } from "@/components/social-icons";
 
 /** מקבצת לפי מפגש, ובתוך כל מפגש לפי מי שהעלה — כדי שערימת התמונות
  * של אדם אחד ממפגש אחד תאושר בלחיצה אחת, במקום תמונה-תמונה. */
@@ -131,7 +131,7 @@ export default async function AdminPage() {
               aria-label="הרייל באינסטגרם"
               className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-(--color-line) bg-(--color-surface) text-(--color-sea) transition hover:border-(--color-sea)/50 hover:bg-(--color-sea)/10"
             >
-              <InstagramIcon className="size-5" />
+              <MetaIcon className="size-5" />
             </Link>
             <Link
               href="/admin/insights"
