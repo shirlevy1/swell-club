@@ -22,6 +22,7 @@ import {
   demoToggleRsvp,
   demoUpdateEventSchedule,
   demoUpdateInstagramReel,
+  demoUpdateWhatsappLink,
   demoUpdateProfile,
   demoUpdateSelfie,
 } from "./store";
@@ -127,6 +128,13 @@ export async function updateInstagramReelAction(
 ) {
   guard();
   demoUpdateInstagramReel(permalink, coverDataUrl);
+  revalidatePath("/home");
+  revalidatePath("/admin/instagram");
+}
+
+export async function updateWhatsappLinkAction(link: string | null) {
+  guard();
+  demoUpdateWhatsappLink(link);
   revalidatePath("/home");
   revalidatePath("/admin/instagram");
 }

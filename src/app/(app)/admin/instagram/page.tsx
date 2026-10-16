@@ -2,11 +2,13 @@ import { redirect } from "next/navigation";
 import { getViewer, getHomeInstagramReel } from "@/lib/data";
 import { BackLink } from "@/components/ui";
 import { InstagramReelSettingsForm } from "@/components/instagram-reel-settings-form";
+import { WhatsappGroupSettingsForm } from "@/components/whatsapp-group-settings-form";
 
 /**
  * עריכת הרייל+תמונת הקאבר שמוצגים בכרטיס האינסטגרם בדף הבית (ראו
- * instagram-reel-showcase.tsx) - מנהלת בלבד. קישור הפרופיל
- * (swell__club) למעלה בכרטיס קבוע במכוון, לא שדה כאן.
+ * instagram-reel-showcase.tsx) וקישור קבוצת הוואטסאפ (whatsapp-group-card.tsx)
+ * - מנהלת בלבד. קישור הפרופיל (swell__club) למעלה בכרטיס האינסטגרם
+ * קבוע במכוון, לא שדה כאן.
  */
 export default async function AdminInstagramPage() {
   const viewer = await getViewer();
@@ -33,6 +35,21 @@ export default async function AdminInstagramPage() {
         currentPermalink={viewer.club.instagram_reel_permalink}
         currentCoverPath={viewer.club.instagram_reel_cover_path}
         currentCoverUrl={current.coverUrl}
+      />
+
+      <div className="space-y-1 border-t border-(--color-line) pt-6">
+        <h2 className="font-[family-name:var(--font-display)] text-xl font-bold">
+          קבוצת הוואטסאפ
+        </h2>
+        <p className="text-sm leading-relaxed text-(--color-ink-faint)">
+          יוצג כקישור בדף הבית, מתחת לכרטיס האינסטגרם. ריק = לא מוצג
+          בכלל.
+        </p>
+      </div>
+
+      <WhatsappGroupSettingsForm
+        clubId={viewer.club.id}
+        currentLink={viewer.club.whatsapp_group_link}
       />
     </div>
   );

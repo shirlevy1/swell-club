@@ -17,6 +17,7 @@ import { KnownPeopleStrip } from "@/components/known-people-strip";
 import { RandomEventAlbumCard } from "@/components/random-event-album";
 import { CommunityStats } from "@/components/community-stats";
 import { InstagramReelShowcase } from "@/components/instagram-reel-showcase";
+import { WhatsappGroupCard } from "@/components/whatsapp-group-card";
 
 export default async function HomePage() {
   const viewer = await getViewer();
@@ -76,6 +77,7 @@ export default async function HomePage() {
         permalink={instagramReel.permalink}
         coverUrl={instagramReel.coverUrl}
       />
+      <WhatsappGroupCard link={viewer.club.whatsapp_group_link} />
     </div>
   );
 }

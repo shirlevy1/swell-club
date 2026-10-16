@@ -17,6 +17,7 @@ const CLUB: Club = {
   description: "קהילת השחיינים",
   instagram_reel_permalink: null,
   instagram_reel_cover_path: null,
+  whatsapp_group_link: null,
 };
 
 const ME_ID = "demo-me";
@@ -863,4 +864,9 @@ export function demoUpdateInstagramReel(
     instagram_reel_permalink: permalink,
     instagram_reel_cover_path: coverDataUrl,
   });
+}
+
+export function demoUpdateWhatsappLink(link: string | null) {
+  if (demoMyRole() !== "organizer") return;
+  Object.assign(CLUB, { whatsapp_group_link: link });
 }

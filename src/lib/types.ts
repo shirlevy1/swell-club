@@ -27,6 +27,7 @@ export type Club = {
   description: string | null;
   instagram_reel_permalink: string | null;
   instagram_reel_cover_path: string | null;
+  whatsapp_group_link: string | null;
 };
 
 export type ClubMember = {
