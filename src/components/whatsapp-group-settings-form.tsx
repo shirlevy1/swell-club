@@ -8,7 +8,7 @@ import { updateWhatsappLinkAction } from "@/lib/demo/actions";
 import { Button, Card, Field, Input, Notice } from "./ui";
 
 /**
- * טופס עריכת קישור קבוצת הוואטסאפ שמוצג בדף הבית (whatsapp-group-card.tsx)
+ * טופס עריכת קישור קבוצת הוואטסאפ שמוצג בדף הבית (whatsapp-group-card-row.tsx)
  * - מנהלת בלבד, אותו עמוד ניהול כמו הרייל באינסטגרם (admin/instagram).
  */
 export function WhatsappGroupSettingsForm({

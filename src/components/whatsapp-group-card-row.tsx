@@ -1,9 +1,9 @@
 import { WhatsAppIcon, ExternalLinkIcon } from "./social-icons";
 
 /**
- * אפשרות עיצוב 3 לכרטיס קבוצת הוואטסאפ (זמני, להשוואה - ראו שיחה עם
- * שיר). שורה נקייה עם שתי שורות טקסט, בסגנון רשימה (כמו שורת הגדרה
- * באפליקציה רגילה) ולא "באנר".
+ * קישור לקבוצת הוואטסאפ של Swell Club, בדף הבית מתחת לכרטיס
+ * האינסטגרם - מנהלת הקהילה קובעת את הקישור ב-admin/instagram
+ * (whatsapp-group-settings-form.tsx). לא מוצג בכלל אם עוד לא הוגדר.
  */
 export function WhatsappGroupCardRow({ link }: { link: string | null }) {
   if (!link) return null;

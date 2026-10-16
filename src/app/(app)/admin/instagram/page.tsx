@@ -6,7 +6,7 @@ import { WhatsappGroupSettingsForm } from "@/components/whatsapp-group-settings-
 
 /**
  * עריכת הרייל+תמונת הקאבר שמוצגים בכרטיס האינסטגרם בדף הבית (ראו
- * instagram-reel-showcase.tsx) וקישור קבוצת הוואטסאפ (whatsapp-group-card.tsx)
+ * instagram-reel-showcase.tsx) וקישור קבוצת הוואטסאפ (whatsapp-group-card-row.tsx)
  * - מנהלת בלבד. קישור הפרופיל (swell__club) למעלה בכרטיס האינסטגרם
  * קבוע במכוון, לא שדה כאן.
  */
