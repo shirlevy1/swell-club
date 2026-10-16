@@ -7,8 +7,10 @@
 כל גודל מסך צריך תמונה בפיקסלים המדויקים שלו — אייפון לא מותח/מקטין
 תמונה אחת לכל המכשירים. פורטרט בלבד, כי האתר נעול לכיוון הזה.
 
-רק רקע כחול-ים (--color-sky) והלוגו הלבן ממורכז — בלי שום כיתוב, לפי
-בקשה מפורשת של שיר (הוסרה גרסה קודמת עם "from Shir Levy").
+רקע כחול-ים (--color-sky), הלוגו הלבן ממורכז, ולוגו "from nest" קטן
+קרוב לתחתית — באותו סגנון בדיוק כמו "from Meta" במסך הפתיחה של
+אינסטגרם. (גרסה קודמת עם "from Shir Levy" הוסרה בעבר לפי בקשת שיר;
+"from nest" חזרה עכשיו במכוון, לא דריסה בטעות של אותה החלטה).
 
 להרצה אחרי שינוי לוגו: python3 scripts/generate-splash-images.py
 (דורש: pip3 install --user pillow)
@@ -35,6 +37,7 @@ OUT_DIR.mkdir(exist_ok=True)
 
 SKY = (146, 173, 197, 255)  # --color-sky, #92adc5 (globals.css)
 WORDMARK = PUBLIC / "logo-wordmark-white-v4.png"
+FROM_NEST = PUBLIC / "from-nest.png"
 
 # (pixel_w, pixel_h, dpr, css_w, css_h) — פורטרט בלבד
 DEVICES = [
@@ -52,11 +55,16 @@ DEVICES = [
 ]
 
 FILL_RATIO = 0.55  # רוחב הוורדמארק יחסית לרוחב המסך
+FROM_NEST_RATIO = 0.3  # רוחב "from nest" יחסית לרוחב המסך - קטן משמעותית מהלוגו הראשי
+FROM_NEST_BOTTOM_RATIO = 0.08  # מרווח מתחתית המסך, יחסית לגובה המסך
 
 if not WORDMARK.exists():
     sys.exit(f"לא נמצא {WORDMARK}")
+if not FROM_NEST.exists():
+    sys.exit(f"לא נמצא {FROM_NEST}")
 
 wordmark = Image.open(WORDMARK).convert("RGBA")
+from_nest = Image.open(FROM_NEST).convert("RGBA")
 
 generated = []
 for (w, h, dpr, css_w, css_h) in DEVICES:
@@ -69,6 +77,14 @@ for (w, h, dpr, css_w, css_h) in DEVICES:
     logo_x = (w - target_w) // 2
     logo_y = (h - target_h) // 2
     canvas.alpha_composite(resized, (logo_x, logo_y))
+
+    nest_w = int(w * FROM_NEST_RATIO)
+    nest_scale = nest_w / from_nest.width
+    nest_h = int(from_nest.height * nest_scale)
+    nest_resized = from_nest.resize((nest_w, nest_h), Image.LANCZOS)
+    nest_x = (w - nest_w) // 2
+    nest_y = h - int(h * FROM_NEST_BOTTOM_RATIO) - nest_h
+    canvas.alpha_composite(nest_resized, (nest_x, nest_y))
 
     filename = f"splash-{w}x{h}.png"
     canvas.convert("RGB").save(OUT_DIR / filename, "PNG")
