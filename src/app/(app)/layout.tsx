@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getViewer, getOrganizerPendingCounts } from "@/lib/data";
+import { getViewer, getOrganizerPendingCounts, getOwnPrivateInfo } from "@/lib/data";
 import { demoMode } from "@/lib/config";
 import { CURRENT_LEGAL_VERSION } from "@/lib/legal";
 import { AppNav } from "@/components/app-nav";
@@ -13,6 +13,8 @@ import { SignOutButton } from "@/components/sign-out-button";
 import { AmbiguousMembershipScreen } from "@/components/ambiguous-membership-screen";
 import { LegalUpdateGate } from "@/components/legal-update-gate";
 import { LegalUpdateBanner } from "@/components/legal-update-banner";
+import { IdNumberGate } from "@/components/id-number-gate";
+import { IdNumberBanner } from "@/components/id-number-banner";
 import { Card, LinkButton } from "@/components/ui";
 import { InstagramIcon } from "@/components/social-icons";
 
@@ -55,6 +57,17 @@ export default async function AppLayout({
     (viewer.profile.legal_version == null ||
       viewer.profile.legal_version < CURRENT_LEGAL_VERSION);
   const legalBlocksMember = legalStale && !isOrganizer;
+
+  // רק כש-status === "approved" - בכל מצב אחר (pending/removed/null)
+  // הענף שלמטה ממילא לא מגיע ל-children/gate, אין טעם בשאילתה נוספת.
+  // profile_private_info בטבלה נפרדת (migration 0081) - בניגוד ל-
+  // legal_version, זו לא עמודה שכבר קיימת על viewer.profile.
+  let idInfoStale = false;
+  if (!demoMode && viewer.status === "approved") {
+    const privateInfo = await getOwnPrivateInfo(viewer.userId);
+    idInfoStale = !privateInfo.id_number || !privateInfo.street;
+  }
+  const idGateBlocksMember = idInfoStale && !isOrganizer;
 
   return (
     <div className="relative isolate flex h-full flex-col overflow-hidden">
@@ -134,9 +147,12 @@ export default async function AppLayout({
             <AmbiguousMembershipScreen />
           ) : legalBlocksMember ? (
             <LegalUpdateGate profileId={viewer.userId} />
+          ) : idGateBlocksMember ? (
+            <IdNumberGate profileId={viewer.userId} />
           ) : (
             <>
               {legalStale && <LegalUpdateBanner profileId={viewer.userId} />}
+              {idInfoStale && <IdNumberBanner />}
               <HomeScreenNudge />
               <NotificationPromptBanner recentlyRestored={recentlyRestored} />
               {children}
