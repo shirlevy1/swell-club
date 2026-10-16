@@ -56,7 +56,7 @@ export function WhatsappGroupSettingsForm({
   return (
     <form onSubmit={onSubmit} className="space-y-5">
       <Card className="space-y-4">
-        <Field label="קישור לקבוצת הוואטסאפ של Swell Club">
+        <Field label="קישור לווצאפ">
           <Input
             type="text"
             dir="ltr"

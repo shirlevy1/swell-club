@@ -39,7 +39,7 @@ export default async function AdminInstagramPage() {
 
       <div className="space-y-1 border-t border-(--color-line) pt-6">
         <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold">
-          קבוצת הוואטסאפ
+          קבוצת הוואטסאפ של Swell Club
         </h2>
         <p className="text-sm leading-relaxed text-(--color-ink-faint)">
           יוצג כקישור בדף הבית. ריק = לא מוצג בכלל.
