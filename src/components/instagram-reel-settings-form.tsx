@@ -9,6 +9,24 @@ import { compressImageFile, ALBUM_PHOTO_OPTIONS, blobToDataUrl } from "@/lib/ima
 import { Button, Card, Field, Input, Notice } from "./ui";
 
 /**
+ * שיר ניסתה להדביק את קוד ה"הטבעה" המלא של אינסטגרם (⋯ → הטבעה →
+ * העתקת הקוד) במקום רק הקישור (⋯ → העתקת קישור) - שדה url דוחה את
+ * זה בשקט עם הודעת ולידציה של הדפדפן, בלי שום הסבר למה. שולפים את
+ * הקישור האמיתי מתוך data-instgrm-permalink אם זה מה שהודבק, כדי
+ * שהטעות הזו לא תחסום.
+ */
+function extractReelLink(raw: string): string {
+  const trimmed = raw.trim();
+  const embedMatch = trimmed.match(/data-instgrm-permalink="([^"]+)"/);
+  if (embedMatch) return embedMatch[1];
+  const urlMatch = trimmed.match(
+    /https?:\/\/(?:www\.)?instagram\.com\/(?:reel|p)\/[A-Za-z0-9_-]+\/?[^\s"'<>]*/,
+  );
+  if (urlMatch) return urlMatch[0];
+  return trimmed;
+}
+
+/**
  * טופס עריכת הרייל+תמונת הקאבר בכרטיס האינסטגרם בדף הבית (ראו
  * instagram-reel-showcase.tsx, admin/instagram/page.tsx). currentCoverPath
  * הוא הערך הגולמי השמור (נתיב ב-storage/data URL, לא ה-URL הציבורי
@@ -101,16 +119,24 @@ export function InstagramReelSettingsForm({
       <Card className="space-y-4">
         <Field
           label="קישור הרייל"
-          hint="הקישור לרייל הספציפי שיוצג בדף הבית - מתוך ⋯ → העתקת קישור, באינסטגרם"
+          hint="⋯ → העתקת קישור, באינסטגרם (לא ⋯ → הטבעה - זה קוד שונה, לא קישור)"
         >
           <Input
-            type="url"
+            type="text"
             dir="ltr"
             placeholder="https://www.instagram.com/reel/…"
             value={permalink}
             onChange={(e) => {
               setPermalink(e.target.value);
               setSuccess(false);
+            }}
+            onPaste={(e) => {
+              const pasted = e.clipboardData.getData("text");
+              if (pasted.includes("data-instgrm-permalink") || pasted.includes("<blockquote")) {
+                e.preventDefault();
+                setPermalink(extractReelLink(pasted));
+                setSuccess(false);
+              }
             }}
             className="text-left"
           />
