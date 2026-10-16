@@ -117,10 +117,7 @@ export function InstagramReelSettingsForm({
   return (
     <form onSubmit={onSubmit} className="space-y-5">
       <Card className="space-y-4">
-        <Field
-          label="קישור הרייל"
-          hint="⋯ → העתקת קישור, באינסטגרם"
-        >
+        <Field label="קישור לרייל">
           <Input
             type="text"
             dir="ltr"
