@@ -18,6 +18,9 @@ import { RandomEventAlbumCard } from "@/components/random-event-album";
 import { CommunityStats } from "@/components/community-stats";
 import { InstagramReelShowcase } from "@/components/instagram-reel-showcase";
 import { WhatsappGroupCard } from "@/components/whatsapp-group-card";
+import { WhatsappGroupCardBanner } from "@/components/whatsapp-group-card-banner";
+import { WhatsappGroupCardRow } from "@/components/whatsapp-group-card-row";
+import { WhatsappGroupCardFeature } from "@/components/whatsapp-group-card-feature";
 
 export default async function HomePage() {
   const viewer = await getViewer();
@@ -78,6 +81,15 @@ export default async function HomePage() {
         coverUrl={instagramReel.coverUrl}
       />
       <WhatsappGroupCard link={viewer.club.whatsapp_group_link} />
+
+      {/* זמני - 3 אופציות עיצוב נוספות להשוואה, ראו שיחה עם שיר.
+          למחוק את כולן חוץ מהנבחרת אחרי שתבחר. */}
+      <p className="text-xs font-bold text-(--color-ink-faint)">אפשרות 2</p>
+      <WhatsappGroupCardBanner link={viewer.club.whatsapp_group_link} />
+      <p className="text-xs font-bold text-(--color-ink-faint)">אפשרות 3</p>
+      <WhatsappGroupCardRow link={viewer.club.whatsapp_group_link} />
+      <p className="text-xs font-bold text-(--color-ink-faint)">אפשרות 4</p>
+      <WhatsappGroupCardFeature link={viewer.club.whatsapp_group_link} />
     </div>
   );
 }
