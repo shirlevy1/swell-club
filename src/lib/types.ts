@@ -20,6 +20,17 @@ export type Profile = {
   created_at: string;
 };
 
+/**
+ * תעודת זהות+רחוב - בכוונה לא על Profile עצמו, טבלה נפרדת (migration
+ * 0081) עם RLS מחמיר יותר (רק את/ה עצמך, או מנהלת - לא מי שנכח/ה
+ * איתכם במפגש, בניגוד ל-profiles_select הרגילה).
+ */
+export type ProfilePrivateInfo = {
+  profile_id: string;
+  id_number: string | null;
+  street: string | null;
+};
+
 export type Club = {
   id: string;
   name: string;

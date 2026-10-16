@@ -24,6 +24,7 @@ import {
   demoUpdateInstagramReel,
   demoUpdateWhatsappLink,
   demoUpdateProfile,
+  demoUpdatePrivateInfo,
   demoUpdateSelfie,
 } from "./store";
 
@@ -74,6 +75,16 @@ export async function updateProfileAction(patch: Partial<Profile>) {
   guard();
   demoUpdateProfile(patch);
   revalidatePath("/profile");
+}
+
+export async function updatePrivateInfoAction(patch: {
+  id_number: string | null;
+  street: string | null;
+}) {
+  guard();
+  demoUpdatePrivateInfo(patch);
+  revalidatePath("/profile");
+  revalidatePath("/profile/edit");
 }
 
 /** הסלפי מגיע כ-data URL, בדיוק כמו ב-checkInAction. */

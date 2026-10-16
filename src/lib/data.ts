@@ -25,6 +25,7 @@ import type {
   MemberRole,
   MemberStatus,
   Profile,
+  ProfilePrivateInfo,
   SwellEvent,
   SwimLevel,
 } from "./types";
@@ -944,6 +945,34 @@ export async function getMemberProfile(
     .eq("id", profileId)
     .maybeSingle();
   return (data ?? null) as Profile | null;
+}
+
+/**
+ * תעודת זהות+רחוב - תמיד "של עצמי" (profile/edit/page.tsx, היחיד
+ * שקורא לזה) - RLS כבר דואג שרק הבעלים או מנהלת יוכלו לקרוא שורה כזו
+ * בכלל (migration 0081), אז אין צורך בבדיקת הרשאה נוספת כאן.
+ */
+export async function getOwnPrivateInfo(
+  profileId: string,
+): Promise<ProfilePrivateInfo> {
+  if (demoMode) {
+    const info = demo.demoGetMyPrivateInfo();
+    return { profile_id: profileId, id_number: info.id_number, street: info.street };
+  }
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profile_private_info")
+    .select("profile_id, id_number, street")
+    .eq("profile_id", profileId)
+    .maybeSingle();
+  return (
+    (data as ProfilePrivateInfo | null) ?? {
+      profile_id: profileId,
+      id_number: null,
+      street: null,
+    }
+  );
 }
 
 export type Membership = {
@@ -3079,12 +3108,33 @@ export async function getAdminMembersReport(
     (e) => checkInWindow(e).status !== "before",
   ).length;
 
+  // profile_private_info בטבלה נפרדת במכוון (migration 0081) - שליפה
+  // נפרדת כאן, לא דרך getAdminData/AdminMember. בהדגמה אין מידע כזה
+  // לאף אחד חוץ מ"עצמי" (רק ProfileForm כותב להדגמה) - מספיק עבור
+  // ייצוא CSV, שאף פעם לא נבדק בדיוק בערכים בהדגמה.
+  let privateInfoByProfileId = new Map<string, { id_number: string | null; street: string | null }>();
+  if (demoMode) {
+    const me = demo.demoGetMyPrivateInfo();
+    privateInfoByProfileId.set(demo.demoMeId, me);
+  } else if (members.length > 0) {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("profile_private_info")
+      .select("profile_id, id_number, street")
+      .in("profile_id", members.map((m) => m.profile.id));
+    privateInfoByProfileId = new Map(
+      (data ?? []).map((row) => [row.profile_id, row]),
+    );
+  }
+
   return [
     [
       "שם",
       "מגדר",
       "גיל",
       "תאריך לידה",
+      "תעודת זהות",
+      "רחוב",
       "עיר מגורים",
       "טלפון",
       "אימייל",
@@ -3103,6 +3153,8 @@ export async function getAdminMembersReport(
       genderLabel(m.profile.gender),
       ageInYears(m.profile.birth_date)?.toString() ?? "",
       m.profile.birth_date ?? "",
+      privateInfoByProfileId.get(m.profile.id)?.id_number ?? "",
+      privateInfoByProfileId.get(m.profile.id)?.street ?? "",
       m.profile.city ?? "",
       formatPhone(m.profile.phone) ?? "",
       m.email ?? "",

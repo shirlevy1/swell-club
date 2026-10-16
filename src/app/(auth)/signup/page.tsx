@@ -8,6 +8,7 @@ import {
   ageInYears,
   hasFirstAndLastName,
   isHebrewName,
+  isValidIsraeliId,
   isValidIsraeliPhone,
   normalizeInstagram,
 } from "@/lib/format";
@@ -39,6 +40,8 @@ export default function SignupPage() {
     const password = String(form.get("password") ?? "");
     const phone = String(form.get("phone") ?? "").trim();
     const birthDate = String(form.get("birth_date") ?? "").trim();
+    const idNumber = String(form.get("id_number") ?? "").trim();
+    const street = String(form.get("street") ?? "").trim();
     const city = String(form.get("city") ?? "").trim();
     const swimLevel = String(form.get("swim_level") ?? "").trim();
     const instagram = normalizeInstagram(String(form.get("instagram") ?? ""));
@@ -56,6 +59,8 @@ export default function SignupPage() {
     if (!birthDate) return setError("צריך תאריך לידה.");
     const age = ageInYears(birthDate);
     if (age !== null && age < 21) return setError("ההרשמה פתוחה מגיל 21 ומעלה.");
+    if (!isValidIsraeliId(idNumber)) return setError("מספר תעודת הזהות לא נראה תקין.");
+    if (!street) return setError("צריך למלא רחוב ומספר בית.");
     if (!city) return setError("צריך לבחור עיר מגורים.");
     if (!swimLevel) return setError("צריך לבחור מה הכי מתאר אתכם במים.");
     if (!legalAccepted)
@@ -102,6 +107,8 @@ export default function SignupPage() {
             gender,
             phone,
             birth_date: birthDate,
+            id_number: idNumber,
+            street,
             city,
             swim_level: swimLevel,
             instagram,
@@ -216,6 +223,20 @@ export default function SignupPage() {
           />
         </Field>
 
+        <Field label="תעודת זהות" hint="לזיהוי ולצורך כתב הוויתור.">
+          <Input
+            name="id_number"
+            type="text"
+            inputMode="numeric"
+            autoComplete="off"
+            dir="ltr"
+            required
+            maxLength={9}
+            placeholder="123456789"
+            className="text-left"
+          />
+        </Field>
+
         <Field label="אינסטגרם" hint="כדי להכיר את מי שמאחורי השחייה.">
           <Input
             name="instagram"
@@ -224,6 +245,10 @@ export default function SignupPage() {
             placeholder="@username"
             className="text-left"
           />
+        </Field>
+
+        <Field label="רחוב ומספר בית">
+          <Input name="street" autoComplete="address-line1" required />
         </Field>
 
         <Field label="עיר מגורים">

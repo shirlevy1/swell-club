@@ -605,6 +605,27 @@ export function demoUpdateProfile(patch: Partial<Profile>) {
   Object.assign(me, patch);
 }
 
+/**
+ * תעודת זהות+רחוב בהדגמה - לא על demoMe() (ProfilePrivateInfo נשמר
+ * בטבלה נפרדת מ-profiles גם במציאות, ראו migration 0081). רק "עצמי"
+ * ניתן לעריכה בהדגמה - ProfileForm הוא היחיד שכותב לכאן.
+ */
+const demoMyPrivateInfo: { id_number: string | null; street: string | null } = {
+  id_number: null,
+  street: null,
+};
+
+export function demoGetMyPrivateInfo() {
+  return demoMyPrivateInfo;
+}
+
+export function demoUpdatePrivateInfo(patch: {
+  id_number: string | null;
+  street: string | null;
+}) {
+  Object.assign(demoMyPrivateInfo, patch);
+}
+
 export function demoSetMyRole(role: MemberRole) {
   db().myRole = role;
 }

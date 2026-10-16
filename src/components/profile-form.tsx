@@ -4,13 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { demoMode } from "@/lib/config";
-import { updateProfileAction } from "@/lib/demo/actions";
+import { updateProfileAction, updatePrivateInfoAction } from "@/lib/demo/actions";
 import { CURRENT_LEGAL_VERSION } from "@/lib/legal";
 import {
   ageInYears,
   byGender,
   hasFirstAndLastName,
   isHebrewName,
+  isValidIsraeliId,
   isValidIsraeliPhone,
   normalizeInstagram,
 } from "@/lib/format";
@@ -18,12 +19,18 @@ import { CityAutocomplete } from "@/components/city-autocomplete";
 import { BirthDateInput } from "@/components/birth-date-input";
 import { GenderInput } from "@/components/gender-input";
 import { SwimLevelInput } from "@/components/swim-level-input";
-import type { Gender, Profile, SwimLevel } from "@/lib/types";
+import type { Gender, Profile, ProfilePrivateInfo, SwimLevel } from "@/lib/types";
 import { Button, Card, Field, Input, Notice } from "./ui";
 import { ChevronIcon } from "./social-icons";
 import { useConfirmDialog } from "./confirm-dialog";
 
-export function ProfileForm({ profile }: { profile: Profile }) {
+export function ProfileForm({
+  profile,
+  privateInfo,
+}: {
+  profile: Profile;
+  privateInfo: ProfilePrivateInfo;
+}) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +62,8 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     const gender = String(form.get("gender") ?? "").trim();
     const phone = String(form.get("phone") ?? "").trim();
     const birthDate = String(form.get("birth_date") ?? "").trim();
+    const idNumber = String(form.get("id_number") ?? "").trim();
+    const street = String(form.get("street") ?? "").trim();
     const city = String(form.get("city") ?? "").trim();
     const swimLevel = String(form.get("swim_level") ?? "").trim();
 
@@ -69,6 +78,8 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     if (!birthDate) return setError("צריך תאריך לידה.");
     const age = ageInYears(birthDate);
     if (age !== null && age < 21) return setError("חברות ב-Swell Club פתוחה מגיל 21 ומעלה.");
+    if (!isValidIsraeliId(idNumber)) return setError("מספר תעודת הזהות לא נראה תקין.");
+    if (!street) return setError("צריך למלא רחוב ומספר בית.");
     if (!city) return setError("צריך לבחור עיר מגורים.");
     if (!swimLevel) return setError("צריך לבחור מה הכי מתאר אתכם במים.");
     // התיבות עצמן כבר לא ניתנות לעריכה כשכבר אושרו (ראו למטה) — האישור
@@ -107,10 +118,13 @@ export function ProfileForm({ profile }: { profile: Profile }) {
       patch.privacy_accepted_at = new Date().toISOString();
     }
 
+    const privateInfoPatch = { id_number: idNumber, street };
+
     setPending(true);
 
     if (demoMode) {
       await updateProfileAction(patch);
+      await updatePrivateInfoAction(privateInfoPatch);
       setPending(false);
       router.push("/profile");
       router.refresh();
@@ -143,9 +157,23 @@ export function ProfileForm({ profile }: { profile: Profile }) {
         .from("profiles")
         .update(patch)
         .eq("id", profile.id);
+      if (updateError) {
+        setPending(false);
+        return setError("לא הצלחנו לשמור. נסו שוב.");
+      }
+
+      // טבלה נפרדת מ-profiles במכוון (migration 0081) - כתיבה שנייה,
+      // לא טרנזקציה אחת. upsert כי בפעם הראשונה (חשבון ישן שנרשם לפני
+      // שהשדות האלה נוספו) עדיין אין שורה כלל.
+      const { error: privateInfoError } = await supabase
+        .from("profile_private_info")
+        .upsert(
+          { profile_id: profile.id, ...privateInfoPatch, updated_at: new Date().toISOString() },
+          { onConflict: "profile_id" },
+        );
       setPending(false);
 
-      if (updateError) return setError("לא הצלחנו לשמור. נסו שוב.");
+      if (privateInfoError) return setError("לא הצלחנו לשמור. נסו שוב.");
       router.push("/profile");
       router.refresh();
     } catch {
@@ -206,6 +234,21 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           />
         </Field>
 
+        <Field label="תעודת זהות" hint="לזיהוי ולצורך כתב הוויתור.">
+          <Input
+            name="id_number"
+            type="text"
+            inputMode="numeric"
+            autoComplete="off"
+            dir="ltr"
+            defaultValue={privateInfo.id_number ?? ""}
+            required
+            maxLength={9}
+            placeholder="123456789"
+            className="text-left"
+          />
+        </Field>
+
         <Field label="אינסטגרם" hint="כדי להכיר את מי שמאחורי השחייה.">
           <Input
             name="instagram"
@@ -213,6 +256,15 @@ export function ProfileForm({ profile }: { profile: Profile }) {
             defaultValue={profile.instagram ?? ""}
             placeholder="@username"
             className="text-left"
+          />
+        </Field>
+
+        <Field label="רחוב ומספר בית">
+          <Input
+            name="street"
+            defaultValue={privateInfo.street ?? ""}
+            autoComplete="address-line1"
+            required
           />
         </Field>
 
@@ -254,6 +306,10 @@ export function ProfileForm({ profile }: { profile: Profile }) {
                 השם שלכם גלוי לכל חברי הקהילה. התמונות, הטלפון
                 והאינסטגרם גלויים רק למי שהיה איתכם באותו מפגש. מנהלת
                 הקהילה רואה הכל, תמיד.
+              </p>
+              <p>
+                תעודת הזהות וכתובת המגורים שלכם נאספות בהרשמה, ונגישות
+                רק למנהלת הקהילה - לעולם לא לחברי קהילה אחרים.
               </p>
               <p>המידע נשמר אצל Supabase, בתשתית מאובטחת.</p>
             </div>

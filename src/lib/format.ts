@@ -254,6 +254,23 @@ export function isValidIsraeliPhone(raw: string): boolean {
   return /^(05\d{8}|0[23489]\d{7})$/.test(local);
 }
 
+/**
+ * ספרת ביקורת של תעודת זהות ישראלית (אלגוריתם Luhn משוקלל) - לא רק
+ * "9 ספרות", אלא בדיקה אמיתית שמספר כזה יכול להיות תקף. עד 9 ספרות
+ * (ת"ז ישנות קצרות יותר מתמלאות באפסים משמאל).
+ */
+export function isValidIsraeliId(raw: string): boolean {
+  const id = raw.trim();
+  if (!/^\d{1,9}$/.test(id)) return false;
+  const padded = id.padStart(9, "0");
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    const step = Number(padded[i]) * ((i % 2) + 1);
+    sum += step > 9 ? step - 9 : step;
+  }
+  return sum % 10 === 0;
+}
+
 // -------------------------------------------------------------------- שם
 
 /**
