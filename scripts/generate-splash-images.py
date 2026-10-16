@@ -55,7 +55,7 @@ DEVICES = [
 ]
 
 FILL_RATIO = 0.55  # רוחב הוורדמארק יחסית לרוחב המסך
-FROM_NEST_RATIO = 0.3  # רוחב "from nest" יחסית לרוחב המסך - קטן משמעותית מהלוגו הראשי
+FROM_NEST_RATIO = FILL_RATIO * 0.4  # ~40% מרוחב לוגו Swell, לפי בקשת שיר - שקט, לא מתחרה
 FROM_NEST_BOTTOM_RATIO = 0.08  # מרווח מתחתית המסך, יחסית לגובה המסך
 
 if not WORDMARK.exists():
