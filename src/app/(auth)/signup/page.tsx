@@ -210,19 +210,6 @@ export default function SignupPage() {
           <BirthDateInput name="birth_date" />
         </Field>
 
-        <Field label="מספר טלפון" hint="כדי להמשיך את השיחה גם מחוץ למים.">
-          <Input
-            name="phone"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            dir="ltr"
-            required
-            placeholder="050-1234567"
-            className="text-left"
-          />
-        </Field>
-
         <Field label="תעודת זהות" hint="לזיהוי ולצורך כתב הוויתור.">
           <Input
             name="id_number"
@@ -233,6 +220,19 @@ export default function SignupPage() {
             required
             maxLength={9}
             placeholder="123456789"
+            className="text-left"
+          />
+        </Field>
+
+        <Field label="מספר טלפון" hint="כדי להמשיך את השיחה גם מחוץ למים.">
+          <Input
+            name="phone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            dir="ltr"
+            required
+            placeholder="050-1234567"
             className="text-left"
           />
         </Field>

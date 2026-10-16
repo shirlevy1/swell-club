@@ -221,19 +221,6 @@ export function ProfileForm({
           <BirthDateInput name="birth_date" defaultValue={profile.birth_date ?? ""} />
         </Field>
 
-        <Field label="מספר טלפון" hint="כדי להמשיך את השיחה גם מחוץ למים.">
-          <Input
-            name="phone"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            dir="ltr"
-            defaultValue={profile.phone ?? ""}
-            required
-            className="text-left"
-          />
-        </Field>
-
         <Field label="תעודת זהות" hint="לזיהוי ולצורך כתב הוויתור.">
           <Input
             name="id_number"
@@ -245,6 +232,19 @@ export function ProfileForm({
             required
             maxLength={9}
             placeholder="123456789"
+            className="text-left"
+          />
+        </Field>
+
+        <Field label="מספר טלפון" hint="כדי להמשיך את השיחה גם מחוץ למים.">
+          <Input
+            name="phone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            dir="ltr"
+            defaultValue={profile.phone ?? ""}
+            required
             className="text-left"
           />
         </Field>
