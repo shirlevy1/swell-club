@@ -42,8 +42,7 @@ export default async function AdminInstagramPage() {
           קבוצת הוואטסאפ
         </h2>
         <p className="text-sm leading-relaxed text-(--color-ink-faint)">
-          יוצג כקישור בדף הבית, מתחת לכרטיס האינסטגרם. ריק = לא מוצג
-          בכלל.
+          יוצג כקישור בדף הבית. ריק = לא מוצג בכלל.
         </p>
       </div>
 
