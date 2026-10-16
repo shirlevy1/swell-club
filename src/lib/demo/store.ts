@@ -15,6 +15,8 @@ const CLUB: Club = {
   name: "Swell Club",
   slug: "swell",
   description: "קהילת השחיינים",
+  instagram_reel_permalink: null,
+  instagram_reel_cover_path: null,
 };
 
 const ME_ID = "demo-me";
@@ -845,4 +847,20 @@ export function demoUpdateEventSchedule(
   if (demoMyRole() !== "organizer") return;
   const seed = EVENT_SEEDS.find((e) => e.id === eventId);
   if (seed) Object.assign(seed, patch);
+}
+
+/**
+ * coverDataUrl מגיעה כ-data URL ונשמרת ישירות (כמו תמונות אלבום
+ * בהדגמה) - אין storage אמיתי כאן, אז אין גם נתיב להחליף, רק את
+ * ה-URL השמיש עצמו.
+ */
+export function demoUpdateInstagramReel(
+  permalink: string | null,
+  coverDataUrl: string | null,
+) {
+  if (demoMyRole() !== "organizer") return;
+  Object.assign(CLUB, {
+    instagram_reel_permalink: permalink,
+    instagram_reel_cover_path: coverDataUrl,
+  });
 }

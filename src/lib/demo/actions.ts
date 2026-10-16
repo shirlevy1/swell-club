@@ -21,6 +21,7 @@ import {
   demoSetOutreachContact,
   demoToggleRsvp,
   demoUpdateEventSchedule,
+  demoUpdateInstagramReel,
   demoUpdateProfile,
   demoUpdateSelfie,
 } from "./store";
@@ -118,6 +119,16 @@ export async function updateEventScheduleAction(
   guard();
   demoUpdateEventSchedule(eventId, patch);
   revalidatePath(`/events/${eventId}`);
+}
+
+export async function updateInstagramReelAction(
+  permalink: string | null,
+  coverDataUrl: string | null,
+) {
+  guard();
+  demoUpdateInstagramReel(permalink, coverDataUrl);
+  revalidatePath("/home");
+  revalidatePath("/admin/instagram");
 }
 
 /** התמונה מגיעה כ-data URL ונשמרת בזיכרון, כמו הסלפי בהדגמה. */

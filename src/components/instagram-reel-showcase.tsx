@@ -4,15 +4,20 @@ import { SwellLogo } from "./swell-logo";
  * רייל נבחר ידנית מאינסטגרם של Swell Club, בתחתית דף הבית - כרטיס
  * בעיצוב עצמאי שלנו (לא הווידג'ט הרשמי של אינסטגרם, שנמרח בתצוגה
  * רחבה - ראו שיחה עם שיר): תמונה שאנחנו מארחים, עם כפתור הפעלה
- * וקישור לרייל. להחלפה לרייל אחר: צריך גם קישור חדש (REEL_PERMALINK)
- * וגם תמונה חדשה (public/instagram-reel-cover.jpg) - אין הבאה
- * אוטומטית כמו שהייתה בווידג'ט הרשמי.
+ * וקישור לרייל. permalink+coverUrl מגיעים מ-getHomeInstagramReel
+ * (lib/data.ts) - מנהלת הקהילה מחליפה אותם ב-admin/instagram, בלי
+ * נגיעה בקוד. קישור הפרופיל למעלה קבוע במכוון (לא שדה לעריכה) -
+ * תמיד swell__club.
  */
-const REEL_PERMALINK =
-  "https://www.instagram.com/reel/DcOCMDcsu5H/?utm_source=ig_embed&utm_campaign=loading";
 const PROFILE_LINK = "https://www.instagram.com/swell__club/";
 
-export function InstagramReelShowcase() {
+export function InstagramReelShowcase({
+  permalink,
+  coverUrl,
+}: {
+  permalink: string;
+  coverUrl: string;
+}) {
   return (
     <div className="space-y-3 rounded-2xl border border-(--color-line) bg-(--color-surface) p-4">
       <div className="flex items-center justify-between gap-2">
@@ -41,14 +46,14 @@ export function InstagramReelShowcase() {
       </div>
 
       <a
-        href={REEL_PERMALINK}
+        href={permalink}
         target="_blank"
         rel="noreferrer"
         className="group relative block overflow-hidden rounded-xl bg-(--color-haze)"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/instagram-reel-cover.jpg"
+          src={coverUrl}
           alt="רייל מתוך האינסטגרם של Swell Club"
           loading="lazy"
           className="aspect-[2/3] w-full object-cover transition group-active:scale-[0.98]"

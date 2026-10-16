@@ -1670,6 +1670,39 @@ export async function getRandomEventAlbum(): Promise<RandomEventAlbum | null> {
   return { eventId: rows[0].event_id, photoUrls };
 }
 
+const DEFAULT_INSTAGRAM_REEL_PERMALINK =
+  "https://www.instagram.com/reel/DcOCMDcsu5H/?utm_source=ig_embed&utm_campaign=loading";
+const DEFAULT_INSTAGRAM_REEL_COVER_URL = "/instagram-reel-cover.jpg";
+
+/**
+ * הרייל+תמונת הקאבר בכרטיס האינסטגרם בדף הבית (instagram-reel-showcase.tsx) -
+ * ניתנים לעריכה ע"י מנהלת הקהילה (admin/instagram), נשמרים על clubs.
+ * NULL בכל אחד מהשניים = עדיין לא הוחלף אף פעם, נופל לברירת המחדל
+ * שהייתה קשיחה בקוד עד עכשיו.
+ *
+ * club.instagram_reel_cover_path בהדגמה הוא כבר data URL שמיש
+ * (demoUpdateInstagramReel שומר אותו ככה, בלי storage אמיתי) - ולכן
+ * רק במצב אמיתי צריך לפענח אותו מול ה-bucket הציבורי club-assets.
+ */
+export async function getHomeInstagramReel(
+  club: Club,
+): Promise<{ permalink: string; coverUrl: string }> {
+  const permalink = club.instagram_reel_permalink ?? DEFAULT_INSTAGRAM_REEL_PERMALINK;
+
+  if (!club.instagram_reel_cover_path) {
+    return { permalink, coverUrl: DEFAULT_INSTAGRAM_REEL_COVER_URL };
+  }
+  if (demoMode) {
+    return { permalink, coverUrl: club.instagram_reel_cover_path };
+  }
+
+  const supabase = await createClient();
+  const { data } = supabase.storage
+    .from("club-assets")
+    .getPublicUrl(club.instagram_reel_cover_path);
+  return { permalink, coverUrl: data.publicUrl };
+}
+
 // -------------------------------------------------------------- דף ניהול
 
 export type AdminEvent = SwellEvent & {

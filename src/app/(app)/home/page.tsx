@@ -7,6 +7,7 @@ import {
   getMyGoingEventIds,
   getMyAttendedEventIds,
   getRandomEventAlbum,
+  getHomeInstagramReel,
 } from "@/lib/data";
 import { getWaveForecast, getBestSwimDays, getCurrentWaterTempC } from "@/lib/gosurf";
 import { EmptyState } from "@/components/ui";
@@ -39,6 +40,7 @@ export default async function HomePage() {
     randomAlbum,
     memberCount,
     metCount,
+    instagramReel,
   ] = await Promise.all([
     getWaveForecast(),
     getBestSwimDays(),
@@ -50,6 +52,7 @@ export default async function HomePage() {
     getRandomEventAlbum(),
     getClubMemberCount(),
     getMetPeopleCount(viewer.userId),
+    getHomeInstagramReel(viewer.club),
   ]);
   const nextEvent = upcomingEvents[0];
 
@@ -69,7 +72,10 @@ export default async function HomePage() {
         <RandomEventAlbumCard eventId={randomAlbum.eventId} photoUrls={randomAlbum.photoUrls} />
       )}
       <CommunityStats memberCount={memberCount} metCount={metCount} />
-      <InstagramReelShowcase />
+      <InstagramReelShowcase
+        permalink={instagramReel.permalink}
+        coverUrl={instagramReel.coverUrl}
+      />
     </div>
   );
 }

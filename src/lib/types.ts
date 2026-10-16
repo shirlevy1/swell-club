@@ -25,6 +25,8 @@ export type Club = {
   name: string;
   slug: string;
   description: string | null;
+  instagram_reel_permalink: string | null;
+  instagram_reel_cover_path: string | null;
 };
 
 export type ClubMember = {
