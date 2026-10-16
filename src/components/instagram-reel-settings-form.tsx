@@ -119,7 +119,7 @@ export function InstagramReelSettingsForm({
       <Card className="space-y-4">
         <Field
           label="קישור הרייל"
-          hint="⋯ → העתקת קישור, באינסטגרם (לא ⋯ → הטבעה - זה קוד שונה, לא קישור)"
+          hint="⋯ → העתקת קישור, באינסטגרם"
         >
           <Input
             type="text"

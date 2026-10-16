@@ -20,11 +20,11 @@ export default async function AdminInstagramPage() {
 
       <div className="space-y-1">
         <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold">
-          הרייל באינסטגרם
+          רייל מהאינסטגרם של Swell Club
         </h1>
         <p className="text-sm leading-relaxed text-(--color-ink-faint)">
-          הקישור והתמונה שמוצגים בכרטיס האינסטגרם בדף הבית לכל חברי
-          הקהילה. קישור הפרופיל למעלה בכרטיס תמיד קבוע (swell__club).
+          הרייל והתמונה שיופיעו בכרטיס האינסטגרם בדף הבית, אצל כל חברי
+          הקהילה. הקישור לפרופיל שלנו תמיד נשאר קבוע: swell__club.
         </p>
       </div>
 
