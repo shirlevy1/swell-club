@@ -53,7 +53,7 @@ export function InstagramReelShowcase() {
           loading="lazy"
           className="aspect-[2/3] w-full object-cover transition group-active:scale-[0.98]"
         />
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
           <svg
             viewBox="0 0 24 24"
             className="size-28 translate-x-1.5 drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)] transition group-hover:scale-110"
