@@ -18,13 +18,8 @@ export function WhatsappGroupCardRow({ link }: { link: string | null }) {
       <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-(--color-verified)/10 text-(--color-verified)">
         <WhatsAppIcon className="size-5" />
       </span>
-      <span className="flex-1">
-        <span className="block text-sm font-bold text-(--color-ink)">
-          קבוצת הוואטסאפ
-        </span>
-        <span className="block text-xs text-(--color-ink-faint)">
-          Swell Club
-        </span>
+      <span className="flex-1 text-sm font-bold text-(--color-ink)">
+        Swell Club
       </span>
       <ExternalLinkIcon className="size-4 shrink-0 text-(--color-ink-faint)" />
     </a>
