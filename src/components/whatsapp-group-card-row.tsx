@@ -23,7 +23,7 @@ export function WhatsappGroupCardRow({ link }: { link: string | null }) {
           קבוצת הוואטסאפ
         </span>
         <span className="block text-xs text-(--color-ink-faint)">
-          תיאומים ועדכוני Swell Club
+          Swell Club
         </span>
       </span>
       <ExternalLinkIcon className="size-4 shrink-0 text-(--color-ink-faint)" />
